@@ -42,9 +42,30 @@ Operating at the intersection of **Engineering** and **Product Management**, the
 
 ## 🚀 Getting Started
 
-*(Installation instructions will be added as the prototype reaches the first milestone).*
+### 1. Backend (FastAPI Multi-Agent Server)
+```bash
+cd backend
+python -m venv venv
+# Windows:
+.\venv\Scripts\activate
+# Mac/Linux:
+source venv/bin/activate
+
+pip install -r requirements.txt
+python main.py
+```
+*The FastAPI server will start on `http://127.0.0.1:8000` with interactive Swagger docs at `/docs`.*
+
+### 2. Mobile App (Expo / React Native)
+```bash
+cd mobile
+npm install
+npx expo start
+```
+*Scan the QR code with **Expo Go** (iOS / Android) to launch the app on your physical device!*
 
 ---
+
 <div align="center">
   <i>Developed with ❤️ by Akbermet Toktobekova</i>
 </div>
