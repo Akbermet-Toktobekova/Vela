@@ -1,35 +1,38 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Platform } from "react-native";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { colors } from "./src/theme/colors";
 import { ExpensesScreen } from "./src/screens/ExpensesScreen";
 import { DashboardScreen } from "./src/screens/DashboardScreen";
 import { AdvisorScreen } from "./src/screens/AdvisorScreen";
 import { LearnScreen } from "./src/screens/LearnScreen";
 
-type Tab = "expenses" | "dashboard" | "advisor" | "learn";
+type Tab = "home" | "analytics" | "advisor" | "learn";
 
 interface TabConfig {
   key: Tab;
   label: string;
-  icon: string;
+  iconActive: keyof typeof Ionicons.glyphMap;
+  iconInactive: keyof typeof Ionicons.glyphMap;
 }
 
 const tabs: TabConfig[] = [
-  { key: "expenses", label: "Expenses", icon: "💳" },
-  { key: "dashboard", label: "Dashboard", icon: "📊" },
-  { key: "advisor", label: "Advisor", icon: "💬" },
-  { key: "learn", label: "Learn", icon: "📚" },
+  { key: "home", label: "Home", iconActive: "wallet", iconInactive: "wallet-outline" },
+  { key: "analytics", label: "Analytics", iconActive: "pie-chart", iconInactive: "pie-chart-outline" },
+  { key: "advisor", label: "AI Advisor", iconActive: "sparkles", iconInactive: "sparkles-outline" },
+  { key: "learn", label: "Learn", iconActive: "school", iconInactive: "school-outline" },
 ];
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>("expenses");
+function MainNavigation() {
+  const [activeTab, setActiveTab] = useState<Tab>("home");
+  const insets = useSafeAreaInsets();
 
   const renderScreen = () => {
     switch (activeTab) {
-      case "expenses":
+      case "home":
         return <ExpensesScreen />;
-      case "dashboard":
+      case "analytics":
         return <DashboardScreen onNavigateToChat={() => setActiveTab("advisor")} />;
       case "advisor":
         return <AdvisorScreen />;
@@ -39,22 +42,28 @@ export default function App() {
   };
 
   return (
-    <SafeAreaProvider style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.screenContainer}>{renderScreen()}</View>
 
-      {/* Bottom Tab Bar — Apple HIG Style */}
-      <View style={styles.tabBar}>
+      {/* Revolut 10 Minimalist Vector Tab Bar */}
+      <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.key;
           return (
             <TouchableOpacity
               key={tab.key}
-              style={[styles.tabItem, isActive && styles.tabItemActive]}
+              style={styles.tabItem}
               onPress={() => setActiveTab(tab.key)}
               activeOpacity={0.7}
             >
-              <Text style={styles.tabIcon}>{tab.icon}</Text>
+              <View style={[styles.iconWrapper, isActive && styles.iconWrapperActive]}>
+                <Ionicons
+                  name={isActive ? tab.iconActive : tab.iconInactive}
+                  size={23}
+                  color={isActive ? colors.primary : colors.textSecondary}
+                />
+              </View>
               <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
                 {tab.label}
               </Text>
@@ -62,6 +71,14 @@ export default function App() {
           );
         })}
       </View>
+    </View>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <MainNavigation />
     </SafeAreaProvider>
   );
 }
@@ -76,35 +93,48 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: "row",
-    backgroundColor: "rgba(248, 249, 250, 0.95)",
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#C6C6CD",
-    paddingVertical: 6,
-    paddingBottom: 28,
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: "#F0F1F4",
+    paddingTop: 8,
     justifyContent: "space-around",
     alignItems: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000000",
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   tabItem: {
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 999,
+    justifyContent: "center",
+    flex: 1,
   },
-  tabItemActive: {
-    backgroundColor: "rgba(0, 88, 188, 0.1)",
+  iconWrapper: {
+    width: 40,
+    height: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 14,
   },
-  tabIcon: {
-    fontSize: 22,
-    marginBottom: 2,
+  iconWrapperActive: {
+    backgroundColor: "#F4F5F7",
   },
   tabLabel: {
     fontSize: 10,
     fontWeight: "500",
-    color: "#76777D",
-    letterSpacing: 0.2,
+    color: "#72777A",
+    marginTop: 2,
+    letterSpacing: -0.1,
   },
   tabLabelActive: {
-    color: "#0058BC",
+    color: "#191C1F",
     fontWeight: "700",
   },
 });

@@ -22,9 +22,6 @@
       },
       "package": "com.akbermet.vela"
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
     "extra": {
       "eas": {
         "projectId": "3c0a2fba-d727-42ef-a920-9bc12487fd38"

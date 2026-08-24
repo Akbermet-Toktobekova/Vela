@@ -1,279 +1,133 @@
-import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { colors } from '../theme/colors';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Platform } from 'react-native';
+import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 
-export const LearnScreen: React.FC = () => {
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(1); // 'Twice as much' active by default
-
-  const handleSelect = (index: number) => {
-    setSelectedAnswer(index);
-  };
-
+export default function LearnScreen() {
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Header Section */}
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        
+        {/* Header */}
         <View style={styles.header}>
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>Daily Bite</Text>
-            <Text style={styles.subtitle}>Your daily dose of financial clarity.</Text>
-          </View>
+          <Text style={styles.title}>Academy</Text>
           <View style={styles.streakBadge}>
-            <Text style={styles.streakEmoji}>🔥</Text>
-            <Text style={styles.streakText}>5 days streak</Text>
+            <MaterialCommunityIcons name="fire" size={18} color="#FF7A00" />
+            <Text style={styles.streakText}>5 day streak</Text>
           </View>
         </View>
 
-        {/* Lesson Card */}
-        <View style={[styles.card, styles.lessonCard]}>
-          <View style={styles.cardHeader}>
-            <View style={styles.lessonBadge}>
-              <Text style={styles.lessonBadgeText}>LESSON OF THE DAY</Text>
+        {/* Daily Bite */}
+        <Text style={styles.sectionTitle}>Daily Bite</Text>
+        <TouchableOpacity style={styles.biteCard}>
+          <View style={styles.biteContent}>
+            <View style={styles.biteBadge}>
+              <Feather name="clock" size={12} color="#8A8D93" style={styles.biteBadgeIcon} />
+              <Text style={styles.biteBadgeText}>2 min read</Text>
             </View>
-            <View style={styles.timeBadge}>
-              <Text style={styles.timeBadgeText}>⏱ 2 min read</Text>
+            <Text style={styles.biteTitle}>The 50/30/20 Rule</Text>
+            <Text style={styles.biteDesc}>A simple framework to manage your monthly income effectively.</Text>
+          </View>
+          <View style={styles.biteAction}>
+            <Text style={styles.biteActionText}>Start</Text>
+            <Feather name="arrow-right" size={16} color="#007AFF" />
+          </View>
+        </TouchableOpacity>
+
+        {/* Modules */}
+        <Text style={styles.sectionTitle}>Learn & Earn</Text>
+        
+        <View style={styles.moduleCard}>
+          <View style={styles.moduleIconWrapper}>
+            <Ionicons name="stats-chart" size={24} color="#8C52FF" />
+          </View>
+          <View style={styles.moduleInfo}>
+            <Text style={styles.moduleTitle}>Investing Basics</Text>
+            <Text style={styles.moduleSubtitle}>4 lessons • Earn $5</Text>
+          </View>
+          <Feather name="chevron-right" size={20} color="#C4C4C4" />
+        </View>
+
+        <View style={styles.moduleCard}>
+          <View style={[styles.moduleIconWrapper, { backgroundColor: '#E5F8ED' }]}>
+            <MaterialCommunityIcons name="shield-check-outline" size={24} color="#00C853" />
+          </View>
+          <View style={styles.moduleInfo}>
+            <Text style={styles.moduleTitle}>Crypto Security</Text>
+            <Text style={styles.moduleSubtitle}>3 lessons • Earn $3</Text>
+          </View>
+          <Feather name="chevron-right" size={20} color="#C4C4C4" />
+        </View>
+
+        {/* Knowledge Check */}
+        <View style={styles.quizContainer}>
+          <Text style={styles.quizHeader}>Knowledge Check</Text>
+          <Text style={styles.quizQuestion}>What is compound interest?</Text>
+          
+          <TouchableOpacity style={styles.quizOption}>
+            <View style={styles.radioOuter}>
+              <View style={styles.radioInner} />
             </View>
-          </View>
-          <Text style={styles.lessonTitle}>How compound interest works</Text>
-          <Text style={styles.lessonDescription} numberOfLines={2}>
-            Discover how your money can grow exponentially over time by earning interest on both your initial principal and accumulated interest.
-          </Text>
-          <View style={styles.lessonFooter}>
-            <View style={styles.progressDot} />
-            <TouchableOpacity style={styles.startButton}>
-              <Text style={styles.startButtonText}>Start Reading</Text>
-            </TouchableOpacity>
-          </View>
+            <Text style={styles.quizOptionText}>Interest on initial principal only</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={[styles.quizOption, styles.quizOptionSelected]}>
+            <View style={[styles.radioOuter, styles.radioOuterSelected]}>
+              <View style={[styles.radioInner, styles.radioInnerSelected]} />
+            </View>
+            <Text style={[styles.quizOptionText, styles.quizOptionTextSelected]}>Interest on principal plus accumulated interest</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.quizOption}>
+            <View style={styles.radioOuter}>
+              <View style={styles.radioInner} />
+            </View>
+            <Text style={styles.quizOptionText}>A fee charged by banks</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.submitButton}>
+            <Text style={styles.submitButtonText}>Check answer</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Knowledge Check Section */}
-        <View style={styles.knowledgeSection}>
-          <Text style={styles.sectionTitle}>🧠 Knowledge Check</Text>
-          <View style={[styles.card, styles.questionCard]}>
-            <Text style={styles.questionText}>
-              If you start investing $100 a month at age 20 versus age 30, assuming an 8% annual return, roughly how much more will you have at age 60?
-            </Text>
-            
-            <TouchableOpacity
-              style={[styles.optionButton, selectedAnswer === 0 && styles.optionButtonActive]}
-              onPress={() => handleSelect(0)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.optionText, selectedAnswer === 0 && styles.optionTextActive]}>About the same</Text>
-              <View style={[styles.radioCircle, selectedAnswer === 0 && styles.radioCircleActive]}>
-                {selectedAnswer === 0 && <Text style={styles.checkmark}>✅</Text>}
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.optionButton, selectedAnswer === 1 && styles.optionButtonActive]}
-              onPress={() => handleSelect(1)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.optionText, selectedAnswer === 1 && styles.optionTextActive]}>Twice as much</Text>
-              <View style={[styles.radioCircle, selectedAnswer === 1 && styles.radioCircleActive]}>
-                {selectedAnswer === 1 && <Text style={styles.checkmark}>✅</Text>}
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.optionButton, selectedAnswer === 2 && styles.optionButtonActive]}
-              onPress={() => handleSelect(2)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.optionText, selectedAnswer === 2 && styles.optionTextActive]}>Half as much</Text>
-              <View style={[styles.radioCircle, selectedAnswer === 2 && styles.radioCircleActive]}>
-                {selectedAnswer === 2 && <Text style={styles.checkmark}>✅</Text>}
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  scrollContent: {
-    padding: 24,
-  },
-  header: {
-    marginBottom: 32,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  titleContainer: {
-    flex: 1,
-    paddingRight: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#191C1D',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#45464C',
-    lineHeight: 22,
-  },
-  streakBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E1E3E4',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 100,
-  },
-  streakEmoji: {
-    fontSize: 14,
-    marginRight: 4,
-  },
-  streakText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#191C1D',
-  },
-  card: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#C6C6CD',
-    padding: 20,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.04,
-    shadowRadius: 30,
-    elevation: 4,
-  },
-  lessonCard: {
-    marginBottom: 40,
-    backgroundColor: '#F8F9FA',
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  lessonBadge: {
-    backgroundColor: '#E8F1FF',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-  },
-  lessonBadgeText: {
-    color: '#0056D2',
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  timeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  timeBadgeText: {
-    fontSize: 14,
-    color: '#45464C',
-    fontWeight: '500',
-  },
-  lessonTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#191C1D',
-    marginBottom: 12,
-  },
-  lessonDescription: {
-    fontSize: 15,
-    color: '#45464C',
-    lineHeight: 22,
-    marginBottom: 20,
-  },
-  lessonFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  progressDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#0056D2',
-  },
-  startButton: {
-    backgroundColor: '#000000',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 100,
-  },
-  startButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 15,
-  },
-  knowledgeSection: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#191C1D',
-    marginBottom: 16,
-  },
-  questionCard: {
-    padding: 20,
-  },
-  questionText: {
-    fontSize: 16,
-    color: '#191C1D',
-    lineHeight: 24,
-    fontWeight: '500',
-    marginBottom: 24,
-  },
-  optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#C6C6CD',
-    borderRadius: 100,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  optionButtonActive: {
-    backgroundColor: '#000000',
-    borderColor: '#000000',
-  },
-  optionText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#191C1D',
-  },
-  optionTextActive: {
-    color: '#FFFFFF',
-  },
-  radioCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#C6C6CD',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  radioCircleActive: {
-    borderColor: 'transparent',
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-  },
-  checkmark: {
-    fontSize: 16,
-  },
+  container: { flex: 1, backgroundColor: '#F8F9FA' },
+  scroll: { flex: 1 },
+  content: { padding: 20, paddingBottom: 40 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, marginTop: Platform.OS === 'android' ? 24 : 0 },
+  title: { fontSize: 32, fontWeight: 'bold', color: '#191C1F' },
+  streakBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF2E5', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, gap: 4 },
+  streakText: { fontSize: 13, fontWeight: '700', color: '#FF7A00' },
+  sectionTitle: { fontSize: 20, fontWeight: '700', color: '#191C1F', marginBottom: 16, marginTop: 8 },
+  biteCard: { backgroundColor: '#FFFFFF', borderRadius: 16, overflow: 'hidden', marginBottom: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, borderWidth: 1, borderColor: '#EAECEF' },
+  biteContent: { padding: 20 },
+  biteBadge: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  biteBadgeIcon: { marginRight: 4 },
+  biteBadgeText: { fontSize: 12, fontWeight: '600', color: '#8A8D93', textTransform: 'uppercase', letterSpacing: 0.5 },
+  biteTitle: { fontSize: 22, fontWeight: 'bold', color: '#191C1F', marginBottom: 8 },
+  biteDesc: { fontSize: 15, color: '#5A5D65', lineHeight: 22 },
+  biteAction: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F8F9FA', paddingHorizontal: 20, paddingVertical: 16, borderTopWidth: 1, borderTopColor: '#EAECEF' },
+  biteActionText: { fontSize: 15, fontWeight: '600', color: '#007AFF' },
+  moduleCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 16, borderRadius: 16, marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 1, borderWidth: 1, borderColor: '#EAECEF' },
+  moduleIconWrapper: { width: 48, height: 48, borderRadius: 12, backgroundColor: '#F4EEFF', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+  moduleInfo: { flex: 1 },
+  moduleTitle: { fontSize: 16, fontWeight: '600', color: '#191C1F', marginBottom: 4 },
+  moduleSubtitle: { fontSize: 13, color: '#8A8D93' },
+  quizContainer: { marginTop: 32, backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#EAECEF', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  quizHeader: { fontSize: 13, fontWeight: '700', color: '#8A8D93', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 },
+  quizQuestion: { fontSize: 20, fontWeight: 'bold', color: '#191C1F', marginBottom: 20, lineHeight: 28 },
+  quizOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: '#EAECEF', marginBottom: 12 },
+  quizOptionSelected: { borderColor: '#191C1F', backgroundColor: '#F8F9FA' },
+  radioOuter: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#C4C4C4', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  radioOuterSelected: { borderColor: '#191C1F' },
+  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: 'transparent' },
+  radioInnerSelected: { backgroundColor: '#191C1F' },
+  quizOptionText: { flex: 1, fontSize: 15, color: '#191C1F', fontWeight: '500' },
+  quizOptionTextSelected: { fontWeight: '600' },
+  submitButton: { backgroundColor: '#191C1F', borderRadius: 24, paddingVertical: 14, alignItems: 'center', marginTop: 12 },
+  submitButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' }
 });
