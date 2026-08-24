@@ -4,18 +4,53 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+export type AuroraTheme = 'mint' | 'cobalt' | 'purple' | 'teal';
+
 interface FloatingAuroraBackgroundProps {
   children: React.ReactNode;
+  theme?: AuroraTheme;
 }
 
-export const FloatingAuroraBackground: React.FC<FloatingAuroraBackgroundProps> = ({ children }) => {
-  // Animated float coordinates for multiple ambient light spheres
+const THEME_COLORS = {
+  mint: {
+    base: ['#007F55', '#009A6B', '#0DB37A', '#10C888'] as const,
+    blob1: ['rgba(52, 211, 153, 0.7)', 'rgba(16, 200, 136, 0.3)', 'transparent'] as const,
+    blob2: ['rgba(110, 231, 183, 0.65)', 'rgba(5, 150, 105, 0.25)', 'transparent'] as const,
+    blob3: ['rgba(0, 117, 235, 0.25)', 'rgba(0, 154, 107, 0.1)', 'transparent'] as const,
+  },
+  cobalt: {
+    base: ['#123BB5', '#1754EE', '#2A72FF', '#5093FF'] as const,
+    blob1: ['rgba(96, 165, 250, 0.75)', 'rgba(59, 130, 246, 0.35)', 'transparent'] as const,
+    blob2: ['rgba(147, 197, 253, 0.65)', 'rgba(37, 99, 235, 0.25)', 'transparent'] as const,
+    blob3: ['rgba(168, 85, 247, 0.3)', 'rgba(29, 78, 216, 0.15)', 'transparent'] as const,
+  },
+  purple: {
+    base: ['#2A169E', '#3D25F4', '#5515EE', '#7A22E8'] as const,
+    blob1: ['rgba(192, 132, 252, 0.7)', 'rgba(147, 51, 234, 0.35)', 'transparent'] as const,
+    blob2: ['rgba(232, 121, 249, 0.65)', 'rgba(126, 34, 206, 0.25)', 'transparent'] as const,
+    blob3: ['rgba(59, 130, 246, 0.35)', 'rgba(107, 33, 168, 0.15)', 'transparent'] as const,
+  },
+  teal: {
+    base: ['#005561', '#007A87', '#0891B2', '#06B6D4'] as const,
+    blob1: ['rgba(103, 232, 249, 0.7)', 'rgba(8, 145, 178, 0.35)', 'transparent'] as const,
+    blob2: ['rgba(165, 243, 252, 0.65)', 'rgba(14, 116, 144, 0.25)', 'transparent'] as const,
+    blob3: ['rgba(52, 211, 153, 0.3)', 'rgba(21, 94, 117, 0.15)', 'transparent'] as const,
+  },
+};
+
+export const FloatingAuroraBackground: React.FC<FloatingAuroraBackgroundProps> = ({ 
+  children, 
+  theme = 'mint' 
+}) => {
+  const currentTheme = THEME_COLORS[theme] || THEME_COLORS.mint;
+
+  // Animated float coordinates
   const floatAnim1 = useRef(new Animated.Value(0)).current;
   const floatAnim2 = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // 1. Slow, organic undulating motion loop for Blob 1 (Top Left / Center)
+    // 1. Blob 1 Motion
     Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim1, {
@@ -31,7 +66,7 @@ export const FloatingAuroraBackground: React.FC<FloatingAuroraBackgroundProps> =
       ])
     ).start();
 
-    // 2. Cross-diagonal organic float for Blob 2 (Top Right / Bottom)
+    // 2. Blob 2 Motion
     Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim2, {
@@ -47,7 +82,7 @@ export const FloatingAuroraBackground: React.FC<FloatingAuroraBackgroundProps> =
       ])
     ).start();
 
-    // 3. Subtle breathing scale pulse
+    // 3. Pulse scale
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -64,7 +99,6 @@ export const FloatingAuroraBackground: React.FC<FloatingAuroraBackgroundProps> =
     ).start();
   }, []);
 
-  // Interpolations
   const blob1TranslateX = floatAnim1.interpolate({
     inputRange: [0, 1],
     outputRange: [-40, 60],
@@ -90,15 +124,15 @@ export const FloatingAuroraBackground: React.FC<FloatingAuroraBackgroundProps> =
 
   return (
     <View style={styles.container}>
-      {/* Deep Rich Emerald Base Gradient */}
+      {/* Base Gradient Canvas */}
       <LinearGradient
-        colors={['#007F55', '#009A6B', '#0DB37A', '#10C888']}
+        colors={currentTheme.base as any}
         start={{ x: 0.1, y: 0 }}
         end={{ x: 0.9, y: 1 }}
         style={StyleSheet.absoluteFillObject}
       />
 
-      {/* Floating Organic Aurora Blob 1 (Bright Emerald Glow) */}
+      {/* Floating Organic Blob 1 */}
       <Animated.View
         style={[
           styles.auroraBlob,
@@ -113,12 +147,12 @@ export const FloatingAuroraBackground: React.FC<FloatingAuroraBackgroundProps> =
         ]}
       >
         <LinearGradient
-          colors={['rgba(52, 211, 153, 0.7)', 'rgba(16, 200, 136, 0.3)', 'transparent']}
+          colors={currentTheme.blob1 as any}
           style={styles.blobGradient}
         />
       </Animated.View>
 
-      {/* Floating Organic Aurora Blob 2 (Soft Mint/Cyan Glow) */}
+      {/* Floating Organic Blob 2 */}
       <Animated.View
         style={[
           styles.auroraBlob,
@@ -132,15 +166,15 @@ export const FloatingAuroraBackground: React.FC<FloatingAuroraBackgroundProps> =
         ]}
       >
         <LinearGradient
-          colors={['rgba(110, 231, 183, 0.65)', 'rgba(5, 150, 105, 0.25)', 'transparent']}
+          colors={currentTheme.blob2 as any}
           style={styles.blobGradient}
         />
       </Animated.View>
 
-      {/* Floating Organic Aurora Blob 3 (Deep Cobalt Accent Aura) */}
+      {/* Ambient Blob 3 */}
       <Animated.View style={[styles.auroraBlob, styles.blob3]}>
         <LinearGradient
-          colors={['rgba(0, 117, 235, 0.25)', 'rgba(0, 154, 107, 0.1)', 'transparent']}
+          colors={currentTheme.blob3 as any}
           style={styles.blobGradient}
         />
       </Animated.View>
@@ -154,7 +188,6 @@ export const FloatingAuroraBackground: React.FC<FloatingAuroraBackgroundProps> =
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#007F55',
     overflow: 'hidden',
   },
   auroraBlob: {
