@@ -66,9 +66,9 @@ export const ExpensesScreen: React.FC = () => {
 
   return (
     <View style={styles.mainWrapper}>
-      {/* 1. Authentic Revolut Radial/Linear Aurora Mesh Gradient */}
+      {/* 1. Authentic Revolut Mint Emerald Aurora Silk Gradient */}
       <LinearGradient
-        colors={['#1E16E2', '#3D25F4', '#5515EE', '#7A22E8', '#9B2DF0']}
+        colors={['#009A6B', '#00B87C', '#10C888', '#34D399', '#6EE7B7']}
         start={{ x: 0.1, y: 0.0 }}
         end={{ x: 0.9, y: 0.7 }}
         style={styles.gradientBg}
@@ -86,100 +86,111 @@ export const ExpensesScreen: React.FC = () => {
 
             {/* Revolut Capsule Search Bar */}
             <TouchableOpacity style={styles.searchCapsule} activeOpacity={0.8} onPress={() => setAddModalVisible(true)}>
-              <Ionicons name="search" size={17} color="rgba(255,255,255,0.85)" />
+              <Ionicons name="search" size={17} color="rgba(0,40,25,0.75)" />
               <Text style={styles.searchText}>Search</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.headerGlassCardBtn} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
-              <Ionicons name="card" size={18} color="#FFFFFF" />
-            </TouchableOpacity>
+            <View style={styles.headerIconsRow}>
+              <TouchableOpacity style={styles.headerGlassCardBtn} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
+                <Ionicons name="bar-chart" size={18} color="#003D26" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.headerGlassCardBtn} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
+                <Ionicons name="card" size={18} color="#003D26" />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Hero Revolut Points / Spent Balance */}
+          {/* Hero Revolut Group / Account Name & Balance */}
           <View style={styles.heroSection}>
-            <Text style={styles.planLabel}>Vela Ultra plan</Text>
+            <Text style={styles.accountLabel}>{profile.name || 'Sanatbek'} · Personal</Text>
             
-            <View style={styles.amountHeroRow}>
-              <View style={styles.polyHexagon}>
-                <Ionicons name="sparkles" size={18} color="#2A24F4" />
-              </View>
-              <Text style={styles.amountHeroText}>
-                {Math.round(totalSpent)}
-              </Text>
-            </View>
-
-            <Text style={styles.rateLabel}>
-              Spent this month · €{totalSpent.toFixed(2)} of €{limit.toLocaleString()}
+            <Text style={styles.amountHeroText}>
+              {profile.currency === 'HUF' ? `Ft ${totalSpent.toFixed(2)}` : profile.currency === 'USD' ? `$${totalSpent.toFixed(2)}` : `€${totalSpent.toFixed(2)}`}
             </Text>
 
-            {/* Frosted Upgrade/Add Pill Button */}
-            <TouchableOpacity style={styles.frostedPillBtn} onPress={() => setAddModalVisible(true)} activeOpacity={0.8}>
-              <Text style={styles.frostedPillText}>+ Add expense</Text>
-            </TouchableOpacity>
+            {/* Pagination Carousel Indicator Capsule */}
+            <View style={styles.carouselCapsule}>
+              <View style={[styles.carouselDot, styles.carouselDotActive]} />
+              <View style={styles.carouselDot} />
+              <View style={styles.carouselDot} />
+              <View style={styles.carouselDot} />
+            </View>
           </View>
 
           {/* Revolut 4 Frosted Action Circles Row */}
           <View style={styles.actionRow}>
             <View style={styles.actionItem}>
               <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setAddModalVisible(true)} activeOpacity={0.8}>
-                <Ionicons name="add" size={24} color="#FFFFFF" />
+                <Ionicons name="add" size={24} color="#003D26" />
               </TouchableOpacity>
-              <Text style={styles.actionLabel}>Add</Text>
+              <Text style={styles.actionLabel}>Add money</Text>
             </View>
 
             <View style={styles.actionItem}>
               <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
-                <Ionicons name="radio-outline" size={20} color="#FFFFFF" />
+                <Ionicons name="swap-horizontal" size={22} color="#003D26" />
               </TouchableOpacity>
-              <Text style={styles.actionLabel}>NFC Setup</Text>
+              <Text style={styles.actionLabel}>Move</Text>
             </View>
 
             <View style={styles.actionItem}>
               <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
-                <Ionicons name="diamond-outline" size={20} color="#FFFFFF" />
+                <Ionicons name="information-circle-outline" size={22} color="#003D26" />
               </TouchableOpacity>
-              <Text style={styles.actionLabel}>VIP Perks</Text>
+              <Text style={styles.actionLabel}>Info</Text>
             </View>
 
             <View style={styles.actionItem}>
               <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
-                <Ionicons name="ellipsis-horizontal" size={20} color="#FFFFFF" />
+                <Ionicons name="ellipsis-horizontal" size={22} color="#003D26" />
               </TouchableOpacity>
               <Text style={styles.actionLabel}>More</Text>
             </View>
           </View>
 
-          {/* Story / Perk Banner Card (White Revolut Card) */}
-          <TouchableOpacity style={styles.storyCard} activeOpacity={0.9} onPress={() => setGuideModalVisible(true)}>
-            <View style={styles.storyLeft}>
-              <Text style={styles.storyTitle}>Солнышко, я люблю тебя ❤️</Text>
-              <Text style={styles.storySubtitle}>Tap to connect instant Apple Pay NFC live tracking</Text>
-            </View>
-            <View style={styles.storyCardsGraphic}>
-              <View style={[styles.miniCard, styles.miniCardBack]} />
-              <View style={[styles.miniCard, styles.miniCardFront]}>
-                <Ionicons name="card" size={14} color="#FFFFFF" />
+          {/* Story / Perk Banner Card (Light Mint Card with Snowflake / Heart icon) */}
+          <View style={styles.storyCard}>
+            <View style={styles.storyHeader}>
+              <View style={styles.snowflakeCircle}>
+                <Ionicons name="heart" size={20} color="#FF3366" />
+              </View>
+              <View style={styles.storyTextContainer}>
+                <Text style={styles.storyTitle}>Солнышко, я люблю тебя ❤️</Text>
+                <Text style={styles.storySubtitle}>Vela Ultra automated tracking is active on your device.</Text>
               </View>
             </View>
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.reviewBtn} 
+              onPress={() => setGuideModalVisible(true)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.reviewBtnText}>Apple Pay NFC Setup</Text>
+            </TouchableOpacity>
+          </View>
 
-          {/* Frosted Glass Bottom Container for Pockets & Feed */}
+          {/* Frosted Mint Bottom Container for Pockets & Feed */}
           <View style={styles.frostedSheetContainer}>
-            {/* Quick Segment Filter Pills */}
-            <View style={styles.filterPillsRow}>
-              <TouchableOpacity style={[styles.filterPill, styles.filterPillActive]}>
-                <Text style={[styles.filterPillText, styles.filterPillTextActive]}>Budget Pockets</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filterPill} onPress={() => setAddModalVisible(true)}>
-                <Text style={styles.filterPillText}>Transactions</Text>
-              </TouchableOpacity>
+            {/* Quick Summary Card */}
+            <View style={styles.summaryCard}>
+              <View style={styles.summaryLeft}>
+                <View style={styles.countryFlagCircle}>
+                  <Text style={{ fontSize: 18 }}>🇭🇺</Text>
+                </View>
+                <View>
+                  <Text style={styles.summaryTitle}>Personal ➔ Budget Limit</Text>
+                  <Text style={styles.summaryDate}>Monthly: €{limit.toLocaleString()}</Text>
+                </View>
+              </View>
+              <Text style={styles.summaryAmount}>+€{(limit - totalSpent).toFixed(0)}</Text>
             </View>
 
             {/* Pockets Card */}
             <View style={styles.pocketsCard}>
+              <Text style={styles.pocketsCardHeader}>BUDGET POCKETS (50/30/20)</Text>
+              
               <View style={styles.pocketRow}>
                 <View style={styles.pocketInfo}>
-                  <View style={[styles.pocketDot, { backgroundColor: '#00C853' }]} />
+                  <View style={[styles.pocketDot, { backgroundColor: '#009A6B' }]} />
                   <Text style={styles.pocketName}>Needs (50%)</Text>
                 </View>
                 <Text style={styles.pocketAmount}>
@@ -187,7 +198,7 @@ export const ExpensesScreen: React.FC = () => {
                 </Text>
               </View>
               <View style={styles.progressBarBg}>
-                <View style={[styles.progressBarFill, { width: `${needsPercent}%`, backgroundColor: '#00C853' }]} />
+                <View style={[styles.progressBarFill, { width: `${needsPercent}%`, backgroundColor: '#009A6B' }]} />
               </View>
 
               <View style={[styles.pocketRow, { marginTop: 14 }]}>
@@ -217,13 +228,21 @@ export const ExpensesScreen: React.FC = () => {
               </View>
             </View>
 
+            {/* Transactions Header */}
+            <View style={styles.transactionsHeader}>
+              <Text style={styles.sectionTitle}>Transactions</Text>
+              <TouchableOpacity onPress={() => setAddModalVisible(true)}>
+                <Text style={styles.seeAllText}>See all</Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Transactions List */}
             {transactions.length === 0 ? (
               <View style={styles.zeroStateCard}>
-                <Ionicons name="receipt-outline" size={26} color="#72777A" style={{ marginBottom: 6 }} />
-                <Text style={styles.zeroStateTitle}>No expenses yet</Text>
+                <Ionicons name="receipt-outline" size={26} color="#005A3D" style={{ marginBottom: 6 }} />
+                <Text style={styles.zeroStateTitle}>No transactions recorded</Text>
                 <Text style={styles.zeroStateDesc}>
-                  Tap «Add» above or pay with Apple Pay to see live expenses.
+                  Tap «Add money» above or pay with Apple Pay to see live expenses.
                 </Text>
               </View>
             ) : (
@@ -231,11 +250,11 @@ export const ExpensesScreen: React.FC = () => {
                 {transactions.map((tx) => (
                   <View key={tx.id} style={styles.transactionItem}>
                     <View style={styles.txLeft}>
-                      <View style={[styles.txIconCircle, { backgroundColor: tx.iconBg || '#F4F5F7' }]}>
+                      <View style={[styles.txIconCircle, { backgroundColor: tx.iconBg || '#EAF6F0' }]}>
                         <Ionicons 
                           name={tx.category === 'needs' ? 'cart-outline' : tx.category === 'wants' ? 'cafe-outline' : 'wallet-outline'} 
                           size={18} 
-                          color="#111417" 
+                          color="#003D26" 
                         />
                       </View>
                       <View style={styles.txMeta}>
@@ -248,7 +267,7 @@ export const ExpensesScreen: React.FC = () => {
                     <View style={styles.txRight}>
                       <Text style={styles.txAmount}>-€{tx.amount.toFixed(2)}</Text>
                       <TouchableOpacity onPress={() => deleteTransaction(tx.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                        <Ionicons name="trash-outline" size={13} color="#949BA2" />
+                        <Ionicons name="trash-outline" size={13} color="#8DA99E" />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -287,7 +306,7 @@ export const ExpensesScreen: React.FC = () => {
 const styles = StyleSheet.create({
   mainWrapper: {
     flex: 1,
-    backgroundColor: '#1E16E2',
+    backgroundColor: '#009A6B',
   },
   gradientBg: {
     flex: 1,
@@ -303,101 +322,92 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   avatarCircle: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: 'rgba(255,255,255,0.22)',
+    backgroundColor: 'rgba(0, 45, 30, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   avatarText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#003D26',
   },
   searchCapsule: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(255, 255, 255, 0.28)',
     height: 40,
     borderRadius: 20,
     paddingHorizontal: 14,
     marginHorizontal: 10,
     gap: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   searchText: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
+    color: 'rgba(0, 45, 30, 0.85)',
     fontWeight: '500',
+  },
+  headerIconsRow: {
+    flexDirection: 'row',
+    gap: 8,
   },
   headerGlassCardBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(255, 255, 255, 0.28)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   heroSection: {
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginBottom: 26,
+    marginBottom: 24,
   },
-  planLabel: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
+  accountLabel: {
+    fontSize: 15,
+    color: 'rgba(0, 45, 30, 0.85)',
     fontWeight: '600',
-    marginBottom: 8,
-  },
-  amountHeroRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 8,
-  },
-  polyHexagon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transform: [{ rotate: '45deg' }],
+    marginBottom: 6,
   },
   amountHeroText: {
-    fontSize: 52,
+    fontSize: 48,
     fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -1.5,
-  },
-  rateLabel: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.85)',
-    fontWeight: '500',
+    color: '#002E1C',
+    letterSpacing: -1.2,
     marginBottom: 16,
   },
-  frostedPillBtn: {
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    paddingHorizontal: 28,
-    paddingVertical: 10,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
+  carouselCapsule: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(0, 45, 30, 0.15)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
-  frostedPillText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
+  carouselDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: 'rgba(0, 45, 30, 0.35)',
+  },
+  carouselDotActive: {
+    backgroundColor: '#002E1C',
+    width: 6,
+    height: 6,
   },
   actionRow: {
     flexDirection: 'row',
@@ -413,117 +423,136 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   actionLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#002E1C',
   },
   storyCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(230, 248, 240, 0.95)',
     borderRadius: 24,
     padding: 18,
     marginHorizontal: 16,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.7)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000000',
+        shadowColor: '#002E1C',
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.12,
+        shadowOpacity: 0.08,
         shadowRadius: 12,
       },
       android: {
-        elevation: 4,
+        elevation: 3,
       },
     }),
   },
-  storyLeft: {
+  storyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 14,
+  },
+  snowflakeCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  storyTextContainer: {
     flex: 1,
-    gap: 4,
-    paddingRight: 10,
+    gap: 2,
   },
   storyTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#111417',
+    color: '#002E1C',
     letterSpacing: -0.2,
   },
   storySubtitle: {
     fontSize: 12,
-    color: '#646B73',
+    color: '#005A3D',
     lineHeight: 16,
   },
-  storyCardsGraphic: {
-    width: 54,
-    height: 38,
-    position: 'relative',
-  },
-  miniCard: {
-    position: 'absolute',
-    width: 44,
-    height: 28,
-    borderRadius: 6,
-  },
-  miniCardBack: {
-    top: 0,
-    right: 0,
-    backgroundColor: '#1E16E2',
-    opacity: 0.6,
-  },
-  miniCardFront: {
-    bottom: 0,
-    left: 0,
+  reviewBtn: {
     backgroundColor: '#111417',
+    borderRadius: 16,
+    paddingVertical: 13,
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  reviewBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
   frostedSheetContainer: {
-    backgroundColor: '#F8F9FB',
+    backgroundColor: 'rgba(240, 252, 246, 0.96)',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingHorizontal: 16,
     paddingTop: 18,
   },
-  filterPillsRow: {
+  summaryCard: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  filterPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 18,
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#ECEEF2',
+    borderColor: '#D4EFE3',
   },
-  filterPillActive: {
-    backgroundColor: '#111417',
-    borderColor: '#111417',
+  summaryLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  filterPillText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#646B73',
+  countryFlagCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#EAF6F0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  filterPillTextActive: {
-    color: '#FFFFFF',
+  summaryTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#002E1C',
+  },
+  summaryDate: {
+    fontSize: 12,
+    color: '#005A3D',
+  },
+  summaryAmount: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#009A6B',
   },
   pocketsCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 22,
     padding: 18,
-    marginBottom: 24,
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#ECEEF2',
+    borderColor: '#D4EFE3',
+  },
+  pocketsCardHeader: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#005A3D',
+    letterSpacing: 0.5,
+    marginBottom: 12,
   },
   pocketRow: {
     flexDirection: 'row',
@@ -544,21 +573,21 @@ const styles = StyleSheet.create({
   pocketName: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#111417',
+    color: '#002E1C',
   },
   pocketAmount: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#111417',
+    color: '#002E1C',
   },
   pocketMax: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#72777A',
+    color: '#005A3D',
   },
   progressBarBg: {
     height: 6,
-    backgroundColor: '#F1F3F6',
+    backgroundColor: '#EAF6F0',
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -566,24 +595,41 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 3,
   },
+  transactionsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#002E1C',
+    letterSpacing: -0.3,
+  },
+  seeAllText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#009A6B',
+  },
   zeroStateCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ECEEF2',
+    borderColor: '#D4EFE3',
     borderStyle: 'dashed',
   },
   zeroStateTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#111417',
+    color: '#002E1C',
     marginBottom: 4,
   },
   zeroStateDesc: {
     fontSize: 13,
-    color: '#646B73',
+    color: '#005A3D',
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -591,7 +637,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ECEEF2',
+    borderColor: '#D4EFE3',
     overflow: 'hidden',
   },
   transactionItem: {
@@ -601,7 +647,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F7',
+    borderBottomColor: '#F0F8F4',
   },
   txLeft: {
     flexDirection: 'row',
@@ -621,11 +667,11 @@ const styles = StyleSheet.create({
   txMerchant: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111417',
+    color: '#002E1C',
   },
   txSubtitle: {
     fontSize: 11,
-    color: '#646B73',
+    color: '#005A3D',
     fontWeight: '500',
   },
   txRight: {
@@ -635,6 +681,6 @@ const styles = StyleSheet.create({
   txAmount: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111417',
+    color: '#002E1C',
   },
 });
