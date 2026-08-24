@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Platform } from "r
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "./src/theme/colors";
+import { UserProvider } from "./src/context/UserContext";
 import { ExpensesScreen } from "./src/screens/ExpensesScreen";
 import { DashboardScreen } from "./src/screens/DashboardScreen";
 import { AdvisorScreen } from "./src/screens/AdvisorScreen";
@@ -21,7 +22,7 @@ const tabs: TabConfig[] = [
   { key: "home", label: "Home", iconActive: "wallet", iconInactive: "wallet-outline" },
   { key: "analytics", label: "Analytics", iconActive: "pie-chart", iconInactive: "pie-chart-outline" },
   { key: "advisor", label: "AI Advisor", iconActive: "sparkles", iconInactive: "sparkles-outline" },
-  { key: "learn", label: "Learn", iconActive: "school", iconInactive: "school-outline" },
+  { key: "learn", label: "Academy", iconActive: "school", iconInactive: "school-outline" },
 ];
 
 function MainNavigation() {
@@ -60,8 +61,8 @@ function MainNavigation() {
               <View style={[styles.iconWrapper, isActive && styles.iconWrapperActive]}>
                 <Ionicons
                   name={isActive ? tab.iconActive : tab.iconInactive}
-                  size={23}
-                  color={isActive ? colors.primary : colors.textSecondary}
+                  size={22}
+                  color={isActive ? "#191C1F" : "#72777A"}
                 />
               </View>
               <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
@@ -78,7 +79,9 @@ function MainNavigation() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <MainNavigation />
+      <UserProvider>
+        <MainNavigation />
+      </UserProvider>
     </SafeAreaProvider>
   );
 }
@@ -117,7 +120,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconWrapper: {
-    width: 40,
+    width: 38,
     height: 28,
     alignItems: "center",
     justifyContent: "center",

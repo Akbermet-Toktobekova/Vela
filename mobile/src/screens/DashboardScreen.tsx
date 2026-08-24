@@ -1,390 +1,389 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons, Feather } from '@expo/vector-icons';
+import { colors } from '../theme/colors';
+import { useUser } from '../context/UserContext';
 
-interface DashboardScreenProps {
-  onNavigateToChat?: () => void;
-}
+export const DashboardScreen: React.FC<{ onNavigateToChat?: () => void }> = ({ onNavigateToChat }) => {
+  const insets = useSafeAreaInsets();
+  const { profile, vaults, totalSpent, savingsSpent } = useUser();
 
-export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToChat }) => {
+  const netSurplus = Math.max(0, (profile.monthlyLimit || 2000) - totalSpent);
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+    <View style={[styles.mainWrapper, { paddingTop: Math.max(insets.top, 20) }]}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.profileButton}>
-            <Text style={styles.profileInitials}>S</Text>
-          </TouchableOpacity>
-          <View style={styles.monthSelector}>
-            <Text style={styles.monthText}>August 2026</Text>
-            <Ionicons name="chevron-down" size={16} color="#000" style={styles.chevron} />
+          <View>
+            <Text style={styles.screenTitle}>Analytics & Vaults</Text>
+            <Text style={styles.screenSubtitle}>Financial Intelligence</Text>
           </View>
-          <TouchableOpacity style={styles.chatButton} onPress={onNavigateToChat}>
-            <Ionicons name="chatbubbles-outline" size={24} color="#000" />
+          <TouchableOpacity style={styles.monthPill} activeOpacity={0.7}>
+            <Text style={styles.monthPillText}>August 2026</Text>
+            <Ionicons name="chevron-down" size={12} color="#72777A" style={{ marginLeft: 4 }} />
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.screenTitle}>Analytics & Vaults</Text>
-
-        {/* Net Surplus Hero */}
+        {/* 1. Net Surplus Hero Card */}
         <View style={styles.heroCard}>
-          <Text style={styles.heroSubtitle}>Net savings surplus this month</Text>
-          <View style={styles.heroAmountContainer}>
-            <Text style={styles.heroAmount}>+€620.00</Text>
-            <View style={styles.trendingPill}>
-              <Feather name="trending-up" size={14} color="#059669" />
+          <View style={styles.heroTop}>
+            <Text style={styles.heroLabel}>NET SAVINGS SURPLUS</Text>
+            <View style={styles.trendBadge}>
+              <Ionicons name="trending-up" size={14} color="#00C853" />
+              <Text style={styles.trendText}>On Track</Text>
             </View>
           </View>
+          <Text style={styles.heroAmount}>+€{netSurplus.toFixed(2)}</Text>
+          <Text style={styles.heroDesc}>Unallocated surplus ready for your savings vaults.</Text>
         </View>
 
-        {/* Savings Vaults Section */}
+        {/* 2. Revolut Savings Vaults */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Savings Vaults</Text>
-          <TouchableOpacity style={styles.newVaultButton}>
-            <Text style={styles.newVaultText}>+ New Vault</Text>
+          <TouchableOpacity onPress={onNavigateToChat}>
+            <Text style={styles.actionLink}>+ New Vault</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.vaultsContainer}>
-          {/* Vault 1 */}
-          <View style={styles.vaultCard}>
-            <View style={styles.vaultHeader}>
-              <View style={styles.vaultIconContainerGreen}>
-                <MaterialCommunityIcons name="shield-star-outline" size={24} color="#059669" />
+        {vaults.map((vault) => {
+          const progressPercent = Math.min(100, Math.round((vault.currentAmount / vault.targetAmount) * 100)) || 0;
+          return (
+            <View key={vault.id} style={styles.vaultCard}>
+              <View style={styles.vaultHeader}>
+                <View style={styles.vaultLeft}>
+                  <View style={[styles.vaultIconCircle, { backgroundColor: vault.iconBg }]}>
+                    <Ionicons name={vault.iconName as any} size={22} color={vault.iconColor} />
+                  </View>
+                  <View style={styles.vaultMeta}>
+                    <Text style={styles.vaultTitle}>{vault.title}</Text>
+                    <Text style={styles.vaultDate}>Target: {vault.targetDate}</Text>
+                  </View>
+                </View>
+                <View style={styles.vaultProgressBadge}>
+                  <Text style={styles.vaultPercentText}>{progressPercent}%</Text>
+                </View>
               </View>
-              <View style={styles.vaultInfo}>
-                <Text style={styles.vaultName}>Emergency Fund</Text>
-                <Text style={styles.vaultTarget}>Target: Dec 2026</Text>
-              </View>
-            </View>
-            <Text style={styles.vaultAmount}>€2,800 <Text style={styles.vaultTotal}>of €6,000</Text></Text>
-            <View style={styles.progressBarBackground}>
-              <View style={[styles.progressBarFill, { width: '46.7%' }]} />
-            </View>
-          </View>
 
-          {/* Vault 2 */}
-          <View style={styles.vaultCard}>
-            <View style={styles.vaultHeader}>
-              <View style={styles.vaultIconContainerBlue}>
-                <Ionicons name="airplane-outline" size={24} color="#2563EB" />
+              <View style={styles.vaultAmountsRow}>
+                <Text style={styles.vaultCurrent}>€{vault.currentAmount.toLocaleString()}</Text>
+                <Text style={styles.vaultTarget}>of €{vault.targetAmount.toLocaleString()}</Text>
               </View>
-              <View style={styles.vaultInfo}>
-                <Text style={styles.vaultName}>Trip to Japan</Text>
-                <Text style={styles.vaultTarget}>Target: Oct 2026</Text>
+
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: `${Math.max(5, progressPercent)}%`, backgroundColor: vault.iconColor }]} />
               </View>
             </View>
-            <Text style={styles.vaultAmount}>€950 <Text style={styles.vaultTotal}>of €3,000</Text></Text>
-            <View style={styles.progressBarBackground}>
-              <View style={[styles.progressBarFill, { width: '31.7%', backgroundColor: '#2563EB' }]} />
-            </View>
+          );
+        })}
+
+        {/* 3. Debt Strategy Card (Avalanche) */}
+        <View style={[styles.sectionHeader, { marginTop: 12 }]}>
+          <Text style={styles.sectionTitle}>Debt Strategy</Text>
+          <View style={styles.avalancheBadge}>
+            <Text style={styles.avalancheText}>Avalanche Method</Text>
           </View>
         </View>
 
-        {/* Debt Payoff Section */}
-        <View style={styles.sectionHeader}>
-          <View style={styles.debtHeaderTitleRow}>
-            <Text style={styles.sectionTitle}>Debt Payoff</Text>
-            <View style={styles.strategyBadge}>
-              <Text style={styles.strategyBadgeText}>Avalanche</Text>
+        <View style={styles.debtCard}>
+          <View style={styles.debtHeader}>
+            <View style={styles.debtLeft}>
+              <View style={styles.debtIconCircle}>
+                <Ionicons name="card" size={20} color="#FF3366" />
+              </View>
+              <View>
+                <Text style={styles.debtTitle}>Credit Card</Text>
+                <Text style={styles.debtApr}>21.5% APR · Highest interest</Text>
+              </View>
             </View>
-          </View>
-        </View>
-
-        <View style={styles.creditCardCard}>
-          <View style={styles.ccTopRow}>
-            <View style={styles.ccIconContainer}>
-              <MaterialCommunityIcons name="credit-card-outline" size={28} color="#1F2937" />
-            </View>
-            <View style={styles.ccInfo}>
-              <Text style={styles.ccName}>Credit Card · 21.5% APR</Text>
-              <Text style={styles.ccBalance}>Balance: €4,250.00</Text>
-            </View>
-          </View>
-          <View style={styles.ccBottomRow}>
-            <View style={styles.ccDueInfo}>
-              <Text style={styles.ccMinDueLabel}>Min Due</Text>
-              <Text style={styles.ccMinDueAmount}>€125.00</Text>
-            </View>
-            <TouchableOpacity style={styles.payEarlyButton}>
-              <Text style={styles.payEarlyText}>Pay early</Text>
+            <TouchableOpacity style={styles.payBtn} onPress={onNavigateToChat}>
+              <Text style={styles.payBtnText}>Optimize</Text>
             </TouchableOpacity>
           </View>
+
+          <View style={styles.debtDetails}>
+            <View style={styles.debtCol}>
+              <Text style={styles.debtColLabel}>CURRENT BALANCE</Text>
+              <Text style={styles.debtColValue}>€4,250.00</Text>
+            </View>
+            <View style={styles.debtDivider} />
+            <View style={styles.debtCol}>
+              <Text style={styles.debtColLabel}>MINIMUM DUE</Text>
+              <Text style={styles.debtColValue}>€125.00</Text>
+            </View>
+          </View>
         </View>
+
+        <View style={{ height: 40 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+  mainWrapper: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
   container: {
+    flex: 1,
+  },
+  contentContainer: {
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 40,
+    paddingBottom: 24,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 20,
-  },
-  profileButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  profileInitials: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#374151',
-  },
-  monthSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-  },
-  monthText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
-    marginRight: 4,
-  },
-  chevron: {
-    marginTop: 2,
-  },
-  chatButton: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingTop: 4,
   },
   screenTitle: {
-    fontSize: 32,
+    fontSize: 22,
     fontWeight: '800',
-    color: '#111827',
-    marginBottom: 24,
+    color: '#191C1F',
     letterSpacing: -0.5,
   },
-  heroCard: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 32,
+  screenSubtitle: {
+    fontSize: 12,
+    color: '#72777A',
+    marginTop: 1,
   },
-  heroSubtitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#6B7280',
-    marginBottom: 8,
-  },
-  heroAmountContainer: {
+  monthPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#F4F5F7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#EBECEF',
+  },
+  monthPillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#555A5E',
+  },
+  heroCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#EBECEF',
+  },
+  heroTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  heroLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#72777A',
+    letterSpacing: 0.5,
+  },
+  trendBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#E8F8EE',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  trendText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#00C853',
   },
   heroAmount: {
-    fontSize: 40,
+    fontSize: 34,
     fontWeight: '800',
-    color: '#059669',
-    letterSpacing: -1,
+    color: '#00C853',
+    letterSpacing: -0.8,
+    marginBottom: 4,
   },
-  trendingPill: {
-    backgroundColor: '#D1FAE5',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginLeft: 12,
+  heroDesc: {
+    fontSize: 13,
+    color: '#72777A',
+    lineHeight: 18,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+    color: '#191C1F',
+    letterSpacing: -0.3,
   },
-  newVaultButton: {
-    backgroundColor: '#EFF6FF',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-  },
-  newVaultText: {
-    fontSize: 14,
+  actionLink: {
+    fontSize: 13,
     fontWeight: '600',
-    color: '#2563EB',
-  },
-  vaultsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 32,
+    color: '#0075EB',
   },
   vaultCard: {
-    width: '48%',
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    padding: 16,
+    padding: 18,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
+    borderColor: '#EBECEF',
   },
   vaultHeader: {
-    marginBottom: 16,
-  },
-  vaultIconContainerGreen: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#D1FAE5',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 12,
   },
-  vaultIconContainerBlue: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#DBEAFE',
+  vaultLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  vaultIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
   },
-  vaultInfo: {},
-  vaultName: {
+  vaultMeta: {
+    gap: 2,
+  },
+  vaultTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#191C1F',
+  },
+  vaultDate: {
+    fontSize: 12,
+    color: '#72777A',
+  },
+  vaultProgressBadge: {
+    backgroundColor: '#F4F5F7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  vaultPercentText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#191C1F',
+  },
+  vaultAmountsRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+    marginBottom: 8,
+  },
+  vaultCurrent: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
+    color: '#191C1F',
   },
   vaultTarget: {
     fontSize: 13,
-    color: '#6B7280',
-    fontWeight: '500',
+    color: '#72777A',
   },
-  vaultAmount: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
-  },
-  vaultTotal: {
-    fontSize: 14,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  progressBarBackground: {
+  progressBarBg: {
     height: 6,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#F4F5F7',
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#059669',
     borderRadius: 3,
   },
-  debtHeaderTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  strategyBadge: {
-    backgroundColor: '#FEF2F2',
+  avalancheBadge: {
+    backgroundColor: '#FFF4E5',
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-    marginLeft: 12,
+    borderRadius: 10,
   },
-  strategyBadgeText: {
-    fontSize: 12,
+  avalancheText: {
+    fontSize: 11,
     fontWeight: '700',
-    color: '#DC2626',
-    textTransform: 'uppercase',
+    color: '#B25E00',
   },
-  creditCardCard: {
+  debtCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 20,
+    borderRadius: 20,
+    padding: 18,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 3,
+    borderColor: '#EBECEF',
   },
-  ccTopRow: {
+  debtHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  debtLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    gap: 12,
   },
-  ccIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#F3F4F6',
+  debtIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFF0F3',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
   },
-  ccInfo: {
-    flex: 1,
-  },
-  ccName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  ccBalance: {
+  debtTitle: {
     fontSize: 15,
-    fontWeight: '500',
-    color: '#4B5563',
+    fontWeight: '700',
+    color: '#191C1F',
   },
-  ccBottomRow: {
+  debtApr: {
+    fontSize: 12,
+    color: '#FF3366',
+    fontWeight: '600',
+  },
+  payBtn: {
+    backgroundColor: '#F4F5F7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  payBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#191C1F',
+  },
+  debtDetails: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    paddingTop: 16,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 14,
+    padding: 12,
   },
-  ccDueInfo: {},
-  ccMinDueLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#6B7280',
+  debtCol: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  debtColLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#72777A',
     marginBottom: 4,
   },
-  ccMinDueAmount: {
-    fontSize: 18,
+  debtColValue: {
+    fontSize: 15,
     fontWeight: '700',
-    color: '#111827',
+    color: '#191C1F',
   },
-  payEarlyButton: {
-    backgroundColor: '#111827',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-  },
-  payEarlyText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
+  debtDivider: {
+    width: 1,
+    backgroundColor: '#EBECEF',
   },
 });

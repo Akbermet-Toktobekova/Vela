@@ -1,142 +1,407 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, SafeAreaView, KeyboardAvoidingView, Platform, Image } from 'react-native';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  TouchableOpacity, 
+  TextInput, 
+  KeyboardAvoidingView, 
+  Platform 
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../theme/colors';
+import { useUser } from '../context/UserContext';
 
-const agents = [
-  { id: 'vela', name: 'Vela', icon: 'sparkles', provider: Ionicons },
-  { id: 'budget', name: 'Budget', icon: 'pie-chart', provider: Feather },
-  { id: 'debt', name: 'Debt', icon: 'credit-card', provider: Feather },
-  { id: 'savings', name: 'Savings', icon: 'shield-check', provider: MaterialCommunityIcons },
-];
+type AgentRole = 'vela' | 'budget' | 'debt' | 'savings';
 
-const messages = [
-  { id: '1', type: 'system', text: 'Today, 10:41 AM' },
-  { id: '2', type: 'received', text: 'Hi there! I noticed your grocery spending is up 15% this month. Want to review your budget?', time: '10:41 AM' },
-  { id: '3', type: 'sent', text: 'Yes, let\'s look at it.', time: '10:42 AM' },
-  { id: '4', type: 'received', text: 'Great. Here is a breakdown of your recent transactions.', time: '10:42 AM', hasCard: true },
-];
+interface ChatMessage {
+  id: string;
+  sender: 'user' | 'agent';
+  text: string;
+  time: string;
+  agentRole?: AgentRole;
+  interactiveCard?: {
+    title: string;
+    target: string;
+    progress: number;
+    saved: string;
+  };
+}
 
-const quickPrompts = ['Reduce bills', 'Set saving goal', 'Analyze last week'];
+export const AdvisorScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
+  const { profile, totalSpent, needsSpent, wantsSpent, savingsSpent } = useUser();
+  const [selectedAgent, setSelectedAgent] = useState<AgentRole>('vela');
+  const [inputMessage, setInputMessage] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: '1',
+      sender: 'user',
+      text: 'How are my expenses looking this week? Should I hold off on that new jacket?',
+      time: '9:41 AM',
+    },
+    {
+      id: '2',
+      sender: 'agent',
+      agentRole: 'vela',
+      text: `Hello ${profile.name}! You've spent €${totalSpent.toFixed(2)} so far this month. Buying a €250 jacket would increase your Wants spending to €${(wantsSpent + 250).toFixed(2)}.`,
+      time: '9:41 AM',
+      interactiveCard: {
+        title: 'Trip to Japan Fund',
+        target: 'Target: €3,000 by Oct',
+        progress: 0.65,
+        saved: '€1,950 saved (65%)',
+      },
+    },
+  ]);
 
-export default function AdvisorScreen() {
-  const [activeAgent, setActiveAgent] = useState('vela');
-  const [inputText, setInputText] = useState('');
+  const handleSend = () => {
+    if (!inputMessage.trim()) return;
+
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      sender: 'user',
+      text: inputMessage.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+    setInputMessage('');
+
+    // Simulated AI response
+    setTimeout(() => {
+      let reply = `Based on your €${profile.monthlyLimit} budget, your savings rate is on track!`;
+      if (selectedAgent === 'budget') {
+        reply = `Budget breakdown: Needs €${needsSpent.toFixed(2)}, Wants €${wantsSpent.toFixed(2)}, Savings €${savingsSpent.toFixed(2)}.`;
+      } else if (selectedAgent === 'debt') {
+        reply = `I recommend paying down your 21.5% APR credit card balance first using the Avalanche method.`;
+      }
+
+      const agentMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: 'agent',
+        agentRole: selectedAgent,
+        text: reply,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, agentMsg]);
+    }, 600);
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.agentScroll}>
-          {agents.map((agent) => {
-            const Icon = agent.provider;
-            const isActive = activeAgent === agent.id;
-            return (
-              <TouchableOpacity
-                key={agent.id}
-                style={[styles.agentPill, isActive && styles.agentPillActive]}
-                onPress={() => setActiveAgent(agent.id)}
-              >
-                <Icon name={agent.icon as any} size={16} color={isActive ? '#FFFFFF' : '#8A8D93'} />
-                <Text style={[styles.agentText, isActive && styles.agentTextActive]}>{agent.name}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
+    <View style={[styles.mainWrapper, { paddingTop: Math.max(insets.top, 20) }]}>
+      <KeyboardAvoidingView 
+        style={styles.keyboardView} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.screenTitle}>AI Financial Twin</Text>
+            <Text style={styles.screenSubtitle}>Multi-agent Advisory</Text>
+          </View>
+          <View style={styles.agentStatusBadge}>
+            <View style={styles.onlineDot} />
+            <Text style={styles.onlineText}>Online</Text>
+          </View>
+        </View>
 
-      <ScrollView style={styles.chatContainer} contentContainerStyle={styles.chatContent}>
-        {messages.map((msg) => {
-          if (msg.type === 'system') {
-            return <Text key={msg.id} style={styles.systemText}>{msg.text}</Text>;
-          }
-          const isSent = msg.type === 'sent';
-          return (
-            <View key={msg.id} style={[styles.messageWrapper, isSent ? styles.messageWrapperSent : styles.messageWrapperReceived]}>
-              <View style={[styles.bubble, isSent ? styles.bubbleSent : styles.bubbleReceived]}>
-                <Text style={[styles.bubbleText, isSent ? styles.bubbleTextSent : styles.bubbleTextReceived]}>{msg.text}</Text>
-                {msg.hasCard && (
-                  <View style={styles.interactiveCard}>
-                    <View style={styles.cardHeader}>
-                      <View style={styles.cardIcon}>
-                        <Feather name="shopping-cart" size={16} color="#007AFF" />
-                      </View>
-                      <Text style={styles.cardTitle}>Groceries</Text>
-                      <Text style={styles.cardAmount}>-$145.20</Text>
+        {/* 1. Revolut Agent Selector */}
+        <View style={styles.agentSelector}>
+          <TouchableOpacity 
+            style={[styles.agentTab, selectedAgent === 'vela' && styles.agentTabActive]}
+            onPress={() => setSelectedAgent('vela')}
+          >
+            <Ionicons name="sparkles" size={16} color={selectedAgent === 'vela' ? '#FFFFFF' : '#72777A'} />
+            <Text style={[styles.agentTabText, selectedAgent === 'vela' && styles.agentTabTextActive]}>Coordinator</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.agentTab, selectedAgent === 'budget' && styles.agentTabActive]}
+            onPress={() => setSelectedAgent('budget')}
+          >
+            <Ionicons name="pie-chart" size={16} color={selectedAgent === 'budget' ? '#FFFFFF' : '#72777A'} />
+            <Text style={[styles.agentTabText, selectedAgent === 'budget' && styles.agentTabTextActive]}>Budget</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.agentTab, selectedAgent === 'debt' && styles.agentTabActive]}
+            onPress={() => setSelectedAgent('debt')}
+          >
+            <Ionicons name="card" size={16} color={selectedAgent === 'debt' ? '#FFFFFF' : '#72777A'} />
+            <Text style={[styles.agentTabText, selectedAgent === 'debt' && styles.agentTabTextActive]}>Debt</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.agentTab, selectedAgent === 'savings' && styles.agentTabActive]}
+            onPress={() => setSelectedAgent('savings')}
+          >
+            <Ionicons name="shield-checkmark" size={16} color={selectedAgent === 'savings' ? '#FFFFFF' : '#72777A'} />
+            <Text style={[styles.agentTabText, selectedAgent === 'savings' && styles.agentTabTextActive]}>Savings</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 2. Messages List */}
+        <ScrollView style={styles.chatScroll} contentContainerStyle={styles.chatContent} showsVerticalScrollIndicator={false}>
+          {messages.map((msg) => (
+            <View key={msg.id} style={[styles.messageRow, msg.sender === 'user' ? styles.userRow : styles.agentRow]}>
+              {msg.sender === 'agent' && (
+                <View style={styles.agentAvatarCircle}>
+                  <Ionicons name="sparkles" size={14} color="#0075EB" />
+                </View>
+              )}
+
+              <View style={[styles.bubble, msg.sender === 'user' ? styles.userBubble : styles.agentBubble]}>
+                <Text style={[styles.bubbleText, msg.sender === 'user' ? styles.userText : styles.agentText]}>
+                  {msg.text}
+                </Text>
+
+                {msg.interactiveCard && (
+                  <View style={styles.cardEmbed}>
+                    <View style={styles.cardEmbedHeader}>
+                      <Ionicons name="airplane" size={16} color="#0075EB" />
+                      <Text style={styles.cardEmbedTitle}>{msg.interactiveCard.title}</Text>
                     </View>
-                    <TouchableOpacity style={styles.cardButton}>
-                      <Text style={styles.cardButtonText}>View details</Text>
-                    </TouchableOpacity>
+                    <Text style={styles.cardEmbedSubtitle}>{msg.interactiveCard.target}</Text>
+                    <View style={styles.embedBarBg}>
+                      <View style={[styles.embedBarFill, { width: `${msg.interactiveCard.progress * 100}%` }]} />
+                    </View>
+                    <Text style={styles.cardEmbedFooter}>{msg.interactiveCard.saved}</Text>
                   </View>
                 )}
+
+                <Text style={[styles.timeText, msg.sender === 'user' ? styles.userTime : styles.agentTime]}>
+                  {msg.time}
+                </Text>
               </View>
-              <Text style={styles.timeText}>{msg.time}</Text>
             </View>
-          );
-        })}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.promptsContainer} contentContainerStyle={styles.promptsContent}>
-          {quickPrompts.map((prompt, index) => (
-            <TouchableOpacity key={index} style={styles.promptChip}>
-              <Text style={styles.promptText}>{prompt}</Text>
-            </TouchableOpacity>
           ))}
         </ScrollView>
-      </ScrollView>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        {/* 3. Input Bar */}
         <View style={styles.inputContainer}>
-          <TouchableOpacity style={styles.attachButton}>
-            <Feather name="plus" size={24} color="#8A8D93" />
-          </TouchableOpacity>
           <TextInput
             style={styles.input}
-            placeholder="Ask anything..."
-            placeholderTextColor="#8A8D93"
-            value={inputText}
-            onChangeText={setInputText}
+            placeholder={`Ask ${selectedAgent === 'vela' ? 'Vela' : selectedAgent} anything...`}
+            placeholderTextColor="#9DA2A6"
+            value={inputMessage}
+            onChangeText={setInputMessage}
+            onSubmitEditing={handleSend}
           />
-          <TouchableOpacity style={[styles.sendButton, inputText.trim() ? styles.sendButtonActive : null]}>
-            <Feather name="arrow-up" size={20} color="#FFFFFF" />
+          <TouchableOpacity style={styles.sendButton} onPress={handleSend} activeOpacity={0.8}>
+            <Ionicons name="arrow-up" size={20} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FA' },
-  header: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#EAECEF', backgroundColor: '#FFFFFF' },
-  agentScroll: { paddingHorizontal: 16, gap: 12 },
-  agentPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, gap: 6 },
-  agentPillActive: { backgroundColor: '#191C1F' },
-  agentText: { fontSize: 14, fontWeight: '600', color: '#8A8D93' },
-  agentTextActive: { color: '#FFFFFF' },
-  chatContainer: { flex: 1 },
-  chatContent: { padding: 16, gap: 16 },
-  systemText: { textAlign: 'center', fontSize: 12, color: '#8A8D93', marginVertical: 8 },
-  messageWrapper: { maxWidth: '80%' },
-  messageWrapperSent: { alignSelf: 'flex-end', alignItems: 'flex-end' },
-  messageWrapperReceived: { alignSelf: 'flex-start', alignItems: 'flex-start' },
-  bubble: { padding: 12, borderRadius: 18, marginBottom: 4 },
-  bubbleSent: { backgroundColor: '#191C1F', borderBottomRightRadius: 4 },
-  bubbleReceived: { backgroundColor: '#FFFFFF', borderBottomLeftRadius: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
-  bubbleText: { fontSize: 15, lineHeight: 22 },
-  bubbleTextSent: { color: '#FFFFFF' },
-  bubbleTextReceived: { color: '#191C1F' },
-  interactiveCard: { marginTop: 12, backgroundColor: '#F8F9FA', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#EAECEF' },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  cardIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#E5F1FF', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  cardTitle: { flex: 1, fontSize: 14, fontWeight: '600', color: '#191C1F' },
-  cardAmount: { fontSize: 14, fontWeight: '600', color: '#191C1F' },
-  cardButton: { backgroundColor: '#FFFFFF', paddingVertical: 8, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: '#EAECEF' },
-  cardButtonText: { fontSize: 13, fontWeight: '600', color: '#191C1F' },
-  timeText: { fontSize: 11, color: '#8A8D93', marginTop: 2, paddingHorizontal: 4 },
-  promptsContainer: { marginTop: 12, marginBottom: 8 },
-  promptsContent: { gap: 8, paddingRight: 32 },
-  promptChip: { backgroundColor: '#FFFFFF', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: '#EAECEF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 1, elevation: 1 },
-  promptText: { fontSize: 14, fontWeight: '500', color: '#191C1F' },
-  inputContainer: { flexDirection: 'row', alignItems: 'center', padding: 12, paddingBottom: Platform.OS === 'ios' ? 24 : 12, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#EAECEF' },
-  attachButton: { padding: 8 },
-  input: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, color: '#191C1F', maxHeight: 100, marginHorizontal: 8 },
-  sendButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#D1D5DB', alignItems: 'center', justifyContent: 'center' },
-  sendButtonActive: { backgroundColor: '#007AFF' },
+  mainWrapper: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 14,
+    paddingTop: 4,
+  },
+  screenTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#191C1F',
+    letterSpacing: -0.5,
+  },
+  screenSubtitle: {
+    fontSize: 12,
+    color: '#72777A',
+  },
+  agentStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#E8F8EE',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  onlineDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#00C853',
+  },
+  onlineText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#00C853',
+  },
+  agentSelector: {
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 20,
+    marginBottom: 14,
+  },
+  agentTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    height: 36,
+    backgroundColor: '#F4F5F7',
+    borderRadius: 12,
+  },
+  agentTabActive: {
+    backgroundColor: '#191C1F',
+  },
+  agentTabText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#72777A',
+  },
+  agentTabTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  chatScroll: {
+    flex: 1,
+  },
+  chatContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  messageRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    gap: 8,
+  },
+  userRow: {
+    justifyContent: 'flex-end',
+  },
+  agentRow: {
+    justifyContent: 'flex-start',
+  },
+  agentAvatarCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#E5F2FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  bubble: {
+    maxWidth: '82%',
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  userBubble: {
+    backgroundColor: '#0075EB',
+    borderBottomRightRadius: 4,
+  },
+  agentBubble: {
+    backgroundColor: '#F4F5F7',
+    borderBottomLeftRadius: 4,
+  },
+  bubbleText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  userText: {
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  agentText: {
+    color: '#191C1F',
+  },
+  timeText: {
+    fontSize: 10,
+    marginTop: 4,
+    alignSelf: 'flex-end',
+  },
+  userTime: {
+    color: 'rgba(255,255,255,0.7)',
+  },
+  agentTime: {
+    color: '#9DA2A6',
+  },
+  cardEmbed: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 12,
+    marginTop: 8,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#EBECEF',
+  },
+  cardEmbedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
+  cardEmbedTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#191C1F',
+  },
+  cardEmbedSubtitle: {
+    fontSize: 11,
+    color: '#72777A',
+    marginBottom: 8,
+  },
+  embedBarBg: {
+    height: 4,
+    backgroundColor: '#F4F5F7',
+    borderRadius: 2,
+    marginBottom: 6,
+  },
+  embedBarFill: {
+    height: '100%',
+    backgroundColor: '#0075EB',
+    borderRadius: 2,
+  },
+  cardEmbedFooter: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#0075EB',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F0F1F4',
+    gap: 8,
+  },
+  input: {
+    flex: 1,
+    height: 44,
+    backgroundColor: '#F4F5F7',
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    fontSize: 14,
+    color: '#191C1F',
+  },
+  sendButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#191C1F',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
