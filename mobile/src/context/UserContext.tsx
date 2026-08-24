@@ -44,6 +44,7 @@ interface UserContextType {
   updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
   addTransaction: (tx: Omit<TransactionItem, 'id' | 'timestamp' | 'timeFormatted'>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
+  addVault: (vault: Omit<VaultGoal, 'id' | 'currentAmount'>) => Promise<void>;
   resetAccount: () => Promise<void>;
 }
 
@@ -100,14 +101,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (storedProfile) {
         setProfile(JSON.parse(storedProfile));
       } else {
-        // First launch ever
         setProfile({ ...DEFAULT_PROFILE, isFirstLaunch: true });
       }
 
       if (storedTx) {
         setTransactions(JSON.parse(storedTx));
       } else {
-        setTransactions([]); // Start clean with 0 transactions!
+        setTransactions([]);
       }
 
       if (storedVaults) {
@@ -147,11 +147,23 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await AsyncStorage.setItem('@vela_transactions', JSON.stringify(updated));
   };
 
+  const addVault = async (vault: Omit<VaultGoal, 'id' | 'currentAmount'>) => {
+    const newVault: VaultGoal = {
+      ...vault,
+      id: Date.now().toString(),
+      currentAmount: 0,
+    };
+    const updated = [...vaults, newVault];
+    setVaults(updated);
+    await AsyncStorage.setItem('@vela_vaults', JSON.stringify(updated));
+  };
+
   const resetAccount = async () => {
     setTransactions([]);
     setProfile({ ...DEFAULT_PROFILE, isFirstLaunch: true });
     await AsyncStorage.removeItem('@vela_transactions');
     await AsyncStorage.removeItem('@vela_user_profile');
+    await AsyncStorage.removeItem('@vela_vaults');
   };
 
   // Calculations
@@ -174,6 +186,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateProfile,
         addTransaction,
         deleteTransaction,
+        addVault,
         resetAccount,
       }}
     >

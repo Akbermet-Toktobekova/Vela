@@ -64,123 +64,129 @@ export const ExpensesScreen: React.FC = () => {
   const wantsPercent = Math.min(100, Math.round((wantsSpent / wantsLimit) * 100)) || 0;
   const savingsPercent = Math.min(100, Math.round((savingsSpent / savingsLimit) * 100)) || 0;
 
+  const isOverBudget = totalSpent > limit;
+  const remainingBudget = limit - totalSpent;
+
   return (
-    <FloatingAuroraBackground>
+    <FloatingAuroraBackground theme="mint">
       <ScrollView 
         style={styles.container} 
         contentContainerStyle={[styles.contentContainer, { paddingTop: Math.max(insets.top, 14) }]} 
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Header */}
+        {/* 1. Top Header */}
         <View style={styles.header}>
           <View style={styles.avatarCircle}>
             <Text style={styles.avatarText}>{profile.initials || 'S'}</Text>
           </View>
 
-          {/* Capsule Search Bar */}
+          {/* Search Bar */}
           <TouchableOpacity style={styles.searchCapsule} activeOpacity={0.8} onPress={() => setAddModalVisible(true)}>
             <Ionicons name="search" size={17} color="rgba(0,40,25,0.75)" />
-            <Text style={styles.searchText}>Search</Text>
+            <Text style={styles.searchText}>Search expenses or merchants</Text>
           </TouchableOpacity>
 
           <View style={styles.headerIconsRow}>
             <TouchableOpacity style={styles.headerGlassCardBtn} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
-              <Ionicons name="bar-chart" size={18} color="#003D26" />
+              <Ionicons name="hardware-chip-outline" size={18} color="#003D26" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerGlassCardBtn} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
-              <Ionicons name="card" size={18} color="#003D26" />
+            <TouchableOpacity style={styles.headerGlassCardBtn} onPress={() => setAddModalVisible(true)} activeOpacity={0.8}>
+              <Ionicons name="add" size={20} color="#003D26" />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Hero Section */}
+        {/* 2. Hero Section: Total Spent & Budget Balance */}
         <View style={styles.heroSection}>
-          <Text style={styles.accountLabel}>{profile.name || 'Sanatbek'} · Personal</Text>
+          <Text style={styles.accountLabel}>{profile.name || 'Sanatbek'} · Monthly Tracker</Text>
           
-          <Text style={styles.amountHeroText}>
+          <Text style={[styles.amountHeroText, isOverBudget && styles.amountOverbudget]}>
             {profile.currency === 'HUF' ? `Ft ${totalSpent.toFixed(2)}` : profile.currency === 'USD' ? `$${totalSpent.toFixed(2)}` : `€${totalSpent.toFixed(2)}`}
           </Text>
 
-          {/* Carousel Indicator Capsule */}
-          <View style={styles.carouselCapsule}>
-            <View style={[styles.carouselDot, styles.carouselDotActive]} />
-            <View style={styles.carouselDot} />
-            <View style={styles.carouselDot} />
-            <View style={styles.carouselDot} />
+          {/* Budget Status Badge */}
+          <View style={[styles.statusBadge, isOverBudget ? styles.statusBadgeOver : styles.statusBadgeNormal]}>
+            <Ionicons 
+              name={isOverBudget ? "warning-outline" : "shield-checkmark-outline"} 
+              size={13} 
+              color={isOverBudget ? "#D32F2F" : "#005A3D"} 
+            />
+            <Text style={[styles.statusText, isOverBudget && styles.statusTextOver]}>
+              {isOverBudget ? `Overbudget by €${Math.abs(remainingBudget).toFixed(2)}` : `€${remainingBudget.toFixed(2)} left of €${limit.toLocaleString()}`}
+            </Text>
           </View>
         </View>
 
-        {/* 4 Frosted Action Circles Row */}
+        {/* 3. Logical Action Buttons for Personal Finance */}
         <View style={styles.actionRow}>
           <View style={styles.actionItem}>
             <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setAddModalVisible(true)} activeOpacity={0.75}>
-              <Ionicons name="add" size={24} color="#003D26" />
+              <Ionicons name="add-circle-outline" size={24} color="#003D26" />
             </TouchableOpacity>
-            <Text style={styles.actionLabel}>Add money</Text>
+            <Text style={styles.actionLabel}>Log Expense</Text>
           </View>
 
           <View style={styles.actionItem}>
             <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setGuideModalVisible(true)} activeOpacity={0.75}>
-              <Ionicons name="swap-horizontal" size={22} color="#003D26" />
+              <Ionicons name="radio-outline" size={22} color="#003D26" />
             </TouchableOpacity>
-            <Text style={styles.actionLabel}>Move</Text>
+            <Text style={styles.actionLabel}>Apple Pay NFC</Text>
+          </View>
+
+          <View style={styles.actionItem}>
+            <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setAddModalVisible(true)} activeOpacity={0.75}>
+              <Ionicons name="pie-chart-outline" size={22} color="#003D26" />
+            </TouchableOpacity>
+            <Text style={styles.actionLabel}>Budget Split</Text>
           </View>
 
           <View style={styles.actionItem}>
             <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setGuideModalVisible(true)} activeOpacity={0.75}>
-              <Ionicons name="information-circle-outline" size={22} color="#003D26" />
+              <Ionicons name="scan-outline" size={22} color="#003D26" />
             </TouchableOpacity>
-            <Text style={styles.actionLabel}>Info</Text>
-          </View>
-
-          <View style={styles.actionItem}>
-            <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setGuideModalVisible(true)} activeOpacity={0.75}>
-              <Ionicons name="ellipsis-horizontal" size={22} color="#003D26" />
-            </TouchableOpacity>
-            <Text style={styles.actionLabel}>More</Text>
+            <Text style={styles.actionLabel}>Scan Receipt</Text>
           </View>
         </View>
 
-        {/* Love Banner Card */}
-        <View style={styles.storyCard}>
+        {/* 4. Love Banner / Live NFC Status Card */}
+        <TouchableOpacity style={styles.storyCard} activeOpacity={0.9} onPress={() => setGuideModalVisible(true)}>
           <View style={styles.storyHeader}>
             <View style={styles.snowflakeCircle}>
               <Ionicons name="heart" size={20} color="#FF3366" />
             </View>
             <View style={styles.storyTextContainer}>
               <Text style={styles.storyTitle}>Солнышко, я люблю тебя ❤️</Text>
-              <Text style={styles.storySubtitle}>Vela Ultra automated tracking is active on your device.</Text>
+              <Text style={styles.storySubtitle}>Live NFC auto-ingestion ready. Tap for Apple Shortcuts guide.</Text>
             </View>
           </View>
-          <TouchableOpacity 
-            style={styles.reviewBtn} 
-            onPress={() => setGuideModalVisible(true)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.reviewBtnText}>Apple Pay NFC Setup</Text>
-          </TouchableOpacity>
-        </View>
+          <View style={styles.reviewBtn}>
+            <Text style={styles.reviewBtnText}>Connect Apple Pay NFC</Text>
+          </View>
+        </TouchableOpacity>
 
-        {/* Bottom Container */}
+        {/* 5. Bottom Frosted Sheet for Budget & Transactions */}
         <View style={styles.frostedSheetContainer}>
           {/* Quick Summary Card */}
           <View style={styles.summaryCard}>
             <View style={styles.summaryLeft}>
               <View style={styles.countryFlagCircle}>
-                <Text style={{ fontSize: 18 }}>🇭🇺</Text>
+                <Ionicons name="wallet-outline" size={20} color="#007F55" />
               </View>
               <View>
-                <Text style={styles.summaryTitle}>Personal ➔ Budget Limit</Text>
-                <Text style={styles.summaryDate}>Monthly: €{limit.toLocaleString()}</Text>
+                <Text style={styles.summaryTitle}>Monthly Budget Limit</Text>
+                <Text style={styles.summaryDate}>Target: €{limit.toLocaleString()}</Text>
               </View>
             </View>
-            <Text style={styles.summaryAmount}>+€{(limit - totalSpent).toFixed(0)}</Text>
+            <Text style={[styles.summaryAmount, isOverBudget && styles.summaryAmountOver]}>
+              {isOverBudget ? `-€${Math.abs(remainingBudget).toFixed(0)}` : `+€${remainingBudget.toFixed(0)}`}
+            </Text>
           </View>
 
-          {/* Pockets Card */}
+          {/* Pockets Card 50/30/20 */}
           <View style={styles.pocketsCard}>
-            <Text style={styles.pocketsCardHeader}>BUDGET POCKETS (50/30/20)</Text>
+            <Text style={styles.pocketsCardHeader}>50/30/20 BUDGET POCKETS</Text>
             
+            {/* Needs */}
             <View style={styles.pocketRow}>
               <View style={styles.pocketInfo}>
                 <View style={[styles.pocketDot, { backgroundColor: '#009A6B' }]} />
@@ -194,6 +200,7 @@ export const ExpensesScreen: React.FC = () => {
               <View style={[styles.progressBarFill, { width: `${needsPercent}%`, backgroundColor: '#009A6B' }]} />
             </View>
 
+            {/* Wants */}
             <View style={[styles.pocketRow, { marginTop: 14 }]}>
               <View style={styles.pocketInfo}>
                 <View style={[styles.pocketDot, { backgroundColor: '#7B61FF' }]} />
@@ -207,6 +214,7 @@ export const ExpensesScreen: React.FC = () => {
               <View style={[styles.progressBarFill, { width: `${wantsPercent}%`, backgroundColor: '#7B61FF' }]} />
             </View>
 
+            {/* Savings */}
             <View style={[styles.pocketRow, { marginTop: 14 }]}>
               <View style={styles.pocketInfo}>
                 <View style={[styles.pocketDot, { backgroundColor: '#0075EB' }]} />
@@ -223,9 +231,9 @@ export const ExpensesScreen: React.FC = () => {
 
           {/* Transactions Header */}
           <View style={styles.transactionsHeader}>
-            <Text style={styles.sectionTitle}>Transactions</Text>
+            <Text style={styles.sectionTitle}>Expense Feed</Text>
             <TouchableOpacity onPress={() => setAddModalVisible(true)}>
-              <Text style={styles.seeAllText}>See all</Text>
+              <Text style={styles.seeAllText}>+ Log New</Text>
             </TouchableOpacity>
           </View>
 
@@ -233,9 +241,9 @@ export const ExpensesScreen: React.FC = () => {
           {transactions.length === 0 ? (
             <View style={styles.zeroStateCard}>
               <Ionicons name="receipt-outline" size={26} color="#005A3D" style={{ marginBottom: 6 }} />
-              <Text style={styles.zeroStateTitle}>No transactions recorded</Text>
+              <Text style={styles.zeroStateTitle}>No expenses logged yet</Text>
               <Text style={styles.zeroStateDesc}>
-                Tap «Add money» above or pay with Apple Pay to see live expenses.
+                Tap «Log Expense» or pay via Apple Pay NFC to track automatically.
               </Text>
             </View>
           ) : (
@@ -253,7 +261,7 @@ export const ExpensesScreen: React.FC = () => {
                     <View style={styles.txMeta}>
                       <Text style={styles.txMerchant}>{tx.merchant}</Text>
                       <Text style={styles.txSubtitle}>
-                        {tx.timeFormatted} · {tx.category.toUpperCase()} · {tx.source === 'apple_pay' ? 'Apple Pay' : 'Manual'}
+                        {tx.timeFormatted} · {tx.category.toUpperCase()} · {tx.source === 'apple_pay' ? 'Apple Pay NFC' : 'Manual Entry'}
                       </Text>
                     </View>
                   </View>
@@ -338,7 +346,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.45)',
   },
   searchText: {
-    fontSize: 14,
+    fontSize: 13,
     color: 'rgba(0, 45, 30, 0.85)',
     fontWeight: '500',
   },
@@ -362,7 +370,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   accountLabel: {
-    fontSize: 15,
+    fontSize: 14,
     color: 'rgba(0, 45, 30, 0.85)',
     fontWeight: '600',
     marginBottom: 6,
@@ -372,27 +380,32 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#002E1C',
     letterSpacing: -1.2,
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  carouselCapsule: {
+  amountOverbudget: {
+    color: '#D32F2F',
+  },
+  statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(0, 45, 30, 0.15)',
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 14,
   },
-  carouselDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: 'rgba(0, 45, 30, 0.35)',
+  statusBadgeNormal: {
+    backgroundColor: 'rgba(0, 45, 30, 0.12)',
   },
-  carouselDotActive: {
-    backgroundColor: '#002E1C',
-    width: 6,
-    height: 6,
+  statusBadgeOver: {
+    backgroundColor: '#FFEBEE',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#005A3D',
+  },
+  statusTextOver: {
+    color: '#D32F2F',
   },
   actionRow: {
     flexDirection: 'row',
@@ -415,9 +428,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.55)',
   },
   actionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     color: '#002E1C',
+    textAlign: 'center',
   },
   storyCard: {
     backgroundColor: 'rgba(235, 250, 243, 0.95)',
@@ -523,6 +537,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     color: '#009A6B',
+  },
+  summaryAmountOver: {
+    color: '#D32F2F',
   },
   pocketsCard: {
     backgroundColor: '#FFFFFF',
