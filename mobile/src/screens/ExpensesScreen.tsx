@@ -83,6 +83,11 @@ export const ExpensesScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        {/* Love Banner */}
+        <View style={styles.loveBanner}>
+          <Text style={styles.loveBannerText}>Солнышко, я люблю тебя ❤️</Text>
+        </View>
+
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Live Expense Tracker</Text>
@@ -516,5 +521,22 @@ const styles = StyleSheet.create({
   bucketWants: {
     backgroundColor: "#312E81",
     color: "#C7D2FE",
+  },
+  loveBanner: {
+    backgroundColor: "#83184333",
+    borderColor: "#F43F5E",
+    borderWidth: 1.5,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    marginBottom: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loveBannerText: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#FDA4AF",
+    letterSpacing: 0.5,
   },
 });
