@@ -8,9 +8,9 @@ import {
   Platform 
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
-import { useUser, TransactionItem } from '../context/UserContext';
+import { useUser } from '../context/UserContext';
 import { AddExpenseModal } from '../components/AddExpenseModal';
 import { ApplePayGuideModal } from '../components/ApplePayGuideModal';
 import { OnboardingModal } from '../components/OnboardingModal';
@@ -34,14 +34,14 @@ export const ExpensesScreen: React.FC = () => {
 
   const handleAddExpense = (merchant: string, amount: number, category: 'needs' | 'wants' | 'savings') => {
     let iconName = 'cart';
-    let iconBg = '#E8F8EE';
+    let iconBg = colors.accentGreenLight;
 
     if (category === 'wants') {
       iconName = 'cafe';
-      iconBg = '#F5EDFC';
+      iconBg = colors.accentPurpleLight;
     } else if (category === 'savings') {
       iconName = 'wallet';
-      iconBg = '#E5F2FF';
+      iconBg = colors.accentBlueLight;
     }
 
     addTransaction({
@@ -65,55 +65,55 @@ export const ExpensesScreen: React.FC = () => {
   const savingsPercent = Math.min(100, Math.round((savingsSpent / savingsLimit) * 100)) || 0;
 
   return (
-    <View style={[styles.mainWrapper, { paddingTop: Math.max(insets.top, 20) }]}>
+    <View style={[styles.mainWrapper, { paddingTop: Math.max(insets.top, 16) }]}>
       <ScrollView 
         style={styles.container} 
         contentContainerStyle={styles.contentContainer} 
         showsVerticalScrollIndicator={false}
       >
-        {/* 1. Top Header (Safe from Dynamic Island) */}
+        {/* 1. Top Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{profile.initials || 'SZ'}</Text>
               <View style={styles.activeDot} />
             </View>
-          </View>
-          <View style={styles.headerMiddle}>
-            <Text style={styles.logoText}>Vela</Text>
-            <MaterialCommunityIcons name="check-decagram" size={16} color="#0075EB" style={{ marginLeft: 4 }} />
+            <View style={styles.userGreeting}>
+              <Text style={styles.greetingTitle}>Hi, {profile.name || 'Sanatbek'}</Text>
+              <Text style={styles.greetingPlan}>Vela Ultra VIP</Text>
+            </View>
           </View>
           <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.iconButton} onPress={() => setGuideModalVisible(true)}>
-              <Ionicons name="hardware-chip-outline" size={20} color="#191C1F" />
+            <TouchableOpacity style={styles.iconButton} onPress={() => setGuideModalVisible(true)} activeOpacity={0.7}>
+              <Ionicons name="hardware-chip-outline" size={19} color={colors.text} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={() => setAddModalVisible(true)}>
-              <Ionicons name="add" size={22} color="#191C1F" />
+            <TouchableOpacity style={styles.iconButton} onPress={() => setAddModalVisible(true)} activeOpacity={0.7}>
+              <Ionicons name="add" size={22} color={colors.text} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* 2. VIP Love Banner (Revolut Ultra Style) */}
-        <TouchableOpacity style={styles.vipBanner} activeOpacity={0.8}>
+        {/* 2. VIP Love Banner (Ultra Luxury Pill) */}
+        <TouchableOpacity style={styles.vipBanner} activeOpacity={0.85}>
           <View style={styles.vipBannerLeft}>
             <View style={styles.pinkCircle}>
-              <Ionicons name="heart" size={12} color="#FF2D55" />
+              <Ionicons name="heart" size={13} color={colors.accentPink} />
             </View>
-            <Text style={styles.vipBannerText}>VIP Member · Солнышко, я люблю тебя ❤️</Text>
+            <Text style={styles.vipBannerText}>Солнышко, я люблю тебя ❤️</Text>
           </View>
-          <Ionicons name="chevron-forward" size={16} color="#8E8E93" />
+          <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
         </TouchableOpacity>
 
-        {/* 3. Big Currency Balance Hero */}
+        {/* 3. Hero Balance Card (Floating Velvet Finish) */}
         <View style={styles.balanceContainer}>
-          <Text style={styles.balanceSubtitle}>Spent this month</Text>
+          <Text style={styles.balanceSubtitle}>TOTAL SPENT THIS MONTH</Text>
           <Text style={styles.balanceAmount}>
             {profile.currency === 'USD' ? '$' : profile.currency === 'HUF' ? 'Ft ' : '€'}
             {totalSpent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </Text>
           <TouchableOpacity style={styles.currencyPill} activeOpacity={0.7}>
             <Text style={styles.currencyPillText}>{profile.currency} · European Union</Text>
-            <Ionicons name="chevron-down" size={13} color="#72777A" style={{ marginLeft: 4 }} />
+            <Ionicons name="chevron-down" size={13} color={colors.textSecondary} style={{ marginLeft: 4 }} />
           </TouchableOpacity>
         </View>
 
@@ -123,9 +123,9 @@ export const ExpensesScreen: React.FC = () => {
             <TouchableOpacity 
               style={styles.actionCircleDark} 
               onPress={() => setAddModalVisible(true)} 
-              activeOpacity={0.8}
+              activeOpacity={0.7}
             >
-              <Ionicons name="add" size={24} color="#FFFFFF" />
+              <Ionicons name="add" size={26} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.actionLabel}>Add money</Text>
           </View>
@@ -134,9 +134,9 @@ export const ExpensesScreen: React.FC = () => {
             <TouchableOpacity 
               style={styles.actionCircleGray} 
               onPress={() => setGuideModalVisible(true)} 
-              activeOpacity={0.8}
+              activeOpacity={0.7}
             >
-              <Ionicons name="radio-outline" size={22} color="#191C1F" />
+              <Ionicons name="radio-outline" size={22} color={colors.text} />
             </TouchableOpacity>
             <Text style={styles.actionLabel}>NFC Setup</Text>
           </View>
@@ -145,9 +145,9 @@ export const ExpensesScreen: React.FC = () => {
             <TouchableOpacity 
               style={styles.actionCircleGray} 
               onPress={() => setAddModalVisible(true)} 
-              activeOpacity={0.8}
+              activeOpacity={0.7}
             >
-              <Ionicons name="pie-chart-outline" size={22} color="#191C1F" />
+              <Ionicons name="pie-chart-outline" size={22} color={colors.text} />
             </TouchableOpacity>
             <Text style={styles.actionLabel}>Analytics</Text>
           </View>
@@ -156,9 +156,9 @@ export const ExpensesScreen: React.FC = () => {
             <TouchableOpacity 
               style={styles.actionCircleGray} 
               onPress={() => setGuideModalVisible(true)} 
-              activeOpacity={0.8}
+              activeOpacity={0.7}
             >
-              <Ionicons name="ellipsis-horizontal" size={22} color="#191C1F" />
+              <Ionicons name="ellipsis-horizontal" size={22} color={colors.text} />
             </TouchableOpacity>
             <Text style={styles.actionLabel}>More</Text>
           </View>
@@ -172,14 +172,14 @@ export const ExpensesScreen: React.FC = () => {
         >
           <View style={styles.nfcPromoLeft}>
             <View style={styles.nfcBadgeIcon}>
-              <Ionicons name="phone-portrait-outline" size={20} color="#0075EB" />
+              <Ionicons name="phone-portrait-outline" size={20} color={colors.accentBlue} />
             </View>
             <View style={styles.nfcPromoTextContainer}>
-              <Text style={styles.nfcPromoTitle}>Automate Apple Pay NFC</Text>
+              <Text style={styles.nfcPromoTitle}>Automate Apple Pay Tracking</Text>
               <Text style={styles.nfcPromoSubtitle}>Tap to connect iPhone Shortcuts in 3 steps</Text>
             </View>
           </View>
-          <Ionicons name="chevron-forward" size={18} color="#0075EB" />
+          <Ionicons name="chevron-forward" size={18} color={colors.accentBlue} />
         </TouchableOpacity>
 
         {/* 6. Revolut Pockets: 50/30/20 Budget Widget */}
@@ -187,15 +187,17 @@ export const ExpensesScreen: React.FC = () => {
           <View style={styles.cardHeader}>
             <View style={styles.cardHeaderLeft}>
               <Text style={styles.cardTitle}>Budget Pockets</Text>
-              <Text style={styles.cardSubtitle}>50/30/20 Strategy</Text>
+              <Text style={styles.cardSubtitle}>50/30/20 Wealth Strategy</Text>
             </View>
-            <Text style={styles.cardLimitText}>€{limit.toLocaleString()} limit</Text>
+            <View style={styles.limitBadge}>
+              <Text style={styles.cardLimitText}>€{limit.toLocaleString()} limit</Text>
+            </View>
           </View>
 
           {/* Needs Pocket (50%) */}
           <View style={styles.pocketRow}>
             <View style={styles.pocketInfo}>
-              <View style={[styles.pocketDot, { backgroundColor: '#00C853' }]} />
+              <View style={[styles.pocketDot, { backgroundColor: colors.accentGreen }]} />
               <Text style={styles.pocketName}>Needs (50%)</Text>
             </View>
             <Text style={styles.pocketAmount}>
@@ -203,13 +205,13 @@ export const ExpensesScreen: React.FC = () => {
             </Text>
           </View>
           <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${needsPercent}%`, backgroundColor: '#00C853' }]} />
+            <View style={[styles.progressBarFill, { width: `${needsPercent}%`, backgroundColor: colors.accentGreen }]} />
           </View>
 
           {/* Wants Pocket (30%) */}
           <View style={[styles.pocketRow, { marginTop: 14 }]}>
             <View style={styles.pocketInfo}>
-              <View style={[styles.pocketDot, { backgroundColor: '#7B61FF' }]} />
+              <View style={[styles.pocketDot, { backgroundColor: colors.accentPurple }]} />
               <Text style={styles.pocketName}>Wants (30%)</Text>
             </View>
             <Text style={styles.pocketAmount}>
@@ -217,13 +219,13 @@ export const ExpensesScreen: React.FC = () => {
             </Text>
           </View>
           <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${wantsPercent}%`, backgroundColor: '#7B61FF' }]} />
+            <View style={[styles.progressBarFill, { width: `${wantsPercent}%`, backgroundColor: colors.accentPurple }]} />
           </View>
 
           {/* Savings Pocket (20%) */}
           <View style={[styles.pocketRow, { marginTop: 14 }]}>
             <View style={styles.pocketInfo}>
-              <View style={[styles.pocketDot, { backgroundColor: '#0075EB' }]} />
+              <View style={[styles.pocketDot, { backgroundColor: colors.accentBlue }]} />
               <Text style={styles.pocketName}>Savings (20%)</Text>
             </View>
             <Text style={styles.pocketAmount}>
@@ -231,14 +233,14 @@ export const ExpensesScreen: React.FC = () => {
             </Text>
           </View>
           <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${savingsPercent}%`, backgroundColor: '#0075EB' }]} />
+            <View style={[styles.progressBarFill, { width: `${savingsPercent}%`, backgroundColor: colors.accentBlue }]} />
           </View>
         </View>
 
         {/* 7. Recent Transactions Feed */}
         <View style={styles.transactionsHeader}>
           <Text style={styles.sectionTitle}>Transactions</Text>
-          <TouchableOpacity onPress={() => setAddModalVisible(true)}>
+          <TouchableOpacity onPress={() => setAddModalVisible(true)} activeOpacity={0.7}>
             <Text style={styles.seeAllText}>+ Add</Text>
           </TouchableOpacity>
         </View>
@@ -246,7 +248,7 @@ export const ExpensesScreen: React.FC = () => {
         {transactions.length === 0 ? (
           <View style={styles.zeroStateCard}>
             <View style={styles.zeroStateIconCircle}>
-              <Ionicons name="receipt-outline" size={32} color="#72777A" />
+              <Ionicons name="receipt-outline" size={28} color={colors.textSecondary} />
             </View>
             <Text style={styles.zeroStateTitle}>No expenses yet</Text>
             <Text style={styles.zeroStateDesc}>
@@ -258,11 +260,11 @@ export const ExpensesScreen: React.FC = () => {
             {transactions.map((tx) => (
               <View key={tx.id} style={styles.transactionItem}>
                 <View style={styles.txLeft}>
-                  <View style={[styles.txIconCircle, { backgroundColor: tx.iconBg || '#F4F5F7' }]}>
+                  <View style={[styles.txIconCircle, { backgroundColor: tx.iconBg || colors.surfaceSecondary }]}>
                     <Ionicons 
                       name={tx.category === 'needs' ? 'cart-outline' : tx.category === 'wants' ? 'cafe-outline' : 'wallet-outline'} 
-                      size={20} 
-                      color="#191C1F" 
+                      size={19} 
+                      color={colors.text} 
                     />
                   </View>
                   <View style={styles.txMeta}>
@@ -275,7 +277,7 @@ export const ExpensesScreen: React.FC = () => {
                 <View style={styles.txRight}>
                   <Text style={styles.txAmount}>-€{tx.amount.toFixed(2)}</Text>
                   <TouchableOpacity onPress={() => deleteTransaction(tx.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <Ionicons name="trash-outline" size={14} color="#C6C6CD" />
+                    <Ionicons name="trash-outline" size={13} color={colors.textMuted} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -312,7 +314,7 @@ export const ExpensesScreen: React.FC = () => {
 const styles = StyleSheet.create({
   mainWrapper: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
@@ -331,43 +333,59 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
   },
   avatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#F4F5F7',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
     borderWidth: 1,
-    borderColor: '#EBECEF',
+    borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.shadowColor,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 1,
+      },
+    }),
   },
   avatarText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#191C1F',
+    color: colors.text,
   },
   activeDot: {
-    width: 9,
-    height: 9,
-    borderRadius: 4.5,
-    backgroundColor: '#00C853',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.accentGreen,
     position: 'absolute',
     bottom: -1,
     right: -1,
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: colors.surface,
   },
-  headerMiddle: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  userGreeting: {
+    gap: 1,
   },
-  logoText: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#191C1F',
-    letterSpacing: -0.5,
+  greetingTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    letterSpacing: -0.2,
+  },
+  greetingPlan: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.accentBlue,
   },
   headerRight: {
     flexDirection: 'row',
@@ -375,24 +393,37 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F4F5F7',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   vipBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderRadius: 18,
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 24,
+    paddingVertical: 11,
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#EBECEF',
+    borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.shadowColor,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 1,
+      },
+    }),
   },
   vipBannerLeft: {
     flexDirection: 'row',
@@ -400,57 +431,57 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   pinkCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#FFF0F3',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.accentPinkLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
   vipBannerText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#191C1F',
+    color: colors.text,
   },
   balanceContainer: {
     alignItems: 'center',
     marginBottom: 24,
+    paddingVertical: 8,
   },
   balanceSubtitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#72777A',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    letterSpacing: 0.8,
+    marginBottom: 6,
   },
   balanceAmount: {
-    fontSize: 38,
+    fontSize: 42,
     fontWeight: '800',
-    color: '#191C1F',
-    letterSpacing: -1,
-    marginBottom: 8,
+    color: colors.text,
+    letterSpacing: -1.2,
+    marginBottom: 10,
   },
   currencyPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F4F5F7',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: colors.surface,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#EBECEF',
+    borderColor: colors.border,
   },
   currencyPillText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#555A5E',
+    color: colors.textSecondary,
   },
   actionButtonsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 24,
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
   },
   actionItem: {
     alignItems: 'center',
@@ -460,40 +491,57 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#191C1F',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.18,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   actionCircleGray: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#F4F5F7',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#EBECEF',
+    borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.shadowColor,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   actionLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#191C1F',
+    color: colors.text,
   },
   nfcPromoCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#E5F2FF',
+    backgroundColor: colors.accentBlueLight,
     borderRadius: 20,
     padding: 16,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#D0E6FF',
+    borderColor: '#D4E7FF',
   },
   nfcPromoLeft: {
     flexDirection: 'row',
@@ -504,7 +552,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -514,24 +562,30 @@ const styles = StyleSheet.create({
   nfcPromoTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0058BC',
+    color: colors.accentBlue,
   },
   nfcPromoSubtitle: {
     fontSize: 12,
     color: '#004493',
   },
   cardContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    padding: 18,
+    backgroundColor: colors.surface,
+    borderRadius: 24,
+    padding: 20,
     marginBottom: 28,
     borderWidth: 1,
-    borderColor: '#EBECEF',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 1,
+    borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.shadowColor,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   cardHeader: {
     flexDirection: 'row',
@@ -545,17 +599,23 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#191C1F',
+    color: colors.text,
     letterSpacing: -0.3,
   },
   cardSubtitle: {
     fontSize: 12,
-    color: '#72777A',
+    color: colors.textSecondary,
+  },
+  limitBadge: {
+    backgroundColor: colors.surfaceSecondary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   cardLimitText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#72777A',
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textSecondary,
   },
   pocketRow: {
     flexDirection: 'row',
@@ -576,21 +636,21 @@ const styles = StyleSheet.create({
   pocketName: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#191C1F',
+    color: colors.text,
   },
   pocketAmount: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#191C1F',
+    color: colors.text,
   },
   pocketMax: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#72777A',
+    color: colors.textSecondary,
   },
   progressBarBg: {
     height: 6,
-    backgroundColor: '#F4F5F7',
+    backgroundColor: colors.surfaceSecondary,
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -607,28 +667,28 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#191C1F',
+    color: colors.text,
     letterSpacing: -0.3,
   },
   seeAllText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#0075EB',
+    color: colors.accentBlue,
   },
   zeroStateCard: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderRadius: 22,
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#EBECEF',
+    borderColor: colors.border,
     borderStyle: 'dashed',
   },
   zeroStateIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#EDEEEF',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -636,20 +696,20 @@ const styles = StyleSheet.create({
   zeroStateTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#191C1F',
+    color: colors.text,
     marginBottom: 4,
   },
   zeroStateDesc: {
     fontSize: 13,
-    color: '#72777A',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
   },
   transactionsList: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#EBECEF',
+    borderColor: colors.border,
     overflow: 'hidden',
   },
   transactionItem: {
@@ -659,7 +719,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F4F5F7',
+    borderBottomColor: colors.borderLight,
   },
   txLeft: {
     flexDirection: 'row',
@@ -679,11 +739,11 @@ const styles = StyleSheet.create({
   txMerchant: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#191C1F',
+    color: colors.text,
   },
   txSubtitle: {
     fontSize: 11,
-    color: '#72777A',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   txRight: {
@@ -693,6 +753,6 @@ const styles = StyleSheet.create({
   txAmount: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#191C1F',
+    color: colors.text,
   },
 });
