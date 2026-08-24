@@ -8,13 +8,13 @@ import {
   Platform 
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { useUser } from '../context/UserContext';
 import { AddExpenseModal } from '../components/AddExpenseModal';
 import { ApplePayGuideModal } from '../components/ApplePayGuideModal';
 import { OnboardingModal } from '../components/OnboardingModal';
+import { FloatingAuroraBackground } from '../components/FloatingAuroraBackground';
 
 export const ExpensesScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -65,220 +65,212 @@ export const ExpensesScreen: React.FC = () => {
   const savingsPercent = Math.min(100, Math.round((savingsSpent / savingsLimit) * 100)) || 0;
 
   return (
-    <View style={styles.mainWrapper}>
-      {/* 1. Authentic Revolut Mint Emerald Aurora Silk Gradient */}
-      <LinearGradient
-        colors={['#009A6B', '#00B87C', '#10C888', '#34D399', '#6EE7B7']}
-        start={{ x: 0.1, y: 0.0 }}
-        end={{ x: 0.9, y: 0.7 }}
-        style={styles.gradientBg}
+    <FloatingAuroraBackground>
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={[styles.contentContainer, { paddingTop: Math.max(insets.top, 14) }]} 
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView 
-          style={styles.container} 
-          contentContainerStyle={[styles.contentContainer, { paddingTop: Math.max(insets.top, 14) }]} 
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Top Revolut Header */}
-          <View style={styles.header}>
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>{profile.initials || 'SZ'}</Text>
-            </View>
-
-            {/* Revolut Capsule Search Bar */}
-            <TouchableOpacity style={styles.searchCapsule} activeOpacity={0.8} onPress={() => setAddModalVisible(true)}>
-              <Ionicons name="search" size={17} color="rgba(0,40,25,0.75)" />
-              <Text style={styles.searchText}>Search</Text>
-            </TouchableOpacity>
-
-            <View style={styles.headerIconsRow}>
-              <TouchableOpacity style={styles.headerGlassCardBtn} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
-                <Ionicons name="bar-chart" size={18} color="#003D26" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.headerGlassCardBtn} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
-                <Ionicons name="card" size={18} color="#003D26" />
-              </TouchableOpacity>
-            </View>
+        {/* Top Header */}
+        <View style={styles.header}>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarText}>{profile.initials || 'S'}</Text>
           </View>
 
-          {/* Hero Revolut Group / Account Name & Balance */}
-          <View style={styles.heroSection}>
-            <Text style={styles.accountLabel}>{profile.name || 'Sanatbek'} · Personal</Text>
+          {/* Capsule Search Bar */}
+          <TouchableOpacity style={styles.searchCapsule} activeOpacity={0.8} onPress={() => setAddModalVisible(true)}>
+            <Ionicons name="search" size={17} color="rgba(0,40,25,0.75)" />
+            <Text style={styles.searchText}>Search</Text>
+          </TouchableOpacity>
+
+          <View style={styles.headerIconsRow}>
+            <TouchableOpacity style={styles.headerGlassCardBtn} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
+              <Ionicons name="bar-chart" size={18} color="#003D26" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerGlassCardBtn} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
+              <Ionicons name="card" size={18} color="#003D26" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <Text style={styles.accountLabel}>{profile.name || 'Sanatbek'} · Personal</Text>
+          
+          <Text style={styles.amountHeroText}>
+            {profile.currency === 'HUF' ? `Ft ${totalSpent.toFixed(2)}` : profile.currency === 'USD' ? `$${totalSpent.toFixed(2)}` : `€${totalSpent.toFixed(2)}`}
+          </Text>
+
+          {/* Carousel Indicator Capsule */}
+          <View style={styles.carouselCapsule}>
+            <View style={[styles.carouselDot, styles.carouselDotActive]} />
+            <View style={styles.carouselDot} />
+            <View style={styles.carouselDot} />
+            <View style={styles.carouselDot} />
+          </View>
+        </View>
+
+        {/* 4 Frosted Action Circles Row */}
+        <View style={styles.actionRow}>
+          <View style={styles.actionItem}>
+            <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setAddModalVisible(true)} activeOpacity={0.75}>
+              <Ionicons name="add" size={24} color="#003D26" />
+            </TouchableOpacity>
+            <Text style={styles.actionLabel}>Add money</Text>
+          </View>
+
+          <View style={styles.actionItem}>
+            <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setGuideModalVisible(true)} activeOpacity={0.75}>
+              <Ionicons name="swap-horizontal" size={22} color="#003D26" />
+            </TouchableOpacity>
+            <Text style={styles.actionLabel}>Move</Text>
+          </View>
+
+          <View style={styles.actionItem}>
+            <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setGuideModalVisible(true)} activeOpacity={0.75}>
+              <Ionicons name="information-circle-outline" size={22} color="#003D26" />
+            </TouchableOpacity>
+            <Text style={styles.actionLabel}>Info</Text>
+          </View>
+
+          <View style={styles.actionItem}>
+            <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setGuideModalVisible(true)} activeOpacity={0.75}>
+              <Ionicons name="ellipsis-horizontal" size={22} color="#003D26" />
+            </TouchableOpacity>
+            <Text style={styles.actionLabel}>More</Text>
+          </View>
+        </View>
+
+        {/* Love Banner Card */}
+        <View style={styles.storyCard}>
+          <View style={styles.storyHeader}>
+            <View style={styles.snowflakeCircle}>
+              <Ionicons name="heart" size={20} color="#FF3366" />
+            </View>
+            <View style={styles.storyTextContainer}>
+              <Text style={styles.storyTitle}>Солнышко, я люблю тебя ❤️</Text>
+              <Text style={styles.storySubtitle}>Vela Ultra automated tracking is active on your device.</Text>
+            </View>
+          </View>
+          <TouchableOpacity 
+            style={styles.reviewBtn} 
+            onPress={() => setGuideModalVisible(true)}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.reviewBtnText}>Apple Pay NFC Setup</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Bottom Container */}
+        <View style={styles.frostedSheetContainer}>
+          {/* Quick Summary Card */}
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryLeft}>
+              <View style={styles.countryFlagCircle}>
+                <Text style={{ fontSize: 18 }}>🇭🇺</Text>
+              </View>
+              <View>
+                <Text style={styles.summaryTitle}>Personal ➔ Budget Limit</Text>
+                <Text style={styles.summaryDate}>Monthly: €{limit.toLocaleString()}</Text>
+              </View>
+            </View>
+            <Text style={styles.summaryAmount}>+€{(limit - totalSpent).toFixed(0)}</Text>
+          </View>
+
+          {/* Pockets Card */}
+          <View style={styles.pocketsCard}>
+            <Text style={styles.pocketsCardHeader}>BUDGET POCKETS (50/30/20)</Text>
             
-            <Text style={styles.amountHeroText}>
-              {profile.currency === 'HUF' ? `Ft ${totalSpent.toFixed(2)}` : profile.currency === 'USD' ? `$${totalSpent.toFixed(2)}` : `€${totalSpent.toFixed(2)}`}
-            </Text>
+            <View style={styles.pocketRow}>
+              <View style={styles.pocketInfo}>
+                <View style={[styles.pocketDot, { backgroundColor: '#009A6B' }]} />
+                <Text style={styles.pocketName}>Needs (50%)</Text>
+              </View>
+              <Text style={styles.pocketAmount}>
+                €{needsSpent.toFixed(2)} <Text style={styles.pocketMax}>/ €{needsLimit.toFixed(0)}</Text>
+              </Text>
+            </View>
+            <View style={styles.progressBarBg}>
+              <View style={[styles.progressBarFill, { width: `${needsPercent}%`, backgroundColor: '#009A6B' }]} />
+            </View>
 
-            {/* Pagination Carousel Indicator Capsule */}
-            <View style={styles.carouselCapsule}>
-              <View style={[styles.carouselDot, styles.carouselDotActive]} />
-              <View style={styles.carouselDot} />
-              <View style={styles.carouselDot} />
-              <View style={styles.carouselDot} />
+            <View style={[styles.pocketRow, { marginTop: 14 }]}>
+              <View style={styles.pocketInfo}>
+                <View style={[styles.pocketDot, { backgroundColor: '#7B61FF' }]} />
+                <Text style={styles.pocketName}>Wants (30%)</Text>
+              </View>
+              <Text style={styles.pocketAmount}>
+                €{wantsSpent.toFixed(2)} <Text style={styles.pocketMax}>/ €{wantsLimit.toFixed(0)}</Text>
+              </Text>
+            </View>
+            <View style={styles.progressBarBg}>
+              <View style={[styles.progressBarFill, { width: `${wantsPercent}%`, backgroundColor: '#7B61FF' }]} />
+            </View>
+
+            <View style={[styles.pocketRow, { marginTop: 14 }]}>
+              <View style={styles.pocketInfo}>
+                <View style={[styles.pocketDot, { backgroundColor: '#0075EB' }]} />
+                <Text style={styles.pocketName}>Savings (20%)</Text>
+              </View>
+              <Text style={styles.pocketAmount}>
+                €{savingsSpent.toFixed(2)} <Text style={styles.pocketMax}>/ €{savingsLimit.toFixed(0)}</Text>
+              </Text>
+            </View>
+            <View style={styles.progressBarBg}>
+              <View style={[styles.progressBarFill, { width: `${savingsPercent}%`, backgroundColor: '#0075EB' }]} />
             </View>
           </View>
 
-          {/* Revolut 4 Frosted Action Circles Row */}
-          <View style={styles.actionRow}>
-            <View style={styles.actionItem}>
-              <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setAddModalVisible(true)} activeOpacity={0.8}>
-                <Ionicons name="add" size={24} color="#003D26" />
-              </TouchableOpacity>
-              <Text style={styles.actionLabel}>Add money</Text>
-            </View>
-
-            <View style={styles.actionItem}>
-              <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
-                <Ionicons name="swap-horizontal" size={22} color="#003D26" />
-              </TouchableOpacity>
-              <Text style={styles.actionLabel}>Move</Text>
-            </View>
-
-            <View style={styles.actionItem}>
-              <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
-                <Ionicons name="information-circle-outline" size={22} color="#003D26" />
-              </TouchableOpacity>
-              <Text style={styles.actionLabel}>Info</Text>
-            </View>
-
-            <View style={styles.actionItem}>
-              <TouchableOpacity style={styles.actionGlassCircle} onPress={() => setGuideModalVisible(true)} activeOpacity={0.8}>
-                <Ionicons name="ellipsis-horizontal" size={22} color="#003D26" />
-              </TouchableOpacity>
-              <Text style={styles.actionLabel}>More</Text>
-            </View>
-          </View>
-
-          {/* Story / Perk Banner Card (Light Mint Card with Snowflake / Heart icon) */}
-          <View style={styles.storyCard}>
-            <View style={styles.storyHeader}>
-              <View style={styles.snowflakeCircle}>
-                <Ionicons name="heart" size={20} color="#FF3366" />
-              </View>
-              <View style={styles.storyTextContainer}>
-                <Text style={styles.storyTitle}>Солнышко, я люблю тебя ❤️</Text>
-                <Text style={styles.storySubtitle}>Vela Ultra automated tracking is active on your device.</Text>
-              </View>
-            </View>
-            <TouchableOpacity 
-              style={styles.reviewBtn} 
-              onPress={() => setGuideModalVisible(true)}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.reviewBtnText}>Apple Pay NFC Setup</Text>
+          {/* Transactions Header */}
+          <View style={styles.transactionsHeader}>
+            <Text style={styles.sectionTitle}>Transactions</Text>
+            <TouchableOpacity onPress={() => setAddModalVisible(true)}>
+              <Text style={styles.seeAllText}>See all</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Frosted Mint Bottom Container for Pockets & Feed */}
-          <View style={styles.frostedSheetContainer}>
-            {/* Quick Summary Card */}
-            <View style={styles.summaryCard}>
-              <View style={styles.summaryLeft}>
-                <View style={styles.countryFlagCircle}>
-                  <Text style={{ fontSize: 18 }}>🇭🇺</Text>
-                </View>
-                <View>
-                  <Text style={styles.summaryTitle}>Personal ➔ Budget Limit</Text>
-                  <Text style={styles.summaryDate}>Monthly: €{limit.toLocaleString()}</Text>
-                </View>
-              </View>
-              <Text style={styles.summaryAmount}>+€{(limit - totalSpent).toFixed(0)}</Text>
+          {/* Transactions List */}
+          {transactions.length === 0 ? (
+            <View style={styles.zeroStateCard}>
+              <Ionicons name="receipt-outline" size={26} color="#005A3D" style={{ marginBottom: 6 }} />
+              <Text style={styles.zeroStateTitle}>No transactions recorded</Text>
+              <Text style={styles.zeroStateDesc}>
+                Tap «Add money» above or pay with Apple Pay to see live expenses.
+              </Text>
             </View>
-
-            {/* Pockets Card */}
-            <View style={styles.pocketsCard}>
-              <Text style={styles.pocketsCardHeader}>BUDGET POCKETS (50/30/20)</Text>
-              
-              <View style={styles.pocketRow}>
-                <View style={styles.pocketInfo}>
-                  <View style={[styles.pocketDot, { backgroundColor: '#009A6B' }]} />
-                  <Text style={styles.pocketName}>Needs (50%)</Text>
-                </View>
-                <Text style={styles.pocketAmount}>
-                  €{needsSpent.toFixed(2)} <Text style={styles.pocketMax}>/ €{needsLimit.toFixed(0)}</Text>
-                </Text>
-              </View>
-              <View style={styles.progressBarBg}>
-                <View style={[styles.progressBarFill, { width: `${needsPercent}%`, backgroundColor: '#009A6B' }]} />
-              </View>
-
-              <View style={[styles.pocketRow, { marginTop: 14 }]}>
-                <View style={styles.pocketInfo}>
-                  <View style={[styles.pocketDot, { backgroundColor: '#7B61FF' }]} />
-                  <Text style={styles.pocketName}>Wants (30%)</Text>
-                </View>
-                <Text style={styles.pocketAmount}>
-                  €{wantsSpent.toFixed(2)} <Text style={styles.pocketMax}>/ €{wantsLimit.toFixed(0)}</Text>
-                </Text>
-              </View>
-              <View style={styles.progressBarBg}>
-                <View style={[styles.progressBarFill, { width: `${wantsPercent}%`, backgroundColor: '#7B61FF' }]} />
-              </View>
-
-              <View style={[styles.pocketRow, { marginTop: 14 }]}>
-                <View style={styles.pocketInfo}>
-                  <View style={[styles.pocketDot, { backgroundColor: '#0075EB' }]} />
-                  <Text style={styles.pocketName}>Savings (20%)</Text>
-                </View>
-                <Text style={styles.pocketAmount}>
-                  €{savingsSpent.toFixed(2)} <Text style={styles.pocketMax}>/ €{savingsLimit.toFixed(0)}</Text>
-                </Text>
-              </View>
-              <View style={styles.progressBarBg}>
-                <View style={[styles.progressBarFill, { width: `${savingsPercent}%`, backgroundColor: '#0075EB' }]} />
-              </View>
-            </View>
-
-            {/* Transactions Header */}
-            <View style={styles.transactionsHeader}>
-              <Text style={styles.sectionTitle}>Transactions</Text>
-              <TouchableOpacity onPress={() => setAddModalVisible(true)}>
-                <Text style={styles.seeAllText}>See all</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Transactions List */}
-            {transactions.length === 0 ? (
-              <View style={styles.zeroStateCard}>
-                <Ionicons name="receipt-outline" size={26} color="#005A3D" style={{ marginBottom: 6 }} />
-                <Text style={styles.zeroStateTitle}>No transactions recorded</Text>
-                <Text style={styles.zeroStateDesc}>
-                  Tap «Add money» above or pay with Apple Pay to see live expenses.
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.transactionsList}>
-                {transactions.map((tx) => (
-                  <View key={tx.id} style={styles.transactionItem}>
-                    <View style={styles.txLeft}>
-                      <View style={[styles.txIconCircle, { backgroundColor: tx.iconBg || '#EAF6F0' }]}>
-                        <Ionicons 
-                          name={tx.category === 'needs' ? 'cart-outline' : tx.category === 'wants' ? 'cafe-outline' : 'wallet-outline'} 
-                          size={18} 
-                          color="#003D26" 
-                        />
-                      </View>
-                      <View style={styles.txMeta}>
-                        <Text style={styles.txMerchant}>{tx.merchant}</Text>
-                        <Text style={styles.txSubtitle}>
-                          {tx.timeFormatted} · {tx.category.toUpperCase()} · {tx.source === 'apple_pay' ? 'Apple Pay' : 'Manual'}
-                        </Text>
-                      </View>
+          ) : (
+            <View style={styles.transactionsList}>
+              {transactions.map((tx) => (
+                <View key={tx.id} style={styles.transactionItem}>
+                  <View style={styles.txLeft}>
+                    <View style={[styles.txIconCircle, { backgroundColor: tx.iconBg || '#EAF6F0' }]}>
+                      <Ionicons 
+                        name={tx.category === 'needs' ? 'cart-outline' : tx.category === 'wants' ? 'cafe-outline' : 'wallet-outline'} 
+                        size={18} 
+                        color="#003D26" 
+                      />
                     </View>
-                    <View style={styles.txRight}>
-                      <Text style={styles.txAmount}>-€{tx.amount.toFixed(2)}</Text>
-                      <TouchableOpacity onPress={() => deleteTransaction(tx.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                        <Ionicons name="trash-outline" size={13} color="#8DA99E" />
-                      </TouchableOpacity>
+                    <View style={styles.txMeta}>
+                      <Text style={styles.txMerchant}>{tx.merchant}</Text>
+                      <Text style={styles.txSubtitle}>
+                        {tx.timeFormatted} · {tx.category.toUpperCase()} · {tx.source === 'apple_pay' ? 'Apple Pay' : 'Manual'}
+                      </Text>
                     </View>
                   </View>
-                ))}
-              </View>
-            )}
+                  <View style={styles.txRight}>
+                    <Text style={styles.txAmount}>-€{tx.amount.toFixed(2)}</Text>
+                    <TouchableOpacity onPress={() => deleteTransaction(tx.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                      <Ionicons name="trash-outline" size={13} color="#8DA99E" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
 
-            <View style={{ height: 40 }} />
-          </View>
-        </ScrollView>
-      </LinearGradient>
+          <View style={{ height: 40 }} />
+        </View>
+      </ScrollView>
 
       {/* Modals */}
       <AddExpenseModal
@@ -299,18 +291,11 @@ export const ExpensesScreen: React.FC = () => {
           updateProfile({ name, initials, monthlyLimit, currency, isFirstLaunch: false });
         }}
       />
-    </View>
+    </FloatingAuroraBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  mainWrapper: {
-    flex: 1,
-    backgroundColor: '#009A6B',
-  },
-  gradientBg: {
-    flex: 1,
-  },
   container: {
     flex: 1,
   },
@@ -343,14 +328,14 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.28)',
+    backgroundColor: 'rgba(255, 255, 255, 0.32)',
     height: 40,
     borderRadius: 20,
     paddingHorizontal: 14,
     marginHorizontal: 10,
     gap: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
+    borderColor: 'rgba(255, 255, 255, 0.45)',
   },
   searchText: {
     fontSize: 14,
@@ -365,11 +350,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.28)',
+    backgroundColor: 'rgba(255, 255, 255, 0.32)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
+    borderColor: 'rgba(255, 255, 255, 0.45)',
   },
   heroSection: {
     alignItems: 'center',
@@ -423,11 +408,11 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    backgroundColor: 'rgba(255, 255, 255, 0.38)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: 'rgba(255, 255, 255, 0.55)',
   },
   actionLabel: {
     fontSize: 12,
@@ -435,7 +420,7 @@ const styles = StyleSheet.create({
     color: '#002E1C',
   },
   storyCard: {
-    backgroundColor: 'rgba(230, 248, 240, 0.95)',
+    backgroundColor: 'rgba(235, 250, 243, 0.95)',
     borderRadius: 24,
     padding: 18,
     marginHorizontal: 16,
