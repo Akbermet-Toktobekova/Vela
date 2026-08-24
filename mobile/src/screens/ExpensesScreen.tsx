@@ -14,9 +14,11 @@ import { colors } from "../theme/colors";
 import { api } from "../services/api";
 
 const SIMULATION_PRESETS = [
-  { label: "☕ Coffee (€4.80)", merchant: "STARBUCKS DEAK BP", amount: 4.80, source: "nfc_tap" as TransactionSource },
-  { label: "🛒 SPAR (€26.40)", merchant: "POS 041 SPAR CORVIN HU", amount: 26.40, source: "apple_pay" as TransactionSource },
-  { label: "🍔 Wolt Food (€14.50)", merchant: "WOLT RESTAURANT BP", amount: 14.50, source: "google_wallet" as TransactionSource },
+  { label: "☕ NFC Coffee (€4.80)", merchant: "STARBUCKS DEAK BP", amount: 4.80, source: "nfc_tap" as TransactionSource },
+  { label: "🛒 SPAR Grocery (€26.40)", merchant: "POS 041 SPAR CORVIN HU", amount: 26.40, source: "apple_pay" as TransactionSource },
+  { label: "📦 Amazon Online (€32.50)", merchant: "AMAZON EU SARL LUX", amount: 32.50, source: "open_banking" as TransactionSource },
+  { label: "💸 Transfer to Alex (€15.00)", merchant: "Transfer to Alex - Lunch Split", amount: 15.00, source: "open_banking" as TransactionSource },
+  { label: "🍔 Wolt Delivery (€14.50)", merchant: "WOLT RESTAURANT BP", amount: 14.50, source: "google_wallet" as TransactionSource },
   { label: "🚕 Bolt Taxi (€9.20)", merchant: "BOLT.EU/TAXI BUDAPEST", amount: 9.20, source: "apple_pay" as TransactionSource },
 ];
 
