@@ -8,6 +8,7 @@ import {
   Platform 
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { useUser } from '../context/UserContext';
@@ -34,14 +35,14 @@ export const ExpensesScreen: React.FC = () => {
 
   const handleAddExpense = (merchant: string, amount: number, category: 'needs' | 'wants' | 'savings') => {
     let iconName = 'cart';
-    let iconBg = colors.accentGreenLight;
+    let iconBg = '#E8F8EE';
 
     if (category === 'wants') {
       iconName = 'cafe';
-      iconBg = colors.accentPurpleLight;
+      iconBg = '#F5EDFC';
     } else if (category === 'savings') {
       iconName = 'wallet';
-      iconBg = colors.accentBlueLight;
+      iconBg = '#E5F2FF';
     }
 
     addTransaction({
@@ -54,7 +55,6 @@ export const ExpensesScreen: React.FC = () => {
     });
   };
 
-  // Calculations for budget pockets
   const limit = profile.monthlyLimit || 2000;
   const needsLimit = limit * 0.5;
   const wantsLimit = limit * 0.3;
@@ -65,228 +65,179 @@ export const ExpensesScreen: React.FC = () => {
   const savingsPercent = Math.min(100, Math.round((savingsSpent / savingsLimit) * 100)) || 0;
 
   return (
-    <View style={[styles.mainWrapper, { paddingTop: Math.max(insets.top, 16) }]}>
-      <ScrollView 
-        style={styles.container} 
-        contentContainerStyle={styles.contentContainer} 
-        showsVerticalScrollIndicator={false}
+    <View style={styles.mainWrapper}>
+      {/* 1. Revolut 10 Luminous Silk Cobalt Gradient Canvas */}
+      <LinearGradient
+        colors={['#1754EE', '#2A72FF', '#5093FF', '#82B5FF']}
+        start={{ x: 0.1, y: 0 }}
+        end={{ x: 0.9, y: 0.55 }}
+        style={styles.gradientBg}
       >
-        {/* 1. Top Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{profile.initials || 'SZ'}</Text>
-              <View style={styles.activeDot} />
-            </View>
-            <View style={styles.userGreeting}>
-              <Text style={styles.greetingTitle}>Hi, {profile.name || 'Sanatbek'}</Text>
-              <Text style={styles.greetingPlan}>Vela Ultra VIP</Text>
-            </View>
-          </View>
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.iconButton} onPress={() => setGuideModalVisible(true)} activeOpacity={0.7}>
-              <Ionicons name="hardware-chip-outline" size={19} color={colors.text} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={() => setAddModalVisible(true)} activeOpacity={0.7}>
-              <Ionicons name="add" size={22} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* 2. VIP Love Banner (Ultra Luxury Pill) */}
-        <TouchableOpacity style={styles.vipBanner} activeOpacity={0.85}>
-          <View style={styles.vipBannerLeft}>
-            <View style={styles.pinkCircle}>
-              <Ionicons name="heart" size={13} color={colors.accentPink} />
-            </View>
-            <Text style={styles.vipBannerText}>Солнышко, я люблю тебя ❤️</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
-        </TouchableOpacity>
-
-        {/* 3. Hero Balance Card (Floating Velvet Finish) */}
-        <View style={styles.balanceContainer}>
-          <Text style={styles.balanceSubtitle}>TOTAL SPENT THIS MONTH</Text>
-          <Text style={styles.balanceAmount}>
-            {profile.currency === 'USD' ? '$' : profile.currency === 'HUF' ? 'Ft ' : '€'}
-            {totalSpent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </Text>
-          <TouchableOpacity style={styles.currencyPill} activeOpacity={0.7}>
-            <Text style={styles.currencyPillText}>{profile.currency} · European Union</Text>
-            <Ionicons name="chevron-down" size={13} color={colors.textSecondary} style={{ marginLeft: 4 }} />
-          </TouchableOpacity>
-        </View>
-
-        {/* 4. Revolut 10 Circular Action Buttons */}
-        <View style={styles.actionButtonsRow}>
-          <View style={styles.actionItem}>
-            <TouchableOpacity 
-              style={styles.actionCircleDark} 
-              onPress={() => setAddModalVisible(true)} 
-              activeOpacity={0.7}
-            >
-              <Ionicons name="add" size={26} color="#FFFFFF" />
-            </TouchableOpacity>
-            <Text style={styles.actionLabel}>Add money</Text>
-          </View>
-
-          <View style={styles.actionItem}>
-            <TouchableOpacity 
-              style={styles.actionCircleGray} 
-              onPress={() => setGuideModalVisible(true)} 
-              activeOpacity={0.7}
-            >
-              <Ionicons name="radio-outline" size={22} color={colors.text} />
-            </TouchableOpacity>
-            <Text style={styles.actionLabel}>NFC Setup</Text>
-          </View>
-
-          <View style={styles.actionItem}>
-            <TouchableOpacity 
-              style={styles.actionCircleGray} 
-              onPress={() => setAddModalVisible(true)} 
-              activeOpacity={0.7}
-            >
-              <Ionicons name="pie-chart-outline" size={22} color={colors.text} />
-            </TouchableOpacity>
-            <Text style={styles.actionLabel}>Analytics</Text>
-          </View>
-
-          <View style={styles.actionItem}>
-            <TouchableOpacity 
-              style={styles.actionCircleGray} 
-              onPress={() => setGuideModalVisible(true)} 
-              activeOpacity={0.7}
-            >
-              <Ionicons name="ellipsis-horizontal" size={22} color={colors.text} />
-            </TouchableOpacity>
-            <Text style={styles.actionLabel}>More</Text>
-          </View>
-        </View>
-
-        {/* 5. Apple Pay NFC Live Ingestion Shortcut Card */}
-        <TouchableOpacity 
-          style={styles.nfcPromoCard} 
-          onPress={() => setGuideModalVisible(true)}
-          activeOpacity={0.85}
+        <ScrollView 
+          style={styles.container} 
+          contentContainerStyle={[styles.contentContainer, { paddingTop: Math.max(insets.top, 16) }]} 
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.nfcPromoLeft}>
-            <View style={styles.nfcBadgeIcon}>
-              <Ionicons name="phone-portrait-outline" size={20} color={colors.accentBlue} />
+          {/* Top Revolut Header */}
+          <View style={styles.header}>
+            <View style={styles.avatarPill}>
+              <Text style={styles.avatarText}>{profile.initials || 'SZ'}</Text>
             </View>
-            <View style={styles.nfcPromoTextContainer}>
-              <Text style={styles.nfcPromoTitle}>Automate Apple Pay Tracking</Text>
-              <Text style={styles.nfcPromoSubtitle}>Tap to connect iPhone Shortcuts in 3 steps</Text>
-            </View>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.accentBlue} />
-        </TouchableOpacity>
 
-        {/* 6. Revolut Pockets: 50/30/20 Budget Widget */}
-        <View style={styles.cardContainer}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardHeaderLeft}>
-              <Text style={styles.cardTitle}>Budget Pockets</Text>
-              <Text style={styles.cardSubtitle}>50/30/20 Wealth Strategy</Text>
-            </View>
-            <View style={styles.limitBadge}>
-              <Text style={styles.cardLimitText}>€{limit.toLocaleString()} limit</Text>
+            {/* Revolut Capsule Search Bar */}
+            <TouchableOpacity style={styles.searchCapsule} activeOpacity={0.8} onPress={() => setAddModalVisible(true)}>
+              <Ionicons name="search" size={16} color="rgba(255,255,255,0.85)" />
+              <Text style={styles.searchText}>Search expenses or merchants</Text>
+            </TouchableOpacity>
+
+            <View style={styles.headerIconsRow}>
+              <TouchableOpacity style={styles.headerGlassIcon} onPress={() => setGuideModalVisible(true)} activeOpacity={0.7}>
+                <Ionicons name="bar-chart" size={18} color="#FFFFFF" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.headerGlassIcon} onPress={() => setGuideModalVisible(true)} activeOpacity={0.7}>
+                <Ionicons name="globe-outline" size={18} color="#FFFFFF" />
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Needs Pocket (50%) */}
-          <View style={styles.pocketRow}>
-            <View style={styles.pocketInfo}>
-              <View style={[styles.pocketDot, { backgroundColor: colors.accentGreen }]} />
-              <Text style={styles.pocketName}>Needs (50%)</Text>
-            </View>
-            <Text style={styles.pocketAmount}>
-              €{needsSpent.toFixed(2)} <Text style={styles.pocketMax}>/ €{needsLimit.toFixed(0)}</Text>
+          {/* Hero Revolut Title & Balance */}
+          <View style={styles.heroSection}>
+            <Text style={styles.heroTitle}>Master your wealth</Text>
+            <Text style={styles.heroSubtitle}>
+              Spent this month: <Text style={styles.heroSpentHighlight}>€{totalSpent.toFixed(2)}</Text> of €{limit.toLocaleString()}
             </Text>
-          </View>
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${needsPercent}%`, backgroundColor: colors.accentGreen }]} />
+
+            {/* Glass CTA Pill Button */}
+            <TouchableOpacity style={styles.glassCtaBtn} onPress={() => setAddModalVisible(true)} activeOpacity={0.8}>
+              <Ionicons name="add" size={18} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <Text style={styles.glassCtaText}>Add new expense</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Wants Pocket (30%) */}
-          <View style={[styles.pocketRow, { marginTop: 14 }]}>
-            <View style={styles.pocketInfo}>
-              <View style={[styles.pocketDot, { backgroundColor: colors.accentPurple }]} />
-              <Text style={styles.pocketName}>Wants (30%)</Text>
-            </View>
-            <Text style={styles.pocketAmount}>
-              €{wantsSpent.toFixed(2)} <Text style={styles.pocketMax}>/ €{wantsLimit.toFixed(0)}</Text>
-            </Text>
-          </View>
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${wantsPercent}%`, backgroundColor: colors.accentPurple }]} />
-          </View>
-
-          {/* Savings Pocket (20%) */}
-          <View style={[styles.pocketRow, { marginTop: 14 }]}>
-            <View style={styles.pocketInfo}>
-              <View style={[styles.pocketDot, { backgroundColor: colors.accentBlue }]} />
-              <Text style={styles.pocketName}>Savings (20%)</Text>
-            </View>
-            <Text style={styles.pocketAmount}>
-              €{savingsSpent.toFixed(2)} <Text style={styles.pocketMax}>/ €{savingsLimit.toFixed(0)}</Text>
-            </Text>
-          </View>
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${savingsPercent}%`, backgroundColor: colors.accentBlue }]} />
-          </View>
-        </View>
-
-        {/* 7. Recent Transactions Feed */}
-        <View style={styles.transactionsHeader}>
-          <Text style={styles.sectionTitle}>Transactions</Text>
-          <TouchableOpacity onPress={() => setAddModalVisible(true)} activeOpacity={0.7}>
-            <Text style={styles.seeAllText}>+ Add</Text>
-          </TouchableOpacity>
-        </View>
-
-        {transactions.length === 0 ? (
-          <View style={styles.zeroStateCard}>
-            <View style={styles.zeroStateIconCircle}>
-              <Ionicons name="receipt-outline" size={28} color={colors.textSecondary} />
-            </View>
-            <Text style={styles.zeroStateTitle}>No expenses yet</Text>
-            <Text style={styles.zeroStateDesc}>
-              Tap «Add money» to record your first expense or pay with Apple Pay to track automatically.
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.transactionsList}>
-            {transactions.map((tx) => (
-              <View key={tx.id} style={styles.transactionItem}>
-                <View style={styles.txLeft}>
-                  <View style={[styles.txIconCircle, { backgroundColor: tx.iconBg || colors.surfaceSecondary }]}>
-                    <Ionicons 
-                      name={tx.category === 'needs' ? 'cart-outline' : tx.category === 'wants' ? 'cafe-outline' : 'wallet-outline'} 
-                      size={19} 
-                      color={colors.text} 
-                    />
-                  </View>
-                  <View style={styles.txMeta}>
-                    <Text style={styles.txMerchant}>{tx.merchant}</Text>
-                    <Text style={styles.txSubtitle}>
-                      {tx.timeFormatted} · {tx.category.toUpperCase()} · {tx.source === 'apple_pay' ? 'Apple Pay' : 'Manual'}
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.txRight}>
-                  <Text style={styles.txAmount}>-€{tx.amount.toFixed(2)}</Text>
-                  <TouchableOpacity onPress={() => deleteTransaction(tx.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <Ionicons name="trash-outline" size={13} color={colors.textMuted} />
-                  </TouchableOpacity>
-                </View>
+          {/* Frosted Security / VIP Alert Card (Exact Revolut Style) */}
+          <View style={styles.securityAlertCard}>
+            <View style={styles.alertCardContent}>
+              <View style={styles.alertIconCircle}>
+                <Ionicons name="heart" size={20} color="#FF3366" />
               </View>
-            ))}
+              <View style={styles.alertTextContainer}>
+                <Text style={styles.alertTitle}>Vela VIP Perk Active</Text>
+                <Text style={styles.alertSubtitle}>Солнышко, я люблю тебя ❤️</Text>
+              </View>
+            </View>
+            <TouchableOpacity 
+              style={styles.alertActionBtn} 
+              onPress={() => setGuideModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.alertActionText}>Apple Pay NFC Setup</Text>
+            </TouchableOpacity>
           </View>
-        )}
 
-        <View style={{ height: 40 }} />
-      </ScrollView>
+          {/* White Bottom Canvas Container for Cards & Pockets */}
+          <View style={styles.bottomWhiteCard}>
+            {/* Quick Segment Pills (Stocks / ETFs style in Revolut) */}
+            <View style={styles.filterPillsRow}>
+              <TouchableOpacity style={[styles.filterPill, styles.filterPillActive]}>
+                <Text style={[styles.filterPillText, styles.filterPillTextActive]}>Budget Pockets</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.filterPill} onPress={() => setAddModalVisible(true)}>
+                <Text style={styles.filterPillText}>Recent History</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Revolut Pockets Widget */}
+            <View style={styles.pocketsWidget}>
+              <View style={styles.pocketRow}>
+                <View style={styles.pocketInfo}>
+                  <View style={[styles.pocketDot, { backgroundColor: '#00C853' }]} />
+                  <Text style={styles.pocketName}>Needs (50%)</Text>
+                </View>
+                <Text style={styles.pocketAmount}>
+                  €{needsSpent.toFixed(2)} <Text style={styles.pocketMax}>/ €{needsLimit.toFixed(0)}</Text>
+                </Text>
+              </View>
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: `${needsPercent}%`, backgroundColor: '#00C853' }]} />
+              </View>
+
+              <View style={[styles.pocketRow, { marginTop: 16 }]}>
+                <View style={styles.pocketInfo}>
+                  <View style={[styles.pocketDot, { backgroundColor: '#7B61FF' }]} />
+                  <Text style={styles.pocketName}>Wants (30%)</Text>
+                </View>
+                <Text style={styles.pocketAmount}>
+                  €{wantsSpent.toFixed(2)} <Text style={styles.pocketMax}>/ €{wantsLimit.toFixed(0)}</Text>
+                </Text>
+              </View>
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: `${wantsPercent}%`, backgroundColor: '#7B61FF' }]} />
+              </View>
+
+              <View style={[styles.pocketRow, { marginTop: 16 }]}>
+                <View style={styles.pocketInfo}>
+                  <View style={[styles.pocketDot, { backgroundColor: '#0075EB' }]} />
+                  <Text style={styles.pocketName}>Savings (20%)</Text>
+                </View>
+                <Text style={styles.pocketAmount}>
+                  €{savingsSpent.toFixed(2)} <Text style={styles.pocketMax}>/ €{savingsLimit.toFixed(0)}</Text>
+                </Text>
+              </View>
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: `${savingsPercent}%`, backgroundColor: '#0075EB' }]} />
+              </View>
+            </View>
+
+            {/* Transactions Header */}
+            <View style={styles.transactionsHeader}>
+              <Text style={styles.sectionTitle}>Transactions</Text>
+              <TouchableOpacity onPress={() => setAddModalVisible(true)}>
+                <Text style={styles.seeAllText}>+ Add</Text>
+              </TouchableOpacity>
+            </View>
+
+            {transactions.length === 0 ? (
+              <View style={styles.zeroStateCard}>
+                <Ionicons name="receipt-outline" size={26} color="#72777A" style={{ marginBottom: 6 }} />
+                <Text style={styles.zeroStateTitle}>No transactions recorded</Text>
+                <Text style={styles.zeroStateDesc}>
+                  Tap «Add new expense» or pay with Apple Pay to see live analytics here.
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.transactionsList}>
+                {transactions.map((tx) => (
+                  <View key={tx.id} style={styles.transactionItem}>
+                    <View style={styles.txLeft}>
+                      <View style={[styles.txIconCircle, { backgroundColor: tx.iconBg || '#F4F5F7' }]}>
+                        <Ionicons 
+                          name={tx.category === 'needs' ? 'cart-outline' : tx.category === 'wants' ? 'cafe-outline' : 'wallet-outline'} 
+                          size={19} 
+                          color="#111417" 
+                        />
+                      </View>
+                      <View style={styles.txMeta}>
+                        <Text style={styles.txMerchant}>{tx.merchant}</Text>
+                        <Text style={styles.txSubtitle}>
+                          {tx.timeFormatted} · {tx.category.toUpperCase()} · {tx.source === 'apple_pay' ? 'Apple Pay' : 'Manual'}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.txRight}>
+                      <Text style={styles.txAmount}>-€{tx.amount.toFixed(2)}</Text>
+                      <TouchableOpacity onPress={() => deleteTransaction(tx.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                        <Ionicons name="trash-outline" size={13} color="#949BA2" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <View style={{ height: 40 }} />
+          </View>
+        </ScrollView>
+      </LinearGradient>
 
       {/* Modals */}
       <AddExpenseModal
@@ -314,308 +265,206 @@ export const ExpensesScreen: React.FC = () => {
 const styles = StyleSheet.create({
   mainWrapper: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#1754EE',
+  },
+  gradientBg: {
+    flex: 1,
   },
   container: {
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 20,
     paddingBottom: 24,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
-    paddingTop: 4,
+    paddingHorizontal: 16,
+    marginBottom: 24,
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
+  avatarPill: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
     borderWidth: 1,
-    borderColor: colors.border,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.shadowColor,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   avatarText: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.text,
+    color: '#FFFFFF',
   },
-  activeDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.accentGreen,
-    position: 'absolute',
-    bottom: -1,
-    right: -1,
-    borderWidth: 2,
-    borderColor: colors.surface,
-  },
-  userGreeting: {
-    gap: 1,
-  },
-  greetingTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-    letterSpacing: -0.2,
-  },
-  greetingPlan: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.accentBlue,
-  },
-  headerRight: {
+  searchCapsule: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    height: 38,
+    borderRadius: 19,
+    paddingHorizontal: 14,
+    marginHorizontal: 10,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+  },
+  searchText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.85)',
+    fontWeight: '500',
+  },
+  headerIconsRow: {
+    flexDirection: 'row',
     gap: 8,
   },
-  iconButton: {
+  headerGlassIcon: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
-  vipBanner: {
-    flexDirection: 'row',
+  heroSection: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.surface,
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.shadowColor,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
+    paddingHorizontal: 20,
+    marginBottom: 28,
   },
-  vipBannerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  pinkCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.accentPinkLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  vipBannerText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  balanceContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-    paddingVertical: 8,
-  },
-  balanceSubtitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    letterSpacing: 0.8,
+  heroTitle: {
+    fontSize: 34,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -1,
+    textAlign: 'center',
     marginBottom: 6,
   },
-  balanceAmount: {
-    fontSize: 42,
-    fontWeight: '800',
-    color: colors.text,
-    letterSpacing: -1.2,
-    marginBottom: 10,
+  heroSubtitle: {
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.85)',
+    fontWeight: '500',
+    textAlign: 'center',
+    marginBottom: 20,
   },
-  currencyPill: {
+  heroSpentHighlight: {
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  glassCtaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.4)',
   },
-  currencyPillText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textSecondary,
+  glassCtaText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
-  actionButtonsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-    paddingHorizontal: 4,
-  },
-  actionItem: {
-    alignItems: 'center',
-    gap: 6,
-  },
-  actionCircleDark: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+  securityAlertCard: {
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: 24,
+    padding: 18,
+    marginHorizontal: 16,
+    marginBottom: 20,
     ...Platform.select({
       ios: {
-        shadowColor: colors.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.18,
-        shadowRadius: 8,
+        shadowColor: '#001A4D',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.12,
+        shadowRadius: 14,
       },
       android: {
         elevation: 4,
       },
     }),
   },
-  actionCircleGray: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.shadowColor,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  actionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  nfcPromoCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.accentBlueLight,
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#D4E7FF',
-  },
-  nfcPromoLeft: {
+  alertCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    marginBottom: 14,
   },
-  nfcBadgeIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
+  alertIconCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#FFF0F4',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  nfcPromoTextContainer: {
+  alertTextContainer: {
+    flex: 1,
     gap: 2,
   },
-  nfcPromoTitle: {
+  alertTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111417',
+  },
+  alertSubtitle: {
+    fontSize: 13,
+    color: '#646B73',
+    fontWeight: '500',
+  },
+  alertActionBtn: {
+    backgroundColor: '#111417',
+    borderRadius: 16,
+    paddingVertical: 13,
+    alignItems: 'center',
+  },
+  alertActionText: {
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
-    color: colors.accentBlue,
   },
-  nfcPromoSubtitle: {
-    fontSize: 12,
-    color: '#004493',
+  bottomWhiteCard: {
+    backgroundColor: '#F8F9FB',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 16,
+    paddingTop: 20,
   },
-  cardContainer: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 28,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.shadowColor,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.04,
-        shadowRadius: 10,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  cardHeader: {
+  filterPillsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    gap: 8,
     marginBottom: 16,
   },
-  cardHeaderLeft: {
-    gap: 2,
+  filterPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#ECEEF2',
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-    letterSpacing: -0.3,
+  filterPillActive: {
+    backgroundColor: '#111417',
+    borderColor: '#111417',
   },
-  cardSubtitle: {
-    fontSize: 12,
-    color: colors.textSecondary,
+  filterPillText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#646B73',
   },
-  limitBadge: {
-    backgroundColor: colors.surfaceSecondary,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+  filterPillTextActive: {
+    color: '#FFFFFF',
   },
-  cardLimitText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.textSecondary,
+  pocketsWidget: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    padding: 18,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#ECEEF2',
   },
   pocketRow: {
     flexDirection: 'row',
@@ -636,21 +485,21 @@ const styles = StyleSheet.create({
   pocketName: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.text,
+    color: '#111417',
   },
   pocketAmount: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.text,
+    color: '#111417',
   },
   pocketMax: {
     fontSize: 12,
     fontWeight: '400',
-    color: colors.textSecondary,
+    color: '#72777A',
   },
   progressBarBg: {
     height: 6,
-    backgroundColor: colors.surfaceSecondary,
+    backgroundColor: '#F1F3F6',
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -667,49 +516,40 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.text,
+    color: '#111417',
     letterSpacing: -0.3,
   },
   seeAllText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.accentBlue,
+    color: '#0075EB',
   },
   zeroStateCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#ECEEF2',
     borderStyle: 'dashed',
-  },
-  zeroStateIconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: colors.surfaceSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
   },
   zeroStateTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.text,
+    color: '#111417',
     marginBottom: 4,
   },
   zeroStateDesc: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: '#646B73',
     textAlign: 'center',
     lineHeight: 18,
   },
   transactionsList: {
-    backgroundColor: colors.surface,
-    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#ECEEF2',
     overflow: 'hidden',
   },
   transactionItem: {
@@ -719,7 +559,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    borderBottomColor: '#F3F4F7',
   },
   txLeft: {
     flexDirection: 'row',
@@ -739,11 +579,11 @@ const styles = StyleSheet.create({
   txMerchant: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.text,
+    color: '#111417',
   },
   txSubtitle: {
     fontSize: 11,
-    color: colors.textSecondary,
+    color: '#646B73',
     fontWeight: '500',
   },
   txRight: {
@@ -753,6 +593,6 @@ const styles = StyleSheet.create({
   txAmount: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.text,
+    color: '#111417',
   },
 });
