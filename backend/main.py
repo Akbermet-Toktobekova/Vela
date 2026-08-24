@@ -4,6 +4,7 @@ from core.config import settings
 from api.routes_chat import router as chat_router
 from api.routes_profile import router as profile_router
 from api.routes_learning import router as learning_router
+from api.routes_transactions import router as expenses_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -21,6 +22,7 @@ app.add_middleware(
 )
 
 # Register routers
+app.include_router(expenses_router)
 app.include_router(chat_router)
 app.include_router(profile_router)
 app.include_router(learning_router)

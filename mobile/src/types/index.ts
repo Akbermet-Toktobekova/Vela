@@ -5,6 +5,45 @@ export type AgentType =
   | "savings_coach"
   | "financial_educator";
 
+export type TransactionSource = "nfc_tap" | "apple_pay" | "google_wallet" | "open_banking" | "manual";
+export type BudgetBucket = "needs" | "wants" | "savings" | "transfers";
+
+export interface Transaction {
+  id: string;
+  amount: number;
+  currency: string;
+  raw_merchant: string;
+  clean_merchant: string;
+  category: string;
+  icon: string;
+  bucket: BudgetBucket;
+  is_essential: boolean;
+  source: TransactionSource;
+  account_name: string;
+  timestamp: string;
+}
+
+export interface CategorySpend {
+  category: string;
+  amount: number;
+  percentage: number;
+  icon: string;
+  bucket: BudgetBucket;
+}
+
+export interface ExpenseSummary {
+  total_spent: number;
+  currency: string;
+  needs_total: number;
+  wants_total: number;
+  savings_total: number;
+  needs_percentage: number;
+  wants_percentage: number;
+  savings_percentage: number;
+  category_breakdown: CategorySpend[];
+  recent_transactions: Transaction[];
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
@@ -46,12 +85,6 @@ export interface UserProfile {
   risk_tolerance: string;
 }
 
-export interface QuizOption {
-  id: string;
-  text: string;
-  is_correct: boolean;
-}
-
 export interface MicroLesson {
   id: string;
   title: string;
@@ -61,7 +94,7 @@ export interface MicroLesson {
   key_takeaway: string;
   quiz?: {
     question: string;
-    options: QuizOption[];
+    options: { id: string; text: string; is_correct: boolean }[];
     explanation: string;
   };
 }

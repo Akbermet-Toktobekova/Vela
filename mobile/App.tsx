@@ -2,26 +2,26 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { colors } from "./src/theme/colors";
-import { ChatScreen } from "./src/screens/ChatScreen";
+import { ExpensesScreen } from "./src/screens/ExpensesScreen";
 import { DashboardScreen } from "./src/screens/DashboardScreen";
+import { ChatScreen } from "./src/screens/ChatScreen";
 import { MicroLearningScreen } from "./src/screens/MicroLearningScreen";
-import { ProfileScreen } from "./src/screens/ProfileScreen";
 
-type Tab = "chat" | "dashboard" | "learning" | "profile";
+type Tab = "expenses" | "dashboard" | "chat" | "learning";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>("chat");
+  const [activeTab, setActiveTab] = useState<Tab>("expenses");
 
   const renderScreen = () => {
     switch (activeTab) {
-      case "chat":
-        return <ChatScreen />;
+      case "expenses":
+        return <ExpensesScreen />;
       case "dashboard":
         return <DashboardScreen onNavigateToChat={() => setActiveTab("chat")} />;
+      case "chat":
+        return <ChatScreen />;
       case "learning":
         return <MicroLearningScreen />;
-      case "profile":
-        return <ProfileScreen />;
     }
   };
 
@@ -33,12 +33,12 @@ export default function App() {
       {/* Bottom Navigation Bar */}
       <View style={styles.tabBar}>
         <TouchableOpacity
-          style={[styles.tabItem, activeTab === "chat" && styles.tabItemActive]}
-          onPress={() => setActiveTab("chat")}
+          style={[styles.tabItem, activeTab === "expenses" && styles.tabItemActive]}
+          onPress={() => setActiveTab("expenses")}
         >
-          <Text style={styles.tabIcon}>💬</Text>
-          <Text style={[styles.tabLabel, activeTab === "chat" && styles.tabLabelActive]}>
-            Advisor
+          <Text style={styles.tabIcon}>💳</Text>
+          <Text style={[styles.tabLabel, activeTab === "expenses" && styles.tabLabelActive]}>
+            Expenses
           </Text>
         </TouchableOpacity>
 
@@ -48,7 +48,17 @@ export default function App() {
         >
           <Text style={styles.tabIcon}>📊</Text>
           <Text style={[styles.tabLabel, activeTab === "dashboard" && styles.tabLabelActive]}>
-            Dashboard
+            Overview
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabItem, activeTab === "chat" && styles.tabItemActive]}
+          onPress={() => setActiveTab("chat")}
+        >
+          <Text style={styles.tabIcon}>🤖</Text>
+          <Text style={[styles.tabLabel, activeTab === "chat" && styles.tabLabelActive]}>
+            AI Advisor
           </Text>
         </TouchableOpacity>
 
@@ -58,17 +68,7 @@ export default function App() {
         >
           <Text style={styles.tabIcon}>📚</Text>
           <Text style={[styles.tabLabel, activeTab === "learning" && styles.tabLabelActive]}>
-            Learn
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tabItem, activeTab === "profile" && styles.tabItemActive]}
-          onPress={() => setActiveTab("profile")}
-        >
-          <Text style={styles.tabIcon}>👤</Text>
-          <Text style={[styles.tabLabel, activeTab === "profile" && styles.tabLabelActive]}>
-            Profile
+            Daily Bite
           </Text>
         </TouchableOpacity>
       </View>
