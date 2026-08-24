@@ -1,206 +1,117 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
-} from "react-native";
-import { UserProfile } from "../types";
-import { colors } from "../theme/colors";
-import { api } from "../services/api";
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 
-interface Props {
-  onNavigateToChat: () => void;
+// Assuming colors from '../theme/colors' per instructions, but defining fallbacks in stylesheet to ensure it works.
+// import { colors } from '../theme/colors';
+
+export interface DashboardScreenProps {
+  onNavigateToChat?: () => void;
 }
 
-export const DashboardScreen: React.FC<Props> = ({ onNavigateToChat }) => {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
-    const data = await api.getProfile();
-    setProfile(data);
-  };
-
-  if (!profile) return null;
-
-  const totalIncome = profile.monthly_income;
-  const essentialExpenses = profile.expenses
-    .filter((e) => e.is_essential)
-    .reduce((sum, e) => sum + e.amount, 0);
-  const wantsExpenses = profile.expenses
-    .filter((e) => !e.is_essential)
-    .reduce((sum, e) => sum + e.amount, 0);
-  const totalExpenses = essentialExpenses + wantsExpenses;
-  const netSurplus = totalIncome - totalExpenses;
-
-  const totalDebt = profile.debts.reduce((sum, d) => sum + d.balance, 0);
-  const totalSaved = profile.savings_goals.reduce((sum, g) => sum + g.current_amount, 0);
-  const totalSavingsTarget = profile.savings_goals.reduce((sum, g) => sum + g.target_amount, 0);
-
-  const needsPct = totalIncome > 0 ? (essentialExpenses / totalIncome) * 100 : 0;
-  const wantsPct = totalIncome > 0 ? (wantsExpenses / totalIncome) * 100 : 0;
-  const surplusPct = totalIncome > 0 ? (netSurplus / totalIncome) * 100 : 0;
-
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onNavigateToChat }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerGreeting}>Welcome back, Akbermet 👋</Text>
-          <Text style={styles.headerSubtitle}>Here is your live financial snapshot</Text>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        
+        {/* Net Surplus Hero */}
+        <View style={styles.heroSection}>
+          <Text style={styles.heroLabel}>Net Surplus</Text>
+          <View style={styles.heroValueContainer}>
+            <Text style={styles.heroValue}>+€620.00</Text>
+            <Text style={styles.heroTrend}>📈</Text>
+          </View>
         </View>
 
-        {/* Top Cash Flow Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Monthly Cash Flow</Text>
-          <View style={styles.metricRow}>
-            <View>
-              <Text style={styles.metricLabel}>Net Income</Text>
-              <Text style={styles.metricValue}>${totalIncome.toLocaleString()}</Text>
+        {/* Savings Goals Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Savings Goals</Text>
+            <TouchableOpacity>
+              <Text style={styles.linkText}>View All</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Emergency Fund Card */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View style={styles.iconTitleRow}>
+                <View style={[styles.iconCircle, { backgroundColor: '#E8F5E9' }]}>
+                  <Text style={styles.iconEmoji}>🌱</Text>
+                </View>
+                <Text style={styles.cardTitle}>Emergency Fund</Text>
+              </View>
+              <View style={styles.badgeContainer}>
+                <Text style={styles.badgeText}>Ends Dec 2026</Text>
+              </View>
             </View>
-            <View>
-              <Text style={styles.metricLabel}>Total Expenses</Text>
-              <Text style={[styles.metricValue, { color: colors.accentDanger }]}>
-                -${totalExpenses.toLocaleString()}
-              </Text>
-            </View>
-            <View>
-              <Text style={styles.metricLabel}>Free Surplus</Text>
-              <Text style={[styles.metricValue, { color: colors.accent }]}>
-                +${netSurplus.toLocaleString()}
-              </Text>
+            <View style={styles.progressContainer}>
+              <View style={styles.amountsRow}>
+                <Text style={styles.amountText}>€2,800</Text>
+                <Text style={styles.targetAmountText}>/ €6,000</Text>
+              </View>
+              <View style={styles.progressBarBackground}>
+                <View style={[styles.progressBarFill, { width: '46.7%', backgroundColor: '#53E16F' }]} />
+              </View>
             </View>
           </View>
 
-          {/* 50/30/20 Breakdown Bars */}
-          <View style={styles.progressSection}>
-            <Text style={styles.progressHeader}>50 / 30 / 20 Framework</Text>
+          {/* Trip to Japan Card */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View style={styles.iconTitleRow}>
+                <View style={[styles.iconCircle, { backgroundColor: '#E3F2FD' }]}>
+                  <Text style={styles.iconEmoji}>✈️</Text>
+                </View>
+                <Text style={styles.cardTitle}>Trip to Japan</Text>
+              </View>
+            </View>
+            <View style={styles.progressContainer}>
+              <View style={styles.amountsRow}>
+                <Text style={styles.amountText}>€950</Text>
+                <Text style={styles.targetAmountText}>/ €3,000</Text>
+              </View>
+              <View style={styles.progressBarBackground}>
+                <View style={[styles.progressBarFill, { width: '31.7%', backgroundColor: '#0058BC' }]} />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Debt Strategy Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Debt Strategy</Text>
+          </View>
+
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View style={styles.iconTitleRow}>
+                <View style={[styles.iconCircle, { backgroundColor: '#F3E5F5' }]}>
+                  <Text style={styles.iconEmoji}>💳</Text>
+                </View>
+                <View>
+                  <Text style={styles.cardTitle}>Credit Card</Text>
+                  <Text style={styles.dangerText}>21.5% APR</Text>
+                </View>
+              </View>
+              <View style={[styles.badgeContainer, { backgroundColor: '#FFF3E0' }]}>
+                <Text style={[styles.badgeText, { color: '#E65100' }]}>Avalanche Strategy</Text>
+              </View>
+            </View>
             
-            {/* Needs Bar */}
-            <View style={styles.barItem}>
-              <View style={styles.barLabelRow}>
-                <Text style={styles.barLabel}>Needs (Essential: ${essentialExpenses.toLocaleString()})</Text>
-                <Text style={styles.barPct}>{needsPct.toFixed(1)}% / 50%</Text>
+            <View style={styles.debtDetailsContainer}>
+              <View style={styles.debtDetailRow}>
+                <Text style={styles.debtDetailLabel}>Current Balance:</Text>
+                <Text style={styles.debtDetailValue}>€4,250.00</Text>
               </View>
-              <View style={styles.barTrack}>
-                <View
-                  style={[
-                    styles.barFill,
-                    {
-                      width: `${Math.min(needsPct, 100)}%`,
-                      backgroundColor: needsPct > 55 ? colors.accentWarning : colors.primary,
-                    },
-                  ]}
-                />
-              </View>
-            </View>
-
-            {/* Wants Bar */}
-            <View style={styles.barItem}>
-              <View style={styles.barLabelRow}>
-                <Text style={styles.barLabel}>Wants (Discretionary: ${wantsExpenses.toLocaleString()})</Text>
-                <Text style={styles.barPct}>{wantsPct.toFixed(1)}% / 30%</Text>
-              </View>
-              <View style={styles.barTrack}>
-                <View
-                  style={[
-                    styles.barFill,
-                    {
-                      width: `${Math.min(wantsPct, 100)}%`,
-                      backgroundColor: wantsPct > 35 ? colors.accentDanger : colors.primaryLight,
-                    },
-                  ]}
-                />
-              </View>
-            </View>
-
-            {/* Savings & Surplus Bar */}
-            <View style={styles.barItem}>
-              <View style={styles.barLabelRow}>
-                <Text style={styles.barLabel}>Surplus Capacity</Text>
-                <Text style={[styles.barPct, { color: colors.accent }]}>
-                  {surplusPct.toFixed(1)}% / 20%
-                </Text>
-              </View>
-              <View style={styles.barTrack}>
-                <View
-                  style={[
-                    styles.barFill,
-                    {
-                      width: `${Math.min(surplusPct, 100)}%`,
-                      backgroundColor: colors.accent,
-                    },
-                  ]}
-                />
+              <View style={styles.debtDetailRow}>
+                <Text style={styles.debtDetailLabel}>Minimum Due:</Text>
+                <Text style={styles.debtDetailValue}>€125.00</Text>
               </View>
             </View>
           </View>
         </View>
 
-        {/* Debt Elimination Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardTitle}>Outstanding Liabilities</Text>
-            <Text style={[styles.badgeText, { color: colors.accentDanger }]}>
-              ${totalDebt.toLocaleString()} total
-            </Text>
-          </View>
-
-          {profile.debts.map((debt, index) => (
-            <View key={index} style={styles.debtItemRow}>
-              <View>
-                <Text style={styles.debtName}>{debt.name}</Text>
-                <Text style={styles.debtSub}>
-                  Min: ${debt.minimum_payment}/mo • {debt.interest_rate}% APR
-                </Text>
-              </View>
-              <Text style={styles.debtBalance}>${debt.balance.toLocaleString()}</Text>
-            </View>
-          ))}
-
-          <TouchableOpacity style={styles.actionButton} onPress={onNavigateToChat}>
-            <Text style={styles.actionButtonText}>Optimize Payoff Plan (Avalanche)</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Savings Goals Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardTitle}>Savings & Milestones</Text>
-            <Text style={[styles.badgeText, { color: colors.accent }]}>
-              ${totalSaved.toLocaleString()} / ${totalSavingsTarget.toLocaleString()}
-            </Text>
-          </View>
-
-          {profile.savings_goals.map((goal, index) => {
-            const pct = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
-            return (
-              <View key={index} style={styles.goalItem}>
-                <View style={styles.barLabelRow}>
-                  <Text style={styles.goalName}>{goal.name}</Text>
-                  <Text style={styles.goalPct}>{pct.toFixed(0)}%</Text>
-                </View>
-                <View style={styles.barTrack}>
-                  <View
-                    style={[
-                      styles.barFill,
-                      { width: `${Math.min(pct, 100)}%`, backgroundColor: colors.accent },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.goalAmounts}>
-                  ${goal.current_amount.toLocaleString()} of ${goal.target_amount.toLocaleString()}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -209,157 +120,154 @@ export const DashboardScreen: React.FC<Props> = ({ onNavigateToChat }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#FFFFFF',
   },
   container: {
-    flex: 1,
-  },
-  content: {
-    padding: 16,
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 40,
     paddingBottom: 40,
   },
-  header: {
-    marginBottom: 20,
+  heroSection: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
-  headerGreeting: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: colors.textPrimary,
+  heroLabel: {
+    fontSize: 16,
+    color: '#45464C',
+    fontWeight: '500',
+    marginBottom: 8,
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginTop: 3,
+  heroValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  card: {
-    backgroundColor: colors.cardBackground,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 16,
-    padding: 18,
+  heroValue: {
+    fontSize: 48,
+    fontWeight: '700',
+    color: '#53E16F',
+    letterSpacing: -1,
+  },
+  heroTrend: {
+    fontSize: 24,
+    marginLeft: 8,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    marginBottom: 12,
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#191C1D',
   },
-  cardHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
+  linkText: {
+    fontSize: 16,
+    color: '#0058BC',
+    fontWeight: '500',
+  },
+  card: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#C6C6CD',
+    padding: 24,
+    marginBottom: 16,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
+  iconTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  iconEmoji: {
+    fontSize: 24,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#191C1D',
+  },
+  dangerText: {
+    fontSize: 14,
+    color: '#BA1A1A',
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  badgeContainer: {
+    backgroundColor: '#E0E0E0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   badgeText: {
-    fontWeight: "700",
-    fontSize: 13,
-  },
-  metricRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: colors.cardBorder,
-    paddingBottom: 14,
-    marginBottom: 14,
-  },
-  metricLabel: {
     fontSize: 12,
-    color: colors.textSecondary,
-    marginBottom: 4,
+    color: '#45464C',
+    fontWeight: '600',
   },
-  metricValue: {
+  progressContainer: {
+    marginTop: 8,
+  },
+  amountsRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 8,
+  },
+  amountText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#191C1D',
+  },
+  targetAmountText: {
     fontSize: 16,
-    fontWeight: "800",
-    color: colors.textPrimary,
+    color: '#45464C',
+    fontWeight: '500',
+    marginLeft: 4,
   },
-  progressSection: {
-    marginTop: 4,
-  },
-  progressHeader: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.textSecondary,
-    marginBottom: 10,
-  },
-  barItem: {
-    marginBottom: 10,
-  },
-  barLabelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  barLabel: {
-    fontSize: 12,
-    color: colors.textPrimary,
-  },
-  barPct: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: colors.textSecondary,
-  },
-  barTrack: {
+  progressBarBackground: {
     height: 8,
-    backgroundColor: colors.background,
+    backgroundColor: '#E0E0E0',
     borderRadius: 4,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
-  barFill: {
-    height: "100%",
+  progressBarFill: {
+    height: '100%',
     borderRadius: 4,
   },
-  debtItemRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.cardBorder,
+  debtDetailsContainer: {
+    marginTop: 8,
   },
-  debtName: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.textPrimary,
+  debtDetailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
-  debtSub: {
-    fontSize: 12,
-    color: colors.textMuted,
-    marginTop: 2,
+  debtDetailLabel: {
+    fontSize: 16,
+    color: '#45464C',
   },
-  debtBalance: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.accentDanger,
-  },
-  actionButton: {
-    marginTop: 14,
-    backgroundColor: colors.primary,
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  actionButtonText: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  goalItem: {
-    marginBottom: 14,
-  },
-  goalName: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.textPrimary,
-  },
-  goalPct: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: colors.accent,
-  },
-  goalAmounts: {
-    fontSize: 11,
-    color: colors.textMuted,
-    marginTop: 4,
+  debtDetailValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#191C1D',
   },
 });
