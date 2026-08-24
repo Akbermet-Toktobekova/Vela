@@ -20,13 +20,24 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.akbermet.vela"
+      "package": "com.akbermet.vela",
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "POST_NOTIFICATIONS",
+        "BIND_NOTIFICATION_LISTENER_SERVICE"
+      ]
     },
     "extra": {
       "eas": {
         "projectId": "3c0a2fba-d727-42ef-a920-9bc12487fd38"
       }
     },
-    "owner": "dizbalanser"
+    "owner": "dizbalanser",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3c0a2fba-d727-42ef-a920-9bc12487fd38"
+    }
   }
 }
