@@ -25,12 +25,13 @@ This project was developed as a BSc Computer Science Thesis, blending **Software
 - 🎯 **Goal-Oriented Optimization**: Proactively works towards user-defined milestones (e.g., paying off a loan, saving for a car).
 - 📱 **Daily Micro-Learning**: Delivers bite-sized, highly personalized financial lessons based on the user's current situation.
 
-## 🛠️ Technical Stack
+## 🛠️ Technical Stack & Cloud Infrastructure
 
 - **Frontend:** Expo (React Native), TypeScript, TailwindCSS (NativeWind)
 - **Backend:** Python, FastAPI
-- **AI Orchestration:** CrewAI (Multi-Agent System), OpenAI / Anthropic APIs
-- **Database:** Firebase Firestore (NoSQL) / MongoDB
+- **Cloud Infrastructure & Deployment:** Built and distributed via EAS Cloud, Expo Cloud CDN for Over-The-Air (OTA) updates, and automated Cloud builds
+- **AI Orchestration & Cloud APIs:** Powered by Claude (Anthropic) & OpenAI Cloud APIs with multi-agent orchestration (CrewAI)
+- **Database & Sync:** Firebase Firestore (NoSQL) / MongoDB with real-time cloud data ingestion
 
 ## 👩‍💻 Developer & Product Role
 
