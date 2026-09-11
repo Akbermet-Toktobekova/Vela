@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vela — Autonomous AI Financial Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0A0D12;
+      --card-bg: rgba(255, 255, 255, 0.04);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent: #0075EB;
+      --accent-glow: rgba(0, 117, 235, 0.35);
+      --text: #FFFFFF;
+      --text-muted: #94A3B8;
+      --green: #10B981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow-x: hidden;
+      padding: 24px 16px;
+    }
+
+    /* Ambient background gradient glow */
+    .glow-1 {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(0, 117, 235, 0.25) 0%, rgba(0,0,0,0) 70%);
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      filter: blur(80px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .glow-2 {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(0,0,0,0) 70%);
+      bottom: -100px;
+      right: 10%;
+      filter: blur(80px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      max-width: 640px;
+      width: 100%;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(0, 117, 235, 0.12);
+      border: 1px solid rgba(0, 117, 235, 0.3);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #60A5FA;
+      margin-bottom: 24px;
+      backdrop-filter: blur(8px);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .logo-container {
+      width: 84px;
+      height: 84px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+      border: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .logo-container img {
+      width: 54px;
+      height: 54px;
+      object-fit: contain;
+    }
+
+    h1 {
+      font-size: 40px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 12px;
+      background: linear-gradient(180deg, #FFFFFF 0%, #CBD5E1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 32px;
+      max-width: 480px;
+    }
+
+    .download-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      padding: 32px 24px;
+      width: 100%;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .qr-wrapper {
+      background: #FFFFFF;
+      padding: 14px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .qr-wrapper img {
+      display: block;
+      width: 180px;
+      height: 180px;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px 24px;
+      border-radius: 16px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: #0075EB;
+      color: #FFFFFF;
+      box-shadow: 0 10px 25px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      background: #0064C7;
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px rgba(0, 117, 235, 0.45);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+      transform: translateY(-2px);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      width: 100%;
+      margin-bottom: 32px;
+      text-align: left;
+    }
+
+    .feature-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .feature-icon {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .feature-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 4px;
+    }
+
+    .feature-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    footer {
+      font-size: 13px;
+      color: #64748B;
+    }
+
+    footer a {
+      color: #94A3B8;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    footer a:hover {
+      color: #FFFFFF;
+    }
+
+    @media (max-width: 480px) {
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      h1 {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+
+  <div class="container">
+    <div class="badge">
+      <div class="status-dot"></div>
+      <span>BSc Thesis & Multi-Agent AI System</span>
+    </div>
+
+    <div class="logo-container">
+      <img src="./mobile/assets/icon.png" alt="Vela Logo" />
+    </div>
+
+    <h1>Vela Financial Assistant</h1>
+    <p class="subtitle">
+      Democratizing personalized wealth management through AI Multi-Agent orchestration and autonomous NFC expense ingestion.
+    </p>
+
+    <div class="download-card">
+      <div class="qr-wrapper">
+        <img 
+          src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=https%3A%2F%2Fexpo.dev%2Fartifacts%2Feas%2Fz0pL746GjK0JvA_W7z1R6o4_uGjJ-b2bA3v3m1x2yZ4.apk" 
+          alt="Scan to Install Vela APK" 
+        />
+      </div>
+
+      <div class="btn-group">
+        <a href="https://expo.dev/artifacts/eas/z0pL746GjK0JvA_W7z1R6o4_uGjJ-b2bA3v3m1x2yZ4.apk" class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Android APK (v1.0.0)
+        </a>
+        <a href="exp://u.expo.dev/3c0a2fba-d727-42ef-a920-9bc12487fd38?channel-name=production" class="btn btn-secondary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          Launch on iOS via Expo Go
+        </a>
+        <a href="https://github.com/Akbermet-Toktobekova/Vela" class="btn btn-secondary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          View GitHub Repository
+        </a>
+      </div>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-item">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-title">Multi-Agent AI</div>
+        <div class="feature-desc">Autonomous coordination between Budget, Debt Avalanche, and Savings agents.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">NFC & Push Ingestion</div>
+        <div class="feature-desc">Zero-tap expense logging directly from Apple Pay, Google Pay, and bank SMS.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">50/30/20 Pockets</div>
+        <div class="feature-desc">Automatic categorization into Needs, Wants, and Savings with real-time limits.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🎓</div>
+        <div class="feature-title">Daily Academy</div>
+        <div class="feature-desc">Bite-sized personalized financial lessons and interactive knowledge checks.</div>
+      </div>
+    </div>
+
+    <footer>
+      Developed with ❤️ by <a href="https://github.com/Akbermet-Toktobekova" target="_blank">Akbermet Toktobekova</a>
+    </footer>
+  </div>
+</body>
+</html>

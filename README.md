@@ -8,6 +8,11 @@
     <img src="https://img.shields.io/badge/Backend-FastAPI%20%7C%20Python-009688?style=for-the-badge&logo=fastapi" alt="FastAPI" />
     <img src="https://img.shields.io/badge/AI-CrewAI-FF5722?style=for-the-badge&logo=robot" alt="CrewAI" />
   </p>
+
+  <p>
+    🔗 <strong>Live Landing Website:</strong> <a href="https://akbermet-toktobekova.github.io/Vela/">akbermet-toktobekova.github.io/Vela</a><br/>
+    📱 <strong>Direct Android APK:</strong> <a href="https://expo.dev/artifacts/eas/z0pL746GjK0JvA_W7z1R6o4_uGjJ-b2bA3v3m1x2yZ4.apk">Download v1.0.0 APK</a> | 🍏 <strong>iOS Expo Go:</strong> <code>exp://u.expo.dev/3c0a2fba-d727-42ef-a920-9bc12487fd38?channel-name=production</code>
+  </p>
 </div>
 
 ## 📖 About The Project
