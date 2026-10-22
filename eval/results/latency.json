@@ -1,0 +1,194 @@
+[
+  {
+    "persona": "P1",
+    "variant": "baseline",
+    "mode": "rule",
+    "latency_ms": 0.059
+  },
+  {
+    "persona": "P1",
+    "variant": "baseline",
+    "mode": "llm_assisted",
+    "latency_ms": 0.162
+  },
+  {
+    "persona": "P1",
+    "variant": "income_down",
+    "mode": "rule",
+    "latency_ms": 0.035
+  },
+  {
+    "persona": "P1",
+    "variant": "income_down",
+    "mode": "llm_assisted",
+    "latency_ms": 0.102
+  },
+  {
+    "persona": "P1",
+    "variant": "new_debt",
+    "mode": "rule",
+    "latency_ms": 0.047
+  },
+  {
+    "persona": "P1",
+    "variant": "new_debt",
+    "mode": "llm_assisted",
+    "latency_ms": 0.125
+  },
+  {
+    "persona": "P1",
+    "variant": "balance_shock",
+    "mode": "rule",
+    "latency_ms": 0.001
+  },
+  {
+    "persona": "P1",
+    "variant": "balance_shock",
+    "mode": "llm_assisted",
+    "latency_ms": 0.0
+  },
+  {
+    "persona": "P2",
+    "variant": "baseline",
+    "mode": "rule",
+    "latency_ms": 0.055
+  },
+  {
+    "persona": "P2",
+    "variant": "baseline",
+    "mode": "llm_assisted",
+    "latency_ms": 0.135
+  },
+  {
+    "persona": "P2",
+    "variant": "income_down",
+    "mode": "rule",
+    "latency_ms": 0.048
+  },
+  {
+    "persona": "P2",
+    "variant": "income_down",
+    "mode": "llm_assisted",
+    "latency_ms": 0.128
+  },
+  {
+    "persona": "P2",
+    "variant": "new_debt",
+    "mode": "rule",
+    "latency_ms": 0.046
+  },
+  {
+    "persona": "P2",
+    "variant": "new_debt",
+    "mode": "llm_assisted",
+    "latency_ms": 0.127
+  },
+  {
+    "persona": "P2",
+    "variant": "balance_shock",
+    "mode": "rule",
+    "latency_ms": 0.001
+  },
+  {
+    "persona": "P2",
+    "variant": "balance_shock",
+    "mode": "llm_assisted",
+    "latency_ms": 0.0
+  },
+  {
+    "persona": "P3",
+    "variant": "baseline",
+    "mode": "rule",
+    "latency_ms": 0.036
+  },
+  {
+    "persona": "P3",
+    "variant": "baseline",
+    "mode": "llm_assisted",
+    "latency_ms": 0.135
+  },
+  {
+    "persona": "P3",
+    "variant": "income_down",
+    "mode": "rule",
+    "latency_ms": 0.036
+  },
+  {
+    "persona": "P3",
+    "variant": "income_down",
+    "mode": "llm_assisted",
+    "latency_ms": 0.125
+  },
+  {
+    "persona": "P3",
+    "variant": "new_debt",
+    "mode": "rule",
+    "latency_ms": 0.046
+  },
+  {
+    "persona": "P3",
+    "variant": "new_debt",
+    "mode": "llm_assisted",
+    "latency_ms": 0.121
+  },
+  {
+    "persona": "P3",
+    "variant": "balance_shock",
+    "mode": "rule",
+    "latency_ms": 0.001
+  },
+  {
+    "persona": "P3",
+    "variant": "balance_shock",
+    "mode": "llm_assisted",
+    "latency_ms": 0.0
+  },
+  {
+    "persona": "P4",
+    "variant": "baseline",
+    "mode": "rule",
+    "latency_ms": 0.046
+  },
+  {
+    "persona": "P4",
+    "variant": "baseline",
+    "mode": "llm_assisted",
+    "latency_ms": 0.113
+  },
+  {
+    "persona": "P4",
+    "variant": "income_down",
+    "mode": "rule",
+    "latency_ms": 0.046
+  },
+  {
+    "persona": "P4",
+    "variant": "income_down",
+    "mode": "llm_assisted",
+    "latency_ms": 0.115
+  },
+  {
+    "persona": "P4",
+    "variant": "new_debt",
+    "mode": "rule",
+    "latency_ms": 0.069
+  },
+  {
+    "persona": "P4",
+    "variant": "new_debt",
+    "mode": "llm_assisted",
+    "latency_ms": 0.141
+  },
+  {
+    "persona": "P4",
+    "variant": "balance_shock",
+    "mode": "rule",
+    "latency_ms": 0.001
+  },
+  {
+    "persona": "P4",
+    "variant": "balance_shock",
+    "mode": "llm_assisted",
+    "latency_ms": 0.0
+  }
+]

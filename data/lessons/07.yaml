@@ -1,0 +1,22 @@
+id: lesson-07
+topic: budget
+title: Subscriptions deserve an occasional hello
+trigger_conditions:
+- subscription_creep
+body: Recurring services are easy to lose track of because the payment happens in
+  the background. A short review can reveal which ones still earn a place in your
+  life. Check the actual service, billing period, cancellation terms, and whether
+  other people rely on it. Similar transactions suggest a subscription, but they do
+  not confirm one. Consider how this applies to your own plan before making a change.
+  Review the figures shown alongside a recommendation, including the cash that remains
+  and the alternative that was considered. If the proposed step does not fit, you
+  can adjust it or choose not to act. The purpose of this exercise is to make the
+  trade-offs visible and understandable. All actions here are simulated, and the examples
+  are educational guidance rather than a promise about a future outcome.
+question: What should happen before assuming a recurring cost?
+options:
+- Automatic cancellation
+- A larger transfer
+- Confirmation from you
+answer: 2
+explanation: Detected recurring expenses remain assumptions until confirmed.

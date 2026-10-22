@@ -1,0 +1,22 @@
+id: lesson-15
+topic: savings
+title: Plan gently around variable income
+trigger_conditions:
+- savings
+body: When income varies, a single average can hide both lean and comfortable months.
+  Start with essential commitments and consider what happens during a lower-income
+  period. Contributions can be smaller or paused when needed. A plan that responds
+  to changing income can be more sustainable than a fixed amount that requires the
+  same conditions every month. Consider how this applies to your own plan before making
+  a change. Review the figures shown alongside a recommendation, including the cash
+  that remains and the alternative that was considered. If the proposed step does
+  not fit, you can adjust it or choose not to act. The purpose of this exercise is
+  to make the trade-offs visible and understandable. All actions here are simulated,
+  and the examples are educational guidance rather than a promise about a future outcome.
+question: What can help with variable income?
+options:
+- Flexible contributions
+- Ignoring lean months
+- Using all spare cash immediately
+answer: 0
+explanation: Flexible contributions can protect essentials when income changes.

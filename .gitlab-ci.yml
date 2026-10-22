@@ -1,0 +1,43 @@
+stages: [lint, typecheck, test, build]
+.python:
+  image: python:3.12
+  before_script:
+    - pip install -c requirements.lock -e '.[dev]'
+lint:
+  extends: .python
+  stage: lint
+  script:
+    - ruff check src tests
+    - ruff format --check src tests
+typecheck:
+  extends: .python
+  stage: typecheck
+  script: mypy --strict src/finagent/domain
+backend:
+  extends: .python
+  stage: test
+  script:
+    - pytest --cov-report=xml
+    - python -m finagent.cli evaluate
+  artifacts:
+    paths: [coverage.xml, eval/results/]
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+frontend:
+  image: node:22
+  stage: test
+  script:
+    - cd frontend
+    - npm ci
+    - npm test
+build:
+  image: node:22
+  stage: build
+  script:
+    - cd frontend
+    - npm ci
+    - npm run build
+  artifacts:
+    paths: [frontend/dist/]

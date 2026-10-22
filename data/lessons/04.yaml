@@ -1,0 +1,22 @@
+id: lesson-04
+topic: debt
+title: What an annual rate tells you
+trigger_conditions:
+- debt_present
+body: An annual percentage rate describes borrowing costs on an annual basis, but
+  actual charges depend on the agreement. This prototype uses a monthly interest approximation
+  with explicit rounding. A statement may instead accrue interest daily or include
+  fees. Comparing the estimate with your own agreement helps explain differences without
+  treating a simulation as a lender quote. Consider how this applies to your own plan
+  before making a change. Review the figures shown alongside a recommendation, including
+  the cash that remains and the alternative that was considered. If the proposed step
+  does not fit, you can adjust it or choose not to act. The purpose of this exercise
+  is to make the trade-offs visible and understandable. All actions here are simulated,
+  and the examples are educational guidance rather than a promise about a future outcome.
+question: Is this simulation a lender quote?
+options:
+- Yes, always
+- Only for credit cards
+- No, terms and timing can differ
+answer: 2
+explanation: The prototype is an educational model, not a lender quote.

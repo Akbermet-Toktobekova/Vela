@@ -1,0 +1,407 @@
+{
+  "profile": {
+    "id": "P2",
+    "name": "Alex",
+    "currency": "USD",
+    "monthly_income": 380000,
+    "income_day": 1,
+    "priority": "debt",
+    "min_cash_buffer": 50000,
+    "cash_balance": 240000,
+    "auto_save_pct": 5,
+    "emergency_months": 3,
+    "fixed_costs": [
+      {
+        "name": "Rent",
+        "amount": 120000,
+        "due_day": 1,
+        "category": "bills"
+      },
+      {
+        "name": "Utilities",
+        "amount": 16000,
+        "due_day": 12,
+        "category": "bills"
+      },
+      {
+        "name": "Transport",
+        "amount": 9000,
+        "due_day": 5,
+        "category": "bills"
+      }
+    ],
+    "debts": [
+      {
+        "name": "Credit card",
+        "balance": 480000,
+        "annual_rate": "21.9",
+        "min_payment": 16000
+      },
+      {
+        "name": "Personal loan",
+        "balance": 180000,
+        "annual_rate": "8.5",
+        "min_payment": 9000
+      }
+    ],
+    "savings": [
+      {
+        "name": "Safety net",
+        "balance": 220000,
+        "kind": "emergency",
+        "target_amount": null,
+        "target_date": null
+      }
+    ],
+    "goal": {},
+    "declined_transaction": false,
+    "created_at": "2026-01-01T00:00:00+00:00"
+  },
+  "date": "2026-10-22",
+  "demo": true,
+  "provider": "fake",
+  "overview": {
+    "safe_to_spend": 16500,
+    "reserved": 25000,
+    "buffer_after": 215000,
+    "days_to_income": 10,
+    "emergency_saved": 220000,
+    "emergency_target": 435000,
+    "cushion_months": "1.5"
+  },
+  "recommendation": {
+    "id": "54a1f0b4be0e499fa1080b892f6cb9e4",
+    "user_id": "P2",
+    "created_at": "2026-10-22T00:00:00+00:00",
+    "status": "pending",
+    "decision_at": null,
+    "adjustment_params": null,
+    "chosen_candidate_id": "P2:extra_debt",
+    "chosen": {
+      "id": "P2:extra_debt",
+      "agent": "debt",
+      "type": "extra_debt",
+      "title": "Give your credit card a little extra",
+      "params": {
+        "amount": 19000,
+        "schedule_day": 1,
+        "account": "Credit card"
+      },
+      "impact": {
+        "monthly_cash_effect": -19000,
+        "goal_months_delta": 28,
+        "interest_saved": 144049,
+        "buffer_after": 196000
+      },
+      "affordable": true,
+      "facts": {
+        "amount": 19000,
+        "monthly_cash_effect": -19000,
+        "buffer_after": 196000,
+        "minimum_buffer": 50000,
+        "interest_saved": 144049,
+        "months_saved": 28,
+        "current_months": 44,
+        "proposed_months": 16,
+        "avalanche_interest": 91465,
+        "snowball_interest": 108115,
+        "debt_balance": 480000
+      },
+      "effort": 1,
+      "reversible": true,
+      "urgency": 1,
+      "stability": 1,
+      "risk": 0
+    },
+    "considered": [
+      {
+        "candidate": {
+          "id": "P2:extra_debt",
+          "agent": "debt",
+          "type": "extra_debt",
+          "title": "Give your credit card a little extra",
+          "params": {
+            "amount": 19000,
+            "schedule_day": 1,
+            "account": "Credit card"
+          },
+          "impact": {
+            "monthly_cash_effect": -19000,
+            "goal_months_delta": 28,
+            "interest_saved": 144049,
+            "buffer_after": 196000
+          },
+          "affordable": true,
+          "facts": {
+            "amount": 19000,
+            "monthly_cash_effect": -19000,
+            "buffer_after": 196000,
+            "minimum_buffer": 50000,
+            "interest_saved": 144049,
+            "months_saved": 28,
+            "current_months": 44,
+            "proposed_months": 16,
+            "avalanche_interest": 91465,
+            "snowball_interest": 108115,
+            "debt_balance": 480000
+          },
+          "effort": 1,
+          "reversible": true,
+          "urgency": 1,
+          "stability": 1,
+          "risk": 0
+        },
+        "score": "12.0000"
+      },
+      {
+        "candidate": {
+          "id": "P2:emergency_save",
+          "agent": "savings",
+          "type": "emergency_save",
+          "title": "Add a little breathing room to your safety net",
+          "params": {
+            "amount": 19000,
+            "schedule_day": 1,
+            "account": "Safety net"
+          },
+          "impact": {
+            "monthly_cash_effect": -19000,
+            "goal_months_delta": 0,
+            "interest_saved": 0,
+            "buffer_after": 196000
+          },
+          "affordable": true,
+          "facts": {
+            "amount": 19000,
+            "monthly_cash_effect": -19000,
+            "buffer_after": 196000,
+            "minimum_buffer": 50000,
+            "target": 435000,
+            "saved": 220000,
+            "proposed_months": 12,
+            "current_months": 12,
+            "months_saved": 0
+          },
+          "effort": 1,
+          "reversible": true,
+          "urgency": 0,
+          "stability": 1,
+          "risk": 0
+        },
+        "score": "5.0000"
+      },
+      {
+        "candidate": {
+          "id": "P2:weekend_habit",
+          "agent": "budget",
+          "type": "weekend_habit",
+          "title": "Turn a weekend habit into a small saving",
+          "params": {
+            "amount": 609,
+            "schedule_day": 1,
+            "account": "Safety net",
+            "category": "dining",
+            "trigger": "category"
+          },
+          "impact": {
+            "monthly_cash_effect": 609,
+            "goal_months_delta": 0,
+            "interest_saved": 0,
+            "buffer_after": 214391
+          },
+          "affordable": true,
+          "facts": {
+            "amount": 609,
+            "monthly_cash_effect": 609,
+            "buffer_after": 214391,
+            "minimum_buffer": 50000,
+            "matching_transactions": 50
+          },
+          "effort": 1,
+          "reversible": true,
+          "urgency": 0,
+          "stability": 1,
+          "risk": 0
+        },
+        "score": "2.0962"
+      },
+      {
+        "candidate": {
+          "id": "P2:category_reallocation",
+          "agent": "budget",
+          "type": "category_reallocation",
+          "title": "Review room in groceries",
+          "params": {
+            "amount": 0,
+            "schedule_day": 1,
+            "account": "Safety net",
+            "category": "groceries",
+            "review_only": true
+          },
+          "impact": {
+            "monthly_cash_effect": 5972,
+            "goal_months_delta": 0,
+            "interest_saved": 0,
+            "buffer_after": 215000
+          },
+          "affordable": true,
+          "facts": {
+            "amount": 0,
+            "monthly_cash_effect": 5972,
+            "buffer_after": 215000,
+            "minimum_buffer": 50000,
+            "baseline": 22486,
+            "latest": 28458
+          },
+          "effort": 3,
+          "reversible": true,
+          "urgency": 0,
+          "stability": 1,
+          "risk": 2
+        },
+        "score": "-1.7237"
+      }
+    ],
+    "reason_facts": {
+      "amount": 19000,
+      "monthly_cash_effect": -19000,
+      "buffer_after": 196000,
+      "minimum_buffer": 50000,
+      "interest_saved": 144049,
+      "months_saved": 28,
+      "current_months": 44,
+      "proposed_months": 16,
+      "avalanche_interest": 91465,
+      "snowball_interest": 108115,
+      "debt_balance": 480000
+    },
+    "explanation_text": "This fits your chosen priority and keeps your planned cash above your buffer. The figures below come from your current plan.",
+    "alternative": "Add a little breathing room to your safety net",
+    "alternative_reason": "It ranked lower under the goal, impact, urgency, effort, stability, and risk weights.",
+    "do_nothing": "Your current contributions and payment schedule stay in place.",
+    "mode": "rule"
+  },
+  "guard": null,
+  "lesson": {
+    "id": "lesson-01",
+    "topic": "debt",
+    "title": "A small extra payment, a shorter journey",
+    "trigger_conditions": ["debt_present"],
+    "body": "Interest is usually charged on the balance that remains. An extra payment reduces that balance earlier, so later interest charges can be smaller. The result depends on the rate, timing, fees, and how the lender applies payments. A modest extra payment can therefore make a difference without requiring a dramatic change. Consider how this applies to your own plan before making a change. Review the figures shown alongside a recommendation, including the cash that remains and the alternative that was considered. If the proposed step does not fit, you can adjust it or choose not to act. The purpose of this exercise is to make the trade-offs visible and understandable. All actions here are simulated, and the examples are educational guidance rather than a promise about a future outcome.",
+    "question": "What makes an extra payment useful?",
+    "options": [
+      "It reduces the balance that earns interest",
+      "It guarantees a lower rate",
+      "It removes every fee"
+    ],
+    "answer": 0,
+    "explanation": "Less principal can mean less future interest.",
+    "day": "2026-10-22",
+    "answered": false,
+    "correct": null
+  },
+  "rules": [],
+  "history": [
+    {
+      "id": 2,
+      "timestamp": "2026-10-22T00:00:00+00:00",
+      "type": "recommendation",
+      "payload": {
+        "id": "54a1f0b4be0e499fa1080b892f6cb9e4",
+        "title": "Give your credit card a little extra"
+      }
+    },
+    {
+      "id": 1,
+      "timestamp": "2026-10-22T00:00:00+00:00",
+      "type": "plan_change",
+      "payload": {
+        "reason": "Synthetic persona loaded",
+        "persona": "P2"
+      }
+    }
+  ],
+  "analysis": {
+    "recurring": [
+      {
+        "merchant": "Rent",
+        "amount": 120000,
+        "due_day": 1,
+        "category": "bills",
+        "confirmed": true
+      },
+      {
+        "merchant": "Spotify",
+        "amount": 1299,
+        "due_day": 7,
+        "category": "subscriptions",
+        "confirmed": false
+      },
+      {
+        "merchant": "Transport",
+        "amount": 9000,
+        "due_day": 5,
+        "category": "bills",
+        "confirmed": true
+      },
+      {
+        "merchant": "Utilities",
+        "amount": 16000,
+        "due_day": 12,
+        "category": "bills",
+        "confirmed": true
+      }
+    ],
+    "trends": [
+      {
+        "category": "bills",
+        "latest": 145000,
+        "baseline": 145000
+      },
+      {
+        "category": "dining",
+        "latest": 19046,
+        "baseline": 20070
+      },
+      {
+        "category": "groceries",
+        "latest": 28458,
+        "baseline": 22486
+      },
+      {
+        "category": "subscriptions",
+        "latest": 1299,
+        "baseline": 1299
+      }
+    ],
+    "categories": {
+      "bills": 145000,
+      "groceries": 28458,
+      "dining": 19046,
+      "subscriptions": 1299
+    },
+    "weekday": 845794,
+    "weekend": 293177,
+    "focus_area": "bills",
+    "projection": {
+      "buffer_after": 215000,
+      "reserved": 25000,
+      "days_to_income": 10,
+      "safe_to_spend": 16500
+    },
+    "shortfall": false
+  },
+  "disclaimer": "Educational guidance only. All transfers are simulated.",
+  "goal_projection": {
+    "account": "Emergency fund",
+    "target": 435000,
+    "saved": 220000,
+    "remaining": 215000,
+    "contribution": 19000,
+    "months": 12,
+    "projected_date": "2027-10-22",
+    "target_date": null,
+    "on_schedule": null
+  },
+  "timeline_change": null
+}

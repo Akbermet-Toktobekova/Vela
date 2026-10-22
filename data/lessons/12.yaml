@@ -1,0 +1,22 @@
+id: lesson-12
+topic: savings
+title: Start with a softer landing
+trigger_conditions:
+- no_emergency
+body: An emergency fund is money set aside for an unexpected essential expense or
+  interruption in income. It serves a different purpose from saving for a planned
+  purchase. Building it gradually can be more manageable than aiming for a large balance
+  immediately. A small affordable contribution is a useful starting point when it
+  leaves everyday essentials covered. Consider how this applies to your own plan before
+  making a change. Review the figures shown alongside a recommendation, including
+  the cash that remains and the alternative that was considered. If the proposed step
+  does not fit, you can adjust it or choose not to act. The purpose of this exercise
+  is to make the trade-offs visible and understandable. All actions here are simulated,
+  and the examples are educational guidance rather than a promise about a future outcome.
+question: What is an emergency fund mainly for?
+options:
+- Unexpected essential costs
+- Every planned purchase
+- Speculative investing
+answer: 0
+explanation: An emergency fund creates room for unexpected essential needs.

@@ -1,0 +1,22 @@
+id: lesson-05
+topic: debt
+title: When a minimum payment is not enough
+trigger_conditions:
+- debt_present
+body: A payment needs to cover new interest before it reduces the underlying balance.
+  If it does not, the debt can grow even when a payment is made. A payoff calculator
+  should identify this situation rather than promise a finish date. Reviewing the
+  agreement or seeking qualified help can clarify available options without adding
+  pressure. Consider how this applies to your own plan before making a change. Review
+  the figures shown alongside a recommendation, including the cash that remains and
+  the alternative that was considered. If the proposed step does not fit, you can
+  adjust it or choose not to act. The purpose of this exercise is to make the trade-offs
+  visible and understandable. All actions here are simulated, and the examples are
+  educational guidance rather than a promise about a future outcome.
+question: When does principal begin to decrease?
+options:
+- When payment exceeds new interest
+- Whenever a statement arrives
+- Only when the rate changes
+answer: 0
+explanation: Payment first needs to cover the accrued interest.

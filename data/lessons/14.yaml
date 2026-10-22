@@ -1,0 +1,22 @@
+id: lesson-14
+topic: savings
+title: Automatic does not mean invisible
+trigger_conditions:
+- savings
+body: A savings rule can reduce the effort of repeating a small decision. It should
+  still have clear conditions, an amount you approve, and a way to pause. An affordability
+  check at execution time matters because circumstances can change after approval.
+  In this prototype every transfer is simulated and each attempted run remains visible
+  in history. Consider how this applies to your own plan before making a change. Review
+  the figures shown alongside a recommendation, including the cash that remains and
+  the alternative that was considered. If the proposed step does not fit, you can
+  adjust it or choose not to act. The purpose of this exercise is to make the trade-offs
+  visible and understandable. All actions here are simulated, and the examples are
+  educational guidance rather than a promise about a future outcome.
+question: When should affordability be checked?
+options:
+- Only when creating a rule
+- Never for small amounts
+- Again when the rule runs
+answer: 2
+explanation: The engine rechecks the cash floor for each matching event.

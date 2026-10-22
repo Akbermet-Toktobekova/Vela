@@ -1,0 +1,22 @@
+id: lesson-16
+topic: savings
+title: A goal date is an estimate
+trigger_conditions:
+- savings
+body: A goal timeline connects the amount still needed with a planned contribution.
+  It can move when income, costs, or contributions change. That movement is information,
+  not a judgment. Comparing a few affordable contributions helps you decide whether
+  to change the amount, the date, or the goal itself while keeping the rest of your
+  plan workable. Consider how this applies to your own plan before making a change.
+  Review the figures shown alongside a recommendation, including the cash that remains
+  and the alternative that was considered. If the proposed step does not fit, you
+  can adjust it or choose not to act. The purpose of this exercise is to make the
+  trade-offs visible and understandable. All actions here are simulated, and the examples
+  are educational guidance rather than a promise about a future outcome.
+question: What does a shifted goal date mean?
+options:
+- The plan needs new information
+- The goal is impossible
+- A contribution must be forced
+answer: 0
+explanation: A new date reflects changed assumptions and can guide a choice.

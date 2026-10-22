@@ -1,0 +1,22 @@
+id: lesson-11
+topic: budget
+title: Your categories can evolve
+trigger_conditions:
+- budget
+body: Categories are a useful way to group transactions, but an automatic label can
+  be wrong. A supermarket purchase might include household supplies, and a familiar
+  merchant might sell many kinds of things. Review categories that affect your decisions
+  and adjust keyword rules when helpful. Consistency matters more than having a perfect
+  label for every small purchase. Consider how this applies to your own plan before
+  making a change. Review the figures shown alongside a recommendation, including
+  the cash that remains and the alternative that was considered. If the proposed step
+  does not fit, you can adjust it or choose not to act. The purpose of this exercise
+  is to make the trade-offs visible and understandable. All actions here are simulated,
+  and the examples are educational guidance rather than a promise about a future outcome.
+question: What should you do with an incorrect category?
+options:
+- Keep it forever
+- Delete every transaction
+- Correct the mapping when useful
+answer: 2
+explanation: Categories are editable assumptions that support your analysis.

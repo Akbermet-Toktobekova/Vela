@@ -1,0 +1,22 @@
+id: lesson-13
+topic: savings
+title: Measure your cushion in months
+trigger_conditions:
+- no_emergency
+body: A savings balance becomes easier to interpret when compared with essential costs.
+  Dividing it by typical monthly essentials gives an estimate of how long it might
+  help. The target should reflect your situation, especially when income varies. The
+  prototype starts with a configurable target rather than assuming the same amount
+  is right for everyone. Consider how this applies to your own plan before making
+  a change. Review the figures shown alongside a recommendation, including the cash
+  that remains and the alternative that was considered. If the proposed step does
+  not fit, you can adjust it or choose not to act. The purpose of this exercise is
+  to make the trade-offs visible and understandable. All actions here are simulated,
+  and the examples are educational guidance rather than a promise about a future outcome.
+question: What helps interpret a cushion?
+options:
+- Only its account name
+- Essential monthly costs
+- The number of transactions
+answer: 1
+explanation: Essential costs connect the balance to the needs it protects.

@@ -1,0 +1,22 @@
+id: lesson-18
+topic: budget
+title: A pause can be a useful decision
+trigger_conditions:
+- budget
+body: Sometimes the helpful next step is to stop adding new tasks. When available
+  cash is below a chosen threshold or a shortfall is projected, this prototype pauses
+  coaching. The overview remains available so you can see your situation calmly. A
+  pause does not change your worth or remove your control over the plan. Consider
+  how this applies to your own plan before making a change. Review the figures shown
+  alongside a recommendation, including the cash that remains and the alternative
+  that was considered. If the proposed step does not fit, you can adjust it or choose
+  not to act. The purpose of this exercise is to make the trade-offs visible and understandable.
+  All actions here are simulated, and the examples are educational guidance rather
+  than a promise about a future outcome.
+question: What happens during a coaching pause?
+options:
+- Your data disappears
+- New nudges become more frequent
+- New recommendations are suppressed
+answer: 2
+explanation: The stress guard suppresses new recommendations during its blackout.

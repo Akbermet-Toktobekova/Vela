@@ -1,0 +1,22 @@
+id: lesson-10
+topic: budget
+title: Timing matters as much as totals
+trigger_conditions:
+- budget
+body: A monthly plan can appear balanced while cash becomes tight partway through
+  the month. Income and bills may arrive on different days. A projection follows those
+  dates to see what remains before the next income. Checking timing can reveal why
+  an otherwise reasonable transfer should be smaller or wait until a later date. Consider
+  how this applies to your own plan before making a change. Review the figures shown
+  alongside a recommendation, including the cash that remains and the alternative
+  that was considered. If the proposed step does not fit, you can adjust it or choose
+  not to act. The purpose of this exercise is to make the trade-offs visible and understandable.
+  All actions here are simulated, and the examples are educational guidance rather
+  than a promise about a future outcome.
+question: Why check due dates?
+options:
+- They determine your priorities
+- They reveal temporary cash gaps
+- They remove all uncertainty
+answer: 1
+explanation: Dates can reveal a gap that monthly totals alone miss.

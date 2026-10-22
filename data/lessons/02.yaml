@@ -1,0 +1,22 @@
+id: lesson-02
+topic: debt
+title: Two paths out of debt
+trigger_conditions:
+- debt_present
+body: The avalanche method directs extra money toward the debt with the highest interest
+  rate. The snowball method starts with the smallest balance. Avalanche often reduces
+  interest costs, while snowball can offer earlier completed balances. Keep required
+  minimum payments on every debt in either approach, then compare the remaining options
+  against your own priorities. Consider how this applies to your own plan before making
+  a change. Review the figures shown alongside a recommendation, including the cash
+  that remains and the alternative that was considered. If the proposed step does
+  not fit, you can adjust it or choose not to act. The purpose of this exercise is
+  to make the trade-offs visible and understandable. All actions here are simulated,
+  and the examples are educational guidance rather than a promise about a future outcome.
+question: Which balance does avalanche prioritize?
+options:
+- The smallest balance
+- The highest interest rate
+- The oldest account
+answer: 1
+explanation: Avalanche prioritizes the highest rate after minimum payments.

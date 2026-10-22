@@ -1,0 +1,22 @@
+id: lesson-03
+topic: debt
+title: Make space before paying extra
+trigger_conditions:
+- debt_present
+body: An extra debt payment is useful only when the rest of your plan still works.
+  Rent, food, transport, and minimum payments need room first. A protected cash buffer
+  helps avoid needing new borrowing after an unexpected expense. Before increasing
+  a payment, check what is due before your next income and leave space for uncertainty.
+  Consider how this applies to your own plan before making a change. Review the figures
+  shown alongside a recommendation, including the cash that remains and the alternative
+  that was considered. If the proposed step does not fit, you can adjust it or choose
+  not to act. The purpose of this exercise is to make the trade-offs visible and understandable.
+  All actions here are simulated, and the examples are educational guidance rather
+  than a promise about a future outcome.
+question: What should you check first?
+options:
+- Upcoming essentials and your buffer
+- Only the largest debt
+- Only last month’s income
+answer: 0
+explanation: Affordability includes the timing of essentials and your buffer.

@@ -1,0 +1,22 @@
+id: lesson-08
+topic: budget
+title: A buffer is part of the plan
+trigger_conditions:
+- budget
+body: A cash buffer is money you intentionally leave available. It can help absorb
+  timing differences, small surprises, or an expense that was hard to predict. The
+  right amount depends on your commitments and comfort. Treating that buffer as a
+  boundary makes a recommendation more practical than using the entire visible bank
+  balance. Consider how this applies to your own plan before making a change. Review
+  the figures shown alongside a recommendation, including the cash that remains and
+  the alternative that was considered. If the proposed step does not fit, you can
+  adjust it or choose not to act. The purpose of this exercise is to make the trade-offs
+  visible and understandable. All actions here are simulated, and the examples are
+  educational guidance rather than a promise about a future outcome.
+question: What is a cash buffer for?
+options:
+- Room for uncertainty
+- A required investment
+- Unused money that must move
+answer: 0
+explanation: A buffer leaves room for timing differences and surprises.

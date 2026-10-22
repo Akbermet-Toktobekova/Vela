@@ -1,0 +1,22 @@
+id: lesson-01
+topic: debt
+title: A small extra payment, a shorter journey
+trigger_conditions:
+- debt_present
+body: Interest is usually charged on the balance that remains. An extra payment reduces
+  that balance earlier, so later interest charges can be smaller. The result depends
+  on the rate, timing, fees, and how the lender applies payments. A modest extra payment
+  can therefore make a difference without requiring a dramatic change. Consider how
+  this applies to your own plan before making a change. Review the figures shown alongside
+  a recommendation, including the cash that remains and the alternative that was considered.
+  If the proposed step does not fit, you can adjust it or choose not to act. The purpose
+  of this exercise is to make the trade-offs visible and understandable. All actions
+  here are simulated, and the examples are educational guidance rather than a promise
+  about a future outcome.
+question: What makes an extra payment useful?
+options:
+- It reduces the balance that earns interest
+- It guarantees a lower rate
+- It removes every fee
+answer: 0
+explanation: Less principal can mean less future interest.

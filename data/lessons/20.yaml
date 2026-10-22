@@ -1,0 +1,22 @@
+id: lesson-20
+topic: savings
+title: Small choices can stay reversible
+trigger_conditions:
+- savings
+body: An affordable saving rule can be a trial rather than a permanent commitment.
+  You can observe the result, adjust the contribution, or pause it when circumstances
+  change. A useful system records what happened so the next choice is informed by
+  experience. Control remains with you even when a rule reduces the effort of repeating
+  an action. Consider how this applies to your own plan before making a change. Review
+  the figures shown alongside a recommendation, including the cash that remains and
+  the alternative that was considered. If the proposed step does not fit, you can
+  adjust it or choose not to act. The purpose of this exercise is to make the trade-offs
+  visible and understandable. All actions here are simulated, and the examples are
+  educational guidance rather than a promise about a future outcome.
+question: What should a savings rule allow?
+options:
+- Only permanent approval
+- Adjustment and pausing
+- Transfers without a cash check
+answer: 1
+explanation: Rules should remain adjustable and easy to pause.

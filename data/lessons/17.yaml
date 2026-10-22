@@ -1,0 +1,22 @@
+id: lesson-17
+topic: savings
+title: Keep planned and unexpected costs distinct
+trigger_conditions:
+- savings
+body: A holiday, course fee, or annual renewal can be planned in advance. An emergency
+  reserve protects a different kind of uncertainty. Separate goals make the purpose
+  of each balance easier to see, even if the money is held in the same institution.
+  Before moving money, consider which purpose it serves and whether another obligation
+  depends on it. Consider how this applies to your own plan before making a change.
+  Review the figures shown alongside a recommendation, including the cash that remains
+  and the alternative that was considered. If the proposed step does not fit, you
+  can adjust it or choose not to act. The purpose of this exercise is to make the
+  trade-offs visible and understandable. All actions here are simulated, and the examples
+  are educational guidance rather than a promise about a future outcome.
+question: Why distinguish savings purposes?
+options:
+- To make every account complex
+- To see what each balance protects
+- To avoid planning annual costs
+answer: 1
+explanation: Clear purposes help avoid counting the same savings twice.

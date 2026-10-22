@@ -1,0 +1,22 @@
+id: lesson-09
+topic: budget
+title: Compare like with like
+trigger_conditions:
+- budget
+body: 'One unusually expensive month can make an ordinary month look unusually low.
+  A median uses the middle value in a set, which can reduce the influence of a single
+  outlier. Comparing complete months also avoids mistaking a partly finished month
+  for a real change. Context still matters: travel or an annual bill can explain a
+  difference. Consider how this applies to your own plan before making a change. Review
+  the figures shown alongside a recommendation, including the cash that remains and
+  the alternative that was considered. If the proposed step does not fit, you can
+  adjust it or choose not to act. The purpose of this exercise is to make the trade-offs
+  visible and understandable. All actions here are simulated, and the examples are
+  educational guidance rather than a promise about a future outcome.'
+question: Why compare complete months?
+options:
+- To avoid partial-month distortions
+- To hide unusual expenses
+- To guarantee identical spending
+answer: 0
+explanation: Incomplete months do not contain the same observation window.

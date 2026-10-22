@@ -1,0 +1,22 @@
+id: lesson-19
+topic: debt
+title: Read the assumptions behind a number
+trigger_conditions:
+- debt_present
+body: A debt forecast depends on assumptions about rates, payment timing, fees, and
+  future borrowing. Exact arithmetic does not make those assumptions certain. Look
+  for the inputs behind a result and compare scenarios using the same method. If an
+  agreement changes, updating the input is more useful than relying on an earlier
+  estimate. Consider how this applies to your own plan before making a change. Review
+  the figures shown alongside a recommendation, including the cash that remains and
+  the alternative that was considered. If the proposed step does not fit, you can
+  adjust it or choose not to act. The purpose of this exercise is to make the trade-offs
+  visible and understandable. All actions here are simulated, and the examples are
+  educational guidance rather than a promise about a future outcome.
+question: What makes a forecast easier to assess?
+options:
+- Visible inputs and assumptions
+- A longer explanation alone
+- A guaranteed finish date
+answer: 0
+explanation: Transparent assumptions make model limitations and comparisons visible.

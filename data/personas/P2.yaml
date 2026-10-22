@@ -1,0 +1,46 @@
+profile:
+  id: P2
+  name: Alex
+  currency: USD
+  monthly_income: 380000
+  income_day: 1
+  priority: debt
+  min_cash_buffer: 50000
+  cash_balance: 240000
+  auto_save_pct: 5
+  emergency_months: 3
+  fixed_costs:
+  - name: Rent
+    amount: 120000
+    due_day: 1
+    category: bills
+  - name: Utilities
+    amount: 16000
+    due_day: 12
+    category: bills
+  - name: Transport
+    amount: 9000
+    due_day: 5
+    category: bills
+  debts:
+  - name: Credit card
+    balance: 480000
+    annual_rate: '21.9'
+    min_payment: 16000
+  - name: Personal loan
+    balance: 180000
+    annual_rate: '8.5'
+    min_payment: 9000
+  savings:
+  - name: Safety net
+    balance: 220000
+    kind: emergency
+    target_amount: null
+    target_date: null
+  goal: {}
+  declined_transaction: false
+  created_at: '2026-01-01T00:00:00+00:00'
+seed: 42
+as_of: '2026-10-22'
+expected_top_action: extra_debt
+rationale: Extra repayment reduces high-rate credit-card interest.

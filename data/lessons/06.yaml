@@ -1,0 +1,22 @@
+id: lesson-06
+topic: budget
+title: Give a familiar habit a little room
+trigger_conditions:
+- weekend_habit
+body: Repeated small purchases are useful information about daily life. They are not
+  a verdict on your choices. A weekend meal might be something you value, so a workable
+  plan can preserve it while testing a smaller adjustment elsewhere. Looking at several
+  weeks helps distinguish a steady habit from a one-off occasion before creating a
+  rule. Consider how this applies to your own plan before making a change. Review
+  the figures shown alongside a recommendation, including the cash that remains and
+  the alternative that was considered. If the proposed step does not fit, you can
+  adjust it or choose not to act. The purpose of this exercise is to make the trade-offs
+  visible and understandable. All actions here are simulated, and the examples are
+  educational guidance rather than a promise about a future outcome.
+question: What does a spending pattern tell you?
+options:
+- That a habit must stop
+- Where a small experiment may fit
+- That every purchase is unnecessary
+answer: 1
+explanation: Patterns help identify options without judging the person.
