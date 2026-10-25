@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Claude Opus 5.5 (since 2026-10-25)
 - **Current phase:** 0 — Фундамент командной работы
-- **Current task:** T01 (review, Gemini Flash 3.8)
+- **Current task:** T01, T02 (review, Gemini Flash 3.8)
 - **Last reviewed:** T00 — ACCEPT (Claude Opus 5.5, 2026-10-25)
-- **Next action:** Оркестратор: `Проверь T01` (или в новом чате Flash: `Выполни T02`)
+- **Next action:** Оркестратор Claude Opus 5.5: `Проверь T01, T02` (затем `Чекпоинт фазы 0`)
 - **Git:** инициализирован (ветка main, тег `baseline` = откат к состоянию до мультиагентной работы)
 
 ## Открытые вопросы пользователю

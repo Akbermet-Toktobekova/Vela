@@ -39,7 +39,7 @@
 - **Verify:** ручное сравнение со спецификацией; оркестратор сверяет построчно.
 
 ### T02 — Манифест скиллов
-- **Model:** Flash · **Status:** todo · **Depends on:** T00 · `[PARALLEL-OK]`
+- **Model:** Flash · **Status:** review · **Depends on:** T00 · `[PARALLEL-OK]`
 - **Goal:** Спецификация §3 требует `docs/skills-manifest.md`.
 - **Scope:** `docs/skills-manifest.md` (новый)
 - **Steps:** таблица по всем папкам `.agents/skills/*`: name, purpose (из frontmatter `description`), location, source/upstream (если известен, иначе `local`), статус. Отдельный раздел «Recommended by spec, not installed»: expo, stitch, gemini-api-dev, supabase.
