@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
 - **Current phase:** 1 — Финансовое ядро (Приоритет 1)
-- **Current task:** T13 (review, Gemini 4 Argon); T14 (in_progress, Gemini 4 Argon)
+- **Current task:** T13 (review, Gemini 4 Argon); T14 (review, Gemini 4 Argon)
 - **Last reviewed:** T12 — ACCEPT (Gemini 4 Argon, 2026-10-26)
-- **Next action:** **Оркестратор** → `Проверь T13`, параллельно **Gemini 4 Argon** завершает `T14`.
+- **Next action:** **Оркестратор** (в новом чате с чистым контекстом) → `Проверь T13` и `Проверь T14`.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`)
 
 ## Открытые вопросы пользователю

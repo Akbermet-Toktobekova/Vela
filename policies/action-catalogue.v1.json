@@ -1,0 +1,689 @@
+{
+  "version": "action-catalogue-v1",
+  "schema_version": 1,
+  "jurisdiction": "EU-generic",
+  "currency": "EUR",
+  "executes_money_movement": false,
+  "auto_cancels_services": false,
+  "auto_contacts_lenders": false,
+  "actions": [
+    {
+      "id": "reserve_necessary_expense",
+      "catalog_number": 1,
+      "title": "Reserve money for an upcoming necessary expense.",
+      "category": "cash_flow",
+      "urgency_class": "due_obligation",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "projected_balances",
+        "capacity"
+      ],
+      "prerequisites": [
+        "snapshot_present",
+        "snapshot_fresh",
+        "obligations_complete",
+        "debt_known",
+        "no_shortfall",
+        "has_upcoming_necessary_obligation",
+        "has_positive_capacity"
+      ],
+      "contraindications": [
+        "active_shortfall",
+        "material_unknown_unclarified",
+        "active_planned_action_exists"
+      ],
+      "effects": {
+        "reserves_cash": true,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": true,
+        "target_domain": "obligations",
+        "description": "Records a planned reservation for an upcoming rent or necessary living expense without debiting any bank account."
+      },
+      "lesson_id": "liquidity-buffer",
+      "related_lesson_ids": [
+        "liquidity-buffer",
+        "understanding-bank-statements"
+      ],
+      "presentation": {
+        "headline_template": "Reserve {amount} for {target_label}",
+        "summary_template": "Keeps {amount} earmarked for {target_label} due on {due_date} so discretionary spending does not touch it.",
+        "cta_label": "Reserve in plan",
+        "disclaimer": "Records a planned reservation in FinAgent only; no bank transfer is executed."
+      }
+    },
+    {
+      "id": "preserve_cash_until_payment",
+      "catalog_number": 2,
+      "title": "Preserve available cash until a known payment.",
+      "category": "cash_flow",
+      "urgency_class": "due_obligation",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "projected_balances",
+        "capacity"
+      ],
+      "prerequisites": [
+        "snapshot_present",
+        "snapshot_fresh",
+        "obligations_complete",
+        "debt_known",
+        "no_shortfall",
+        "has_upcoming_obligation"
+      ],
+      "contraindications": [
+        "active_shortfall",
+        "material_unknown_unclarified"
+      ],
+      "effects": {
+        "reserves_cash": false,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": false,
+        "target_domain": "obligations",
+        "description": "Leaves uncommitted cash untouched in your checking balance until the next known payment clears."
+      },
+      "lesson_id": "liquidity-buffer",
+      "related_lesson_ids": [
+        "liquidity-buffer",
+        "irregular-income-budget"
+      ],
+      "presentation": {
+        "headline_template": "Keep {available} liquid until {target_label} clears",
+        "summary_template": "Avoids new allocations before {target_label} ({obligation_amount} due {due_date}) is paid.",
+        "cta_label": "Keep cash liquid",
+        "disclaimer": "No money is moved or locked; your account remains unchanged."
+      }
+    },
+    {
+      "id": "prepare_required_debt",
+      "catalog_number": 3,
+      "title": "Prepare a required debt payment.",
+      "category": "debt",
+      "urgency_class": "due_obligation",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "projected_balances",
+        "capacity",
+        "amortize_single_debt"
+      ],
+      "prerequisites": [
+        "snapshot_present",
+        "snapshot_fresh",
+        "obligations_complete",
+        "debt_known",
+        "no_shortfall",
+        "has_required_debt_obligation_or_debt"
+      ],
+      "contraindications": [
+        "active_shortfall",
+        "material_unknown_unclarified",
+        "active_planned_action_exists"
+      ],
+      "effects": {
+        "reserves_cash": true,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": true,
+        "target_domain": "debt",
+        "description": "Prepares and protects the required minimum debt payment before the due date without contacting lenders or initiating a payment."
+      },
+      "lesson_id": "apr-and-minimum-payment",
+      "related_lesson_ids": [
+        "apr-and-minimum-payment"
+      ],
+      "presentation": {
+        "headline_template": "Prepare {amount} for required payment on {target_label}",
+        "summary_template": "Ensures {amount} is ready for {target_label} so required minimum terms are met on time.",
+        "cta_label": "Prepare payment step",
+        "disclaimer": "FinAgent never initiates payments or contacts lenders on your behalf."
+      }
+    },
+    {
+      "id": "extra_debt_payment_one_off",
+      "catalog_number": 4,
+      "title": "Make an affordable one-off extra debt payment.",
+      "category": "debt",
+      "urgency_class": "ordinary",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "capacity",
+        "suggested_amount",
+        "amortize_single_debt",
+        "compare_and_simulate"
+      ],
+      "prerequisites": [
+        "snapshot_present",
+        "snapshot_fresh",
+        "obligations_complete",
+        "debt_known",
+        "no_shortfall",
+        "has_positive_capacity",
+        "has_amortizing_debt_with_balance"
+      ],
+      "contraindications": [
+        "active_shortfall",
+        "material_unknown_unclarified",
+        "active_planned_action_exists",
+        "debt_terms_unknown",
+        "zero_discretionary_capacity"
+      ],
+      "effects": {
+        "reserves_cash": true,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": true,
+        "target_domain": "debt",
+        "description": "Plans a one-off extra principal payment within current horizon affordability, reducing future interest."
+      },
+      "lesson_id": "apr-and-minimum-payment",
+      "related_lesson_ids": [
+        "apr-and-minimum-payment",
+        "avalanche-vs-snowball"
+      ],
+      "presentation": {
+        "headline_template": "Plan a one-off {amount} extra payment toward {target_label}",
+        "summary_template": "Saves {interest_saved} in interest across the payoff schedule while leaving {remaining_capacity} free.",
+        "cta_label": "Plan extra debt step",
+        "disclaimer": "Records a planned step only; you make any extra repayment directly with your lender."
+      }
+    },
+    {
+      "id": "extra_debt_payment_recurring",
+      "catalog_number": 5,
+      "title": "Propose a recurring extra payment with future affordability checks.",
+      "category": "debt",
+      "urgency_class": "ordinary",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "capacity",
+        "projected_balances",
+        "simulate_strategy",
+        "compare_and_simulate"
+      ],
+      "prerequisites": [
+        "snapshot_present",
+        "snapshot_fresh",
+        "obligations_complete",
+        "debt_known",
+        "no_shortfall",
+        "has_positive_capacity",
+        "has_amortizing_debt_with_balance",
+        "has_multi_period_income_history"
+      ],
+      "contraindications": [
+        "active_shortfall",
+        "material_unknown_unclarified",
+        "active_planned_action_exists",
+        "debt_terms_unknown",
+        "zero_discretionary_capacity"
+      ],
+      "effects": {
+        "reserves_cash": true,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": true,
+        "target_domain": "debt",
+        "description": "Proposes a recurring monthly extra debt allocation backed by multi-period income history and horizon affordability checks."
+      },
+      "lesson_id": "avalanche-vs-snowball",
+      "related_lesson_ids": [
+        "avalanche-vs-snowball",
+        "apr-and-minimum-payment"
+      ],
+      "presentation": {
+        "headline_template": "Propose {amount}/month recurring extra payment toward {target_label}",
+        "summary_template": "Reduces payoff time by {months_saved} month(s) and saves {interest_saved} in total interest under verified multi-period affordability.",
+        "cta_label": "Review recurring extra plan",
+        "disclaimer": "Requires ongoing affordability checks each cycle; FinAgent never sets up standing orders."
+      }
+    },
+    {
+      "id": "compare_repayment_strategies",
+      "catalog_number": 6,
+      "title": "Compare supported repayment strategies.",
+      "category": "debt",
+      "urgency_class": "ordinary",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "simulate_strategy",
+        "compare_and_simulate"
+      ],
+      "prerequisites": [
+        "snapshot_present",
+        "snapshot_fresh",
+        "obligations_complete",
+        "debt_known",
+        "no_shortfall",
+        "has_multiple_debts_or_repayment_choice"
+      ],
+      "contraindications": [
+        "active_shortfall",
+        "material_unknown_unclarified",
+        "debt_terms_unknown"
+      ],
+      "effects": {
+        "reserves_cash": false,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": false,
+        "target_domain": "debt",
+        "description": "Compares deterministic Avalanche (highest APR first) and Snowball (smallest balance first) payoff schedules."
+      },
+      "lesson_id": "avalanche-vs-snowball",
+      "related_lesson_ids": [
+        "avalanche-vs-snowball"
+      ],
+      "presentation": {
+        "headline_template": "Compare Avalanche vs Snowball across your {debt_count} debts",
+        "summary_template": "Avalanche finishes in {avalanche_months} months ({avalanche_interest} interest) vs Snowball in {snowball_months} months ({snowball_interest} interest).",
+        "cta_label": "Compare debt strategies",
+        "disclaimer": "Pure deterministic comparison using your reported APRs and minimum payments."
+      }
+    },
+    {
+      "id": "build_reserve",
+      "catalog_number": 7,
+      "title": "Start/add to/rebuild a reserve.",
+      "category": "reserve",
+      "urgency_class": "ordinary",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "projected_balances",
+        "capacity",
+        "suggested_amount"
+      ],
+      "prerequisites": [
+        "snapshot_present",
+        "snapshot_fresh",
+        "obligations_complete",
+        "debt_known",
+        "no_shortfall",
+        "has_positive_capacity",
+        "reserve_below_target"
+      ],
+      "contraindications": [
+        "active_shortfall",
+        "material_unknown_unclarified",
+        "active_planned_action_exists",
+        "zero_discretionary_capacity"
+      ],
+      "effects": {
+        "reserves_cash": true,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": true,
+        "target_domain": "reserve",
+        "description": "Sets aside an affordable amount from uncommitted horizon capacity to start, add to, or rebuild your emergency reserve."
+      },
+      "lesson_id": "emergency-fund",
+      "related_lesson_ids": [
+        "emergency-fund"
+      ],
+      "presentation": {
+        "headline_template": "Add {amount} to your emergency reserve",
+        "summary_template": "Moves your reserve from {saved_before} to {saved_after} of {goal_target}, leaving {remaining_capacity} free.",
+        "cta_label": "Plan reserve step",
+        "disclaimer": "Creates a planned reservation in FinAgent; account balances do not change until confirmed."
+      }
+    },
+    {
+      "id": "contribute_savings_goal",
+      "catalog_number": 8,
+      "title": "Contribute to a savings goal.",
+      "category": "goals",
+      "urgency_class": "ordinary",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "projected_balances",
+        "capacity",
+        "suggested_amount"
+      ],
+      "prerequisites": [
+        "snapshot_present",
+        "snapshot_fresh",
+        "obligations_complete",
+        "debt_known",
+        "no_shortfall",
+        "has_positive_capacity",
+        "goal_remaining_positive"
+      ],
+      "contraindications": [
+        "active_shortfall",
+        "material_unknown_unclarified",
+        "active_planned_action_exists",
+        "zero_discretionary_capacity"
+      ],
+      "effects": {
+        "reserves_cash": true,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": true,
+        "target_domain": "goal",
+        "description": "Plans an affordable contribution toward the active savings goal from lowest projected uncommitted cash."
+      },
+      "lesson_id": "savings-goals-planning",
+      "related_lesson_ids": [
+        "emergency-fund",
+        "savings-goals-planning",
+        "planned-vs-actual-transfers"
+      ],
+      "presentation": {
+        "headline_template": "Set aside {amount} for your goal.",
+        "summary_template": "Advances {goal_name} from {saved_before} to {saved_after} of {goal_target}.",
+        "cta_label": "Accept savings step",
+        "disclaimer": "Accepting records a planned reservation; account balances remain unchanged."
+      }
+    },
+    {
+      "id": "adjust_contribution",
+      "catalog_number": 9,
+      "title": "Adjust a contribution.",
+      "category": "goals",
+      "urgency_class": "ordinary",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "projected_balances",
+        "capacity",
+        "suggested_amount"
+      ],
+      "prerequisites": [
+        "snapshot_present",
+        "snapshot_fresh",
+        "obligations_complete",
+        "debt_known",
+        "no_shortfall",
+        "has_adjustable_contribution"
+      ],
+      "contraindications": [
+        "active_shortfall",
+        "material_unknown_unclarified"
+      ],
+      "effects": {
+        "reserves_cash": true,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": true,
+        "target_domain": "goal",
+        "description": "Adjusts the size of a planned or proposed goal contribution so more cash remains unallocated across the horizon."
+      },
+      "lesson_id": "savings-goals-planning",
+      "related_lesson_ids": [
+        "savings-goals-planning"
+      ],
+      "presentation": {
+        "headline_template": "Adjust contribution to {amount} for {goal_name}",
+        "summary_template": "Sets aside {amount} while keeping {remaining_capacity} of uncommitted headroom through {horizon_date}.",
+        "cta_label": "Adjust amount",
+        "disclaimer": "Previews and updates only the planned reservation amount in FinAgent."
+      }
+    },
+    {
+      "id": "adjust_goal_timeline",
+      "catalog_number": 10,
+      "title": "Adjust a goal deadline or priority.",
+      "category": "goals",
+      "urgency_class": "ordinary",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "capacity",
+        "suggested_amount"
+      ],
+      "prerequisites": [
+        "snapshot_present",
+        "snapshot_fresh",
+        "obligations_complete",
+        "debt_known",
+        "no_shortfall",
+        "has_active_goal",
+        "goal_timeline_strained"
+      ],
+      "contraindications": [
+        "active_shortfall",
+        "material_unknown_unclarified"
+      ],
+      "effects": {
+        "reserves_cash": false,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": false,
+        "target_domain": "goal",
+        "description": "Adapts the target timeline or priority of a savings goal when current horizon capacity is smaller than the remaining goal gap."
+      },
+      "lesson_id": "savings-goals-planning",
+      "related_lesson_ids": [
+        "savings-goals-planning"
+      ],
+      "presentation": {
+        "headline_template": "Pace {goal_name} across a longer timeline",
+        "summary_template": "Remaining target is {goal_remaining} while current discretionary capacity is {available}; pacing the timeline avoids cash pressure.",
+        "cta_label": "Review goal target",
+        "disclaimer": "Changes goal pacing preferences only; no money is moved."
+      }
+    },
+    {
+      "id": "review_recurring_charge",
+      "catalog_number": 11,
+      "title": "Review a recurring discretionary charge.",
+      "category": "spending",
+      "urgency_class": "ordinary",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "summary",
+        "capacity"
+      ],
+      "prerequisites": [
+        "snapshot_present",
+        "has_recurring_discretionary_charge"
+      ],
+      "contraindications": [
+        "material_unknown_unclarified"
+      ],
+      "effects": {
+        "reserves_cash": false,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": false,
+        "target_domain": "spending",
+        "description": "Surfaces a detected subscription or recurring discretionary charge for user review without cancelling any service automatically."
+      },
+      "lesson_id": "subscriptions-and-recurring",
+      "related_lesson_ids": [
+        "subscriptions-and-recurring"
+      ],
+      "presentation": {
+        "headline_template": "Review recurring charge: {target_label} ({amount})",
+        "summary_template": "Checking whether {target_label} is still needed can free up {amount} in future billing cycles.",
+        "cta_label": "Review charge",
+        "disclaimer": "FinAgent never cancels subscriptions or contacts merchants on your behalf."
+      }
+    },
+    {
+      "id": "pause_optional_allocation",
+      "catalog_number": 12,
+      "title": "Pause an optional allocation.",
+      "category": "cash_flow",
+      "urgency_class": "shortfall",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "projected_balances",
+        "capacity"
+      ],
+      "prerequisites": [
+        "snapshot_present",
+        "has_active_planned_action",
+        "planned_allocation_pressures_capacity"
+      ],
+      "contraindications": [],
+      "effects": {
+        "reserves_cash": false,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": false,
+        "target_domain": "plan",
+        "description": "Pauses or cancels an uncommitted optional planned reservation so those funds return to available cash capacity."
+      },
+      "lesson_id": "subscriptions-and-recurring",
+      "related_lesson_ids": [
+        "subscriptions-and-recurring",
+        "dealing-with-shortfall"
+      ],
+      "presentation": {
+        "headline_template": "Pause planned {amount} allocation to restore cash headroom",
+        "summary_template": "Releasing the planned {amount} step increases uncommitted cash capacity to {capacity_after_pause}.",
+        "cta_label": "Pause planned step",
+        "disclaimer": "Cancels only the unexecuted reservation inside FinAgent; bank balances are unaffected."
+      }
+    },
+    {
+      "id": "maintain_current_plan",
+      "catalog_number": 13,
+      "title": "Maintain the current plan.",
+      "category": "baseline",
+      "urgency_class": "ordinary",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "projected_balances",
+        "capacity"
+      ],
+      "prerequisites": [],
+      "contraindications": [],
+      "effects": {
+        "reserves_cash": false,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": false,
+        "target_domain": "plan",
+        "description": "Baseline do-nothing option: keeps your current financial plan and balances unchanged."
+      },
+      "lesson_id": "planned-vs-actual-transfers",
+      "related_lesson_ids": [
+        "planned-vs-actual-transfers"
+      ],
+      "presentation": {
+        "headline_template": "Maintain your current plan",
+        "summary_template": "No new reservation or change is needed right now.",
+        "cta_label": "Keep current plan",
+        "disclaimer": "No action is taken and no money is moved."
+      }
+    },
+    {
+      "id": "clarify_material_unknown",
+      "catalog_number": 14,
+      "title": "Clarify a material unknown.",
+      "category": "clarification",
+      "urgency_class": "due_obligation",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "eligibility"
+      ],
+      "prerequisites": [
+        "has_unknown_or_stale_data"
+      ],
+      "contraindications": [
+        "all_material_fields_known"
+      ],
+      "effects": {
+        "reserves_cash": false,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": false,
+        "target_domain": "clarification",
+        "description": "Requests one material missing or stale input (balance freshness, bill completeness, or debt terms) before proposing financial allocations."
+      },
+      "lesson_id": "understanding-bank-statements",
+      "related_lesson_ids": [
+        "irregular-income-budget",
+        "understanding-bank-statements"
+      ],
+      "presentation": {
+        "headline_template": "Clarify {clarify_field} before planning",
+        "summary_template": "{clarify_question}",
+        "cta_label": "Confirm details",
+        "disclaimer": "FinAgent pauses discretionary recommendations until material inputs are confirmed."
+      }
+    },
+    {
+      "id": "external_assistance_shortfall",
+      "catalog_number": 15,
+      "title": "Suggest appropriate external assistance for an unresolved shortfall.",
+      "category": "shortfall",
+      "urgency_class": "shortfall",
+      "scope_jurisdiction": "EU-generic",
+      "moves_money": false,
+      "auto_cancels_services": false,
+      "auto_contacts_lenders": false,
+      "calculation_support": [
+        "projected_balances",
+        "capacity"
+      ],
+      "prerequisites": [
+        "snapshot_present",
+        "has_shortfall"
+      ],
+      "contraindications": [
+        "no_shortfall_present"
+      ],
+      "effects": {
+        "reserves_cash": false,
+        "mutates_account_balance": false,
+        "executes_external_transfer": false,
+        "reduces_projected_capacity": false,
+        "target_domain": "shortfall",
+        "description": "Provides calm guidance to protect essential living needs and seek qualified independent debt or budgeting assistance when an unresolved shortfall of {shortfall_amount} exists."
+      },
+      "lesson_id": "dealing-with-shortfall",
+      "related_lesson_ids": [
+        "dealing-with-shortfall"
+      ],
+      "presentation": {
+        "headline_template": "Shortfall of {shortfall_amount} projected: protect essentials and consider support",
+        "summary_template": "Upcoming obligations and buffer exceed cash by {shortfall_amount}. Keep cash available for essentials and consider free, accredited budget or debt advice.",
+        "cta_label": "View shortfall guidance",
+        "disclaimer": "FinAgent does not contact lenders, renegotiate bills, or move money."
+      }
+    }
+  ]
+}

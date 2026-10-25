@@ -88,7 +88,7 @@
 - **Verify:** `cd apps/mobile; npm run typecheck`; ручная проверка в Expo Go (пользователь).
 
 ### T14 — Каталог 15 действий как версионная политика
-- **Model:** Argon · **Status:** in_progress · **Depends on:** T12 · `[OPUS-REVIEW]`
+- **Model:** Argon · **Status:** review · **Depends on:** T12 · `[OPUS-REVIEW]`
 - **Goal:** Спецификация §9: 15 действий с prerequisites, contraindications, effects, связанным уроком.
 - **Scope:** `policies/action-catalogue.v1.json` (или `.yaml`, по существующему стилю `policies/`), `services/api/vela/catalogue.py` (новый), `services/api/tests/test_catalogue.py`
 - **Acceptance:** все 15 действий из §9 присутствуют; генератор кандидатов выдаёт только допустимые действия для состояния; `maintain current plan` (baseline) всегда кандидат; нет действий, двигающих деньги.
