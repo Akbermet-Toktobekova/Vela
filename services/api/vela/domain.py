@@ -148,18 +148,48 @@ def fixture(today: date) -> Snapshot:
                     ])
 
 
-def capacity(state: State, exclude_action: str | None = None) -> int:
+def format_eur(cents: int) -> str:
+    sign = "-" if cents < 0 else ""
+    whole, frac = divmod(abs(cents), 100)
+    return f"{sign}€{whole:,}" if frac == 0 else f"{sign}€{whole:,}.{frac:02d}"
+
+
+def projected_balances(state: State, exclude_action: str | None = None) -> list[tuple[date, int]]:
+    """Returns chronological (date, uncommitted_balance_cents) checkpoints across the planning horizon.
+
+    Starts at `snapshot.as_of` after subtracting already saved funds, the protected buffer,
+    and active planned reservations. Each dated obligation within the horizon reduces the
+    projected balance on its due date. Forecast income is never counted; only confirmed
+    future cash inflows in `state.transactions` (date > as_of and <= horizon, amount > 0,
+    category != 'transfers') are included on their transaction date.
+    """
     s = state.snapshot
     if s is None:
-        return 0
+        return []
     reserved = sum(a.amount for a in state.actions if a.status == "planned" and a.id != exclude_action)
-    # No forecast income is counted. Unpaid dated obligations remain protected even if overdue.
     balance = s.cash - s.saved - s.protected - reserved
-    lowest = balance
+    events_by_date: dict[date, int] = defaultdict(int)
     for obligation in sorted(s.obligations, key=lambda o: (o.due, o.id)):
-        balance -= obligation.amount
-        lowest = min(lowest, balance)
-    return lowest
+        events_by_date[max(s.as_of, obligation.due)] -= obligation.amount
+    for txn in state.transactions:
+        if s.as_of < txn.date <= s.horizon and txn.amount > 0 and txn.category != "transfers":
+            events_by_date[txn.date] += txn.amount
+
+    points: list[tuple[date, int]] = []
+    if s.as_of in events_by_date:
+        balance += events_by_date.pop(s.as_of)
+    points.append((s.as_of, balance))
+    for event_date in sorted(events_by_date):
+        balance += events_by_date[event_date]
+        points.append((event_date, balance))
+    return points
+
+
+def capacity(state: State, exclude_action: str | None = None) -> int:
+    points = projected_balances(state, exclude_action=exclude_action)
+    if not points:
+        return 0
+    return min(balance for _, balance in points)
 
 
 def eligibility(state: State, today: date) -> tuple[str, str] | None:
@@ -176,15 +206,18 @@ def eligibility(state: State, today: date) -> tuple[str, str] | None:
     return None
 
 
-def suggested_amount(available: int, remaining: int) -> int:
-    """Illustrative policy: a fifth of what is free, rounded down to €5, capped by the goal."""
+def suggested_amount(available: int, remaining: int, policy: str = "fifth-of-available-v1") -> int:
+    """Calculates proposed savings amount under the active demo policy, capped by goal and availability."""
     if available < 500 or remaining <= 0:
         return 0
-    fifth = (available // 5) // 500 * 500
-    return min(remaining, available, max(500, fifth))
+    if policy == "section9-demo-40-v1":
+        share = (available * 2 // 5) // 500 * 500
+    else:
+        share = (available // 5) // 500 * 500
+    return min(remaining, available, max(500, share))
 
 
-def recommendation(state: State, today: date) -> dict:
+def recommendation(state: State, today: date, policy: str = "fifth-of-available-v1") -> dict:
     reason = eligibility(state, today)
     if reason:
         return {"kind": "clarify", "amount": 0, "message": reason[1], "clarify_field": reason[0]}
@@ -198,11 +231,23 @@ def recommendation(state: State, today: date) -> dict:
     remaining = max(0, state.snapshot.goal_target - state.snapshot.saved)
     if remaining == 0:
         return {"kind": "goal_reached", "amount": 0, "message": "You've reached your goal. Raise the target or set a new goal to keep going."}
-    amount = suggested_amount(available, remaining)
+    amount = suggested_amount(available, remaining, policy=policy)
     if not amount:
         return {"kind": "maintain", "amount": 0, "message": "There isn't enough free money for a new step right now. That's okay."}
+    if policy == "section9-demo-40-v1":
+        after = state.snapshot.saved + amount
+        return {
+            "kind": "save",
+            "amount": amount,
+            "message": (
+                f"Set aside {format_eur(amount)} for your goal. "
+                f"Advances {state.snapshot.goal_name} from {format_eur(state.snapshot.saved)} "
+                f"to {format_eur(after)} of {format_eur(state.snapshot.goal_target)}."
+            ),
+            "policy": policy,
+        }
     return {"kind": "save", "amount": amount, "message": "About a fifth of what's free until your plan-through date.",
-            "policy": "fifth-of-available-v1"}
+            "policy": policy}
 
 
 def summary(state: State) -> dict:
@@ -223,10 +268,10 @@ def summary(state: State) -> dict:
             "top_categories": [{"category": c, "amount": a} for c, a in top]}
 
 
-def view(state: State, today: date) -> dict:
+def view(state: State, today: date, policy: str = "fifth-of-available-v1") -> dict:
     data = state.model_dump(mode="json", exclude={"transactions"})
     s = state.snapshot
-    data.update(available=capacity(state), recommendation=recommendation(state, today), mode="local",
+    data.update(available=capacity(state), recommendation=recommendation(state, today, policy=policy), mode="local",
                 summary=summary(state),
                 breakdown={"cash": s.cash if s else 0, "saved": s.saved if s else 0, "protected": s.protected if s else 0,
                            "bills": sum(o.amount for o in s.obligations) if s else 0,

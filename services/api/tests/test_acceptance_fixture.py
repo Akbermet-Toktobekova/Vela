@@ -35,6 +35,9 @@ from vela.domain import (
     Snapshot,
     Obligation,
     capacity,
+    projected_balances,
+    recommendation,
+    view,
     accept,
     complete,
     merge_transactions,
@@ -244,6 +247,96 @@ class TestSection9DomainAcceptanceFixture(unittest.TestCase):
         with self.assertRaises(ValueError, msg="Old 40 EUR recommendation must be ineligible against capacity 20 EUR"):
             accept(state, AFFORDABLE_ALLOCATION_AMOUNT, "action-40-invalidated", TODAY)
 
+    def test_07_configured_demo_policy_selects_40_eur_and_describes_goal_progress(self):
+        """With a configured demo policy selecting the savings action, show: 'Set aside €40 for your goal.'
+        Its benefit must describe the computed goal progress, not invented interest savings.
+        """
+        state = State(snapshot=make_section9_snapshot(TODAY))
+        rec = recommendation(state, TODAY, policy="section9-demo-40-v1")
+        self.assertEqual(rec["kind"], "save")
+        self.assertEqual(rec["amount"], AFFORDABLE_ALLOCATION_AMOUNT)
+        self.assertEqual(rec["policy"], "section9-demo-40-v1")
+        self.assertIn("Set aside €40 for your goal.", rec["message"])
+        self.assertIn("€0 to €40 of €1,000", rec["message"])
+        self.assertNotIn("interest", rec["message"].lower())
+        self.assertNotIn("apr", rec["message"].lower())
+
+    def test_08_new_obligation_after_acceptance_disables_completion(self):
+        """If a planned reservation of 40 is already accepted and a new 80 EUR obligation arrives,
+        remaining capacity excluding the planned action drops to 20 EUR, so completion is blocked.
+        """
+        state = State(snapshot=make_section9_snapshot(TODAY))
+        accept(state, AFFORDABLE_ALLOCATION_AMOUNT, "action-40", TODAY)
+
+        # New 80 EUR obligation arrives before completion
+        state.snapshot.obligations.append(
+            Obligation(
+                id="new-cost-80",
+                label="New necessary cost",
+                amount=NEW_CONFIRMED_COST_AMOUNT,
+                due=TODAY + timedelta(days=10),
+                kind="other",
+            )
+        )
+        self.assertEqual(capacity(state, exclude_action="action-40"), EXPECTED_REDUCED_CAPACITY)
+        rendered = view(state, TODAY, policy="section9-demo-40-v1")
+        self.assertFalse(rendered["actions"][0]["can_complete"])
+        with self.assertRaises(ValueError):
+            complete(state, "action-40", TODAY)
+
+    def test_09_lowest_projected_uncommitted_balance_across_horizon_detects_mid_horizon_dip(self):
+        """Available allocation is calculated from the lowest projected uncommitted balance
+        across the planning horizon, not just month-end totals (§9, line 331).
+        """
+        snap = make_section9_snapshot(TODAY)
+        state = State(snapshot=snap)
+
+        # Verify dated checkpoints on the standard Section 9 fixture:
+        # Day 0 (as_of): 1000 - 100 (protected) = 900 (90_000)
+        # Day +5 (rent 600): 300 (30_000)
+        # Day +15 (living 150): 150 (15_000)
+        # Day +20 (debt 50): 100 (10_000) -> lowest projected uncommitted balance is 10_000
+        points = projected_balances(state)
+        self.assertEqual(
+            points,
+            [
+                (TODAY, 90_000),
+                (TODAY + timedelta(days=5), 30_000),
+                (TODAY + timedelta(days=15), 15_000),
+                (TODAY + timedelta(days=20), 10_000),
+            ],
+        )
+        self.assertEqual(capacity(state), 10_000)
+
+        # Now add an extra obligation of 120 EUR on Day +10 (creating a shortfall of -20 EUR on Day +20),
+        # and a confirmed future cash inflow of 200 EUR on Day +25.
+        # Even though the horizon-end balance on Day +25 is +180 EUR, the lowest projected balance on Day +20 is -20 EUR!
+        state.snapshot.obligations.append(
+            Obligation(
+                id="mid-month-bill",
+                label="Mid-month utility",
+                amount=12_000,
+                due=TODAY + timedelta(days=10),
+                kind="living",
+            )
+        )
+        state.transactions.append(
+            Transaction(
+                id="tx-future-confirmed",
+                date=TODAY + timedelta(days=25),
+                amount=20_000,
+                description="Confirmed late-month reimbursement",
+                category="income",
+            )
+        )
+        points_with_dip = projected_balances(state)
+        # Day +20 balance is -2_000 (-€20), Day +25 balance is +18_000 (+€180)
+        self.assertEqual(points_with_dip[-2], (TODAY + timedelta(days=20), -2_000))
+        self.assertEqual(points_with_dip[-1], (TODAY + timedelta(days=25), 18_000))
+        # Capacity must be -2_000 (the minimum across the horizon), triggering a shortfall rather than +18_000
+        self.assertEqual(capacity(state), -2_000)
+        self.assertEqual(recommendation(state, TODAY)["kind"], "shortfall")
+
 
 class TestSection9WorkflowAndConcurrencyAcceptanceFixture(unittest.TestCase):
     """Workflow, HTTP endpoints and slow job concurrency rejection (§9, lines 361-366)."""
@@ -371,6 +464,42 @@ class TestSection9WorkflowAndConcurrencyAcceptanceFixture(unittest.TestCase):
             409,
             "Slow job attempting to publish against stale revision must receive 409 Conflict",
         )
+
+    def test_store_stale_snapshot_publication_rejected_directly(self):
+        """Store.mutate directly rejects publication of a stale snapshot / action when revision has advanced."""
+        store: Store = self.app.state.store
+        current = store.read("local-demo")
+        self.assertEqual(current.revision, 1)
+
+        # Advance state revision via a new obligation (revision 1 -> 2)
+        store.mutate(
+            owner="local-demo",
+            key="direct-bill-80",
+            revision=1,
+            command={"kind": "obligation", "id": "bill-80"},
+            apply=lambda s: s.snapshot.obligations.append(
+                Obligation(
+                    id="bill-80",
+                    label="New necessary cost",
+                    amount=NEW_CONFIRMED_COST_AMOUNT,
+                    due=TODAY + timedelta(days=10),
+                    kind="other",
+                )
+            ),
+            render=lambda s: view(s, TODAY),
+        )
+        self.assertEqual(store.read("local-demo").revision, 2)
+
+        # Slow job tries to publish against stale revision 1 -> raises Conflict
+        with self.assertRaises(Conflict):
+            store.mutate(
+                owner="local-demo",
+                key="slow-job-direct-publish",
+                revision=1,
+                command={"kind": "accept", "amount": AFFORDABLE_ALLOCATION_AMOUNT},
+                apply=lambda s: accept(s, AFFORDABLE_ALLOCATION_AMOUNT, "stale-action", TODAY),
+                render=lambda s: view(s, TODAY),
+            )
 
 
 if __name__ == "__main__":
