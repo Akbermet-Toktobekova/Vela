@@ -7,10 +7,10 @@
 
 - **Orchestrator:** Claude Opus 5.5 (since 2026-10-25)
 - **Current phase:** 0 — Фундамент командной работы
-- **Current task:** T00 (review, Gemini Flash 3.8)
-- **Last reviewed:** —
-- **Next action:** Оркестратор: `Проверь T00`
-- **Git:** инициализирован (ветка main, тег baseline)
+- **Current task:** — (T00 принята)
+- **Last reviewed:** T00 — ACCEPT (Claude Opus 5.5, 2026-10-25)
+- **Next action:** Переключить на **Gemini Flash 3.8** → `Выполни T01`, затем в новом чате `Выполни T02` (обе `[PARALLEL-OK]`). После обеих → оркестратор: `Проверь T01, T02`
+- **Git:** инициализирован (ветка main, тег `baseline` = откат к состоянию до мультиагентной работы)
 
 ## Открытые вопросы пользователю
 
@@ -32,6 +32,7 @@
 | Дата | Модель | Событие |
 |---|---|---|
 | 2026-10-25 | Claude Opus 5.5 | Создан протокол команды (AGENTS.md, skills, BACKLOG, HANDOFF) |
+| 2026-10-25 | Claude Opus 5.5 | Review T00: ACCEPT |
 
 ## Phase log
 
