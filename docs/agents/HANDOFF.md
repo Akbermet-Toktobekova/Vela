@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
 - **Current phase:** 1 — Финансовое ядро (Приоритет 1)
-- **Current task:** T17 (review, Gemini Flash 3.8); T11 (todo, Gemini 4 Argon)
-- **Last reviewed:** T10 — ACCEPT (Gemini 4 Argon, 2026-10-25)
-- **Next action:** Оркестратор: `Проверь T17`. Для задач финансового ядра: переключить на **Gemini 4 Argon** → `Выполни T11`.
+- **Current task:** T11 (in_progress, Gemini 4 Argon)
+- **Last reviewed:** T17 — ACCEPT (Gemini 4 Argon, 2026-10-25)
+- **Next action:** Дождаться завершения `T11` (Argon) → оркестратор: `Проверь T11`, затем Argon: `Выполни T12`.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`)
 
 ## Открытые вопросы пользователю
@@ -35,10 +35,11 @@
 | 2026-10-25 | Claude Opus 5.5 | Review T00: ACCEPT |
 | 2026-10-25 | Claude Opus 5.5 / Gemini 4 Argon | Review T01, T02: ACCEPT; наследование роли оркестратора; CHECKPOINT-0 закрыт |
 | 2026-10-25 | Gemini 4 Argon | Review T10: ACCEPT (40/40 тестов) |
+| 2026-10-25 | Gemini 4 Argon | Review T17: ACCEPT (10 мини-уроков в `content/lessons/`) |
 
 ## Phase log
 
 | Фаза | Статус | Дата | Итог |
 |---|---|---|---|
 | 0 | done | 2026-10-25 | Git инициализирован (`baseline`), `docs/release-readiness.md` приведён к §18, `docs/skills-manifest.md` создан (26 папок). Тег `phase-0`. |
-| 1 | in progress | 2026-10-25 | T10 принята; следующая задача: T11 (Argon), параллельно T17 (Flash) |
+| 1 | in progress | 2026-10-25 | T10, T17 приняты; в работе T11 (Argon) |

@@ -61,7 +61,7 @@
 - **Verify:** `python -m pytest services/api/tests/test_acceptance_fixture.py -v`, `python scripts/check.py`.
 
 ### T11 — Довести домен до прохождения фикстуры T10
-- **Model:** Argon · **Status:** in_progress · **Depends on:** T10 · `[OPUS-REVIEW]`
+- **Model:** Argon · **Status:** review · **Depends on:** T10 · `[OPUS-REVIEW]`
 - **Goal:** Ядро проходит фикстуру §9: доступность по минимальному прогнозному балансу на горизонте, а не по текущему.
 - **Scope:** `services/api/vela/domain.py`, `services/api/vela/store.py`, `services/api/tests/`
 - **Acceptance:** все тесты T10 зелёные; 500 рандомизированных инвариантов зелёные; публикация устаревшего снапшота отклоняется.
@@ -111,7 +111,7 @@
 - **Verify:** `python -m pytest services/api/tests/test_coordination.py -v`, `python scripts/check.py`.
 
 ### T17 — Контент мини-уроков (8–10 уроков)
-- **Model:** Flash · **Status:** review · **Depends on:** CHECKPOINT-0 · `[PARALLEL-OK]`
+- **Model:** Flash · **Status:** done · **Depends on:** CHECKPOINT-0 · `[PARALLEL-OK]`
 - **Scope:** `content/lessons/*.md` (новые), `content/lessons/index.json`
 - **Steps:** уроки: экстренный фонд; буфер ликвидности; APR и минимальный платёж; Avalanche vs Snowball; бюджет при нерегулярном доходе; подписки и регулярные списания; цели накоплений; что делать при нехватке денег (внешняя помощь); как читать выписку; планируемый vs реальный перевод. Каждый урок: 150–300 слов, 1 интерактивный вопрос (варианты + правильный ответ + объяснение), `id`, `related_actions` (ID из каталога §9), `reviewed: false`.
 - **Rules:** без инвестиционных/налоговых советов, без стыжения, примеры только синтетические в EUR.
