@@ -5,12 +5,12 @@
 
 ## Сейчас
 
-- **Orchestrator:** Claude Opus 5.5 (since 2026-10-25)
-- **Current phase:** 0 — Фундамент командной работы
-- **Current task:** T01, T02 (review, Gemini Flash 3.8)
-- **Last reviewed:** T00 — ACCEPT (Claude Opus 5.5, 2026-10-25)
-- **Next action:** Оркестратор Claude Opus 5.5: `Проверь T01, T02` (затем `Чекпоинт фазы 0`)
-- **Git:** инициализирован (ветка main, тег `baseline` = откат к состоянию до мультиагентной работы)
+- **Orchestrator:** Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
+- **Current phase:** 1 — Финансовое ядро (Приоритет 1)
+- **Current task:** — (Фаза 0 полностью закрыта: T00, T01, T02 приняты)
+- **Last reviewed:** T01, T02 — ACCEPT; CHECKPOINT-0 — PASS (2026-10-25)
+- **Next action:** Переключить на **Gemini Flash 3.8** → `Выполни T10` (эталонная фикстура §9). Также параллельно можно дать Flash `Выполни T17` (контент мини-уроков, `[PARALLEL-OK]`).
+- **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`)
 
 ## Открытые вопросы пользователю
 
@@ -33,9 +33,11 @@
 |---|---|---|
 | 2026-10-25 | Claude Opus 5.5 | Создан протокол команды (AGENTS.md, skills, BACKLOG, HANDOFF) |
 | 2026-10-25 | Claude Opus 5.5 | Review T00: ACCEPT |
+| 2026-10-25 | Claude Opus 5.5 / Gemini 4 Argon | Review T01, T02: ACCEPT; наследование роли оркестратора; CHECKPOINT-0 закрыт |
 
 ## Phase log
 
 | Фаза | Статус | Дата | Итог |
 |---|---|---|---|
-| 0 | in progress | — | — |
+| 0 | done | 2026-10-25 | Git инициализирован (`baseline`), `docs/release-readiness.md` приведён к §18, `docs/skills-manifest.md` создан (26 папок). Тег `phase-0`. |
+| 1 | in progress | 2026-10-25 | Следующая задача: T10 (Flash) |

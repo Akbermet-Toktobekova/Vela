@@ -10,6 +10,7 @@
 ## 1. Что уже выполнено и проверено (DONE)
 
 ### 1.1. Окружение и навыки (Caveman & Tooling)
+- [x] **Протокол мультиагентной команды и Git (`Phase 0`)**: инициализирован Git-репозиторий (теги `baseline`, `phase-0`), созданы [`AGENTS.md`](AGENTS.md), `.agents/rules/team-protocol.md`, скиллы `vela-executor` и `vela-orchestrator`, бэклог [`docs/agents/BACKLOG.md`](docs/agents/BACKLOG.md), манифест навыков [`docs/skills-manifest.md`](docs/skills-manifest.md) и обновлённый чеклист гейтов [`docs/release-readiness.md`](docs/release-readiness.md) по §18 спецификации.
 - [x] **Caveman установлен и активирован**: репозитории скиллов (`caveman`, `cavecrew`, `investigate-first`, `lean-build`, `migration`, `safe-refactor`, `surgical-patch`, `verify-and-stop` и др.) развернуты в `.agents/skills/` и активированы через `.agents/rules/caveman-activate.md`.
 - [x] **Генерация контрактов**: `scripts/generate-contracts.py` генерирует OpenAPI-схему (`contracts/openapi.json`) и TypeScript-типы (`apps/mobile/src/lib/generated.ts`). Проверка на расхождение контрактов (0 drift) проходит.
 

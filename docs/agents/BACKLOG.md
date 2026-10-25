@@ -25,7 +25,7 @@
 - **Verify:** `git status` (чисто), команда из Acceptance.
 
 ### T01 — Привести release-readiness к формату спецификации §18
-- **Model:** Flash · **Status:** review · **Depends on:** T00 · `[PARALLEL-OK]`
+- **Model:** Flash · **Status:** done · **Depends on:** T00 · `[PARALLEL-OK]`
 - **Goal:** Сейчас в `docs/release-readiness.md` свои 14 гейтов, а не те, что в §18 спецификации. Статусы указаны значками, а нужно PASS/FAIL/BLOCKED/NOT APPLICABLE + owner + date. Также `eas.json` уже существует, а гейт 14 называет его отсутствующим.
 - **Scope:** `docs/release-readiness.md`
 - **Context:** спецификация строки 694–717 (§18), текущий `docs/release-readiness.md`, `PROGRESS.md`.
@@ -39,7 +39,7 @@
 - **Verify:** ручное сравнение со спецификацией; оркестратор сверяет построчно.
 
 ### T02 — Манифест скиллов
-- **Model:** Flash · **Status:** review · **Depends on:** T00 · `[PARALLEL-OK]`
+- **Model:** Flash · **Status:** done · **Depends on:** T00 · `[PARALLEL-OK]`
 - **Goal:** Спецификация §3 требует `docs/skills-manifest.md`.
 - **Scope:** `docs/skills-manifest.md` (новый)
 - **Steps:** таблица по всем папкам `.agents/skills/*`: name, purpose (из frontmatter `description`), location, source/upstream (если известен, иначе `local`), статус. Отдельный раздел «Recommended by spec, not installed»: expo, stitch, gemini-api-dev, supabase.
