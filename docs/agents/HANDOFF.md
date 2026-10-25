@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
 - **Current phase:** 1 — Финансовое ядро (Приоритет 1)
-- **Current task:** T13 (review, Gemini 4 Argon); T14 (review, Gemini 4 Argon)
-- **Last reviewed:** T12 — ACCEPT (Gemini 4 Argon, 2026-10-26)
-- **Next action:** **Оркестратор** (в новом чате с чистым контекстом) → `Проверь T13` и `Проверь T14`.
+- **Current task:** — (T13 и T14 приняты)
+- **Last reviewed:** T13, T14 — ACCEPT (Gemini 4 Argon, 2026-10-26)
+- **Next action:** **Gemini 4 Argon** → `Выполни T15` (MCDA-ранжирование, классы срочности, чувствительность `±20%`, `DecisionEvaluationSnapshot`; вопрос D1 про `provisional: true` демо-веса подтверждается пользователем) и/или `Выполни T18` (Journey E: API уроков + экран обучения `learn.tsx` + прогресс — все зависимости `T17, T14` уже `done`).
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`)
 
 ## Открытые вопросы пользователю
@@ -23,7 +23,7 @@
 
 ## Последние проверенные показатели (baseline 2026-10-25, из PROGRESS.md)
 
-- `python scripts/check.py` → 52/52
+- `python scripts/check.py` → 65/65
 - `npm run typecheck` → 0 ошибок
 - `npx expo-doctor` → 20/20
 
@@ -38,10 +38,11 @@
 | 2026-10-25 | Gemini 4 Argon | Review T17: ACCEPT (10 мини-уроков в `content/lessons/`) |
 | 2026-10-25 | Gemini 4 Argon | Review T11: ACCEPT (44/44 тестов, все 13 тестов фикстуры §9 зелёные) |
 | 2026-10-26 | Gemini 4 Argon | Review T12: ACCEPT (52/52 тестов, Debt Engine + 500 рандомизированных инвариантов + 0 drift) |
+| 2026-10-26 | Gemini 4 Argon | Review T13, T14: ACCEPT (65/65 тестов, экран `/debts` + каталог 15 действий §9) |
 
 ## Phase log
 
 | Фаза | Статус | Дата | Итог |
 |---|---|---|---|
 | 0 | done | 2026-10-25 | Git инициализирован (`baseline`), `docs/release-readiness.md` приведён к §18, `docs/skills-manifest.md` создан (26 папок). Тег `phase-0`. |
-| 1 | in progress | 2026-10-26 | T10, T17, T11, T12 приняты; следующие задачи: T13 и T14 (Argon) |
+| 1 | in progress | 2026-10-26 | T10, T17, T11, T12, T13, T14 приняты; следующие задачи: T15 и T18 (Argon) |
