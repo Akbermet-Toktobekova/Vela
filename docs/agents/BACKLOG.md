@@ -68,7 +68,7 @@
 - **Verify:** `python scripts/check.py`, `python -m pytest services/api/tests/test_acceptance_fixture.py -v`.
 
 ### T12 — Debt Engine (калькулятор долгов)
-- **Model:** Argon · **Status:** todo · **Depends on:** T11 · `[OPUS-REVIEW]`
+- **Model:** Argon · **Status:** review · **Depends on:** T11 · `[OPUS-REVIEW]`
 - **Goal:** Чистый детерминированный калькулятор долгов (спецификация §9, §15).
 - **Scope:** `services/api/vela/debt.py` (новый), `services/api/vela/domain.py` (модель долга), `services/api/vela/main.py` (эндпоинты), `services/api/tests/test_debt.py` (новый), `contracts/`, `apps/mobile/src/lib/generated.ts`
 - **Steps:**

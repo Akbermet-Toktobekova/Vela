@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
 - **Current phase:** 1 — Финансовое ядро (Приоритет 1)
-- **Current task:** — (T11 принята)
+- **Current task:** T12 (review, Gemini 4 Argon)
 - **Last reviewed:** T11 — ACCEPT (Gemini 4 Argon, 2026-10-25)
-- **Next action:** **Gemini 4 Argon** → `Выполни T12` (Debt Engine — калькулятор долгов, стратегии Avalanche и Snowball, эндпоинты `/v1/debts`).
+- **Next action:** **Оркестратор** (Opus или Argon **в новом чате** по правилу `[OPUS-REVIEW]`) → `Проверь T12`. Затем Argon: `Выполни T13` / `Выполни T14`.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`)
 
 ## Открытые вопросы пользователю

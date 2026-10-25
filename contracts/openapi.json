@@ -374,6 +374,387 @@
         "title": "CostCommand",
         "type": "object"
       },
+      "Debt-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "apr_bps": {
+            "default": 0,
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Apr Bps",
+            "type": "integer"
+          },
+          "balance_cents": {
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "Balance Cents",
+            "type": "integer"
+          },
+          "due_day": {
+            "default": 1,
+            "maximum": 31.0,
+            "minimum": 1.0,
+            "title": "Due Day",
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "default": "other",
+            "enum": [
+              "credit_card",
+              "personal_loan",
+              "overdraft",
+              "other"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "default": "Debt",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "min_payment_cents": {
+            "default": 0,
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "Min Payment Cents",
+            "type": "integer"
+          },
+          "terms_known": {
+            "default": true,
+            "title": "Terms Known",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "balance_cents"
+        ],
+        "title": "Debt",
+        "type": "object"
+      },
+      "Debt-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "apr_bps": {
+            "default": 0,
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Apr Bps",
+            "type": "integer"
+          },
+          "balance_cents": {
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "Balance Cents",
+            "type": "integer"
+          },
+          "due_day": {
+            "default": 1,
+            "maximum": 31.0,
+            "minimum": 1.0,
+            "title": "Due Day",
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "default": "other",
+            "enum": [
+              "credit_card",
+              "personal_loan",
+              "overdraft",
+              "other"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "default": "Debt",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "min_payment_cents": {
+            "default": 0,
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "Min Payment Cents",
+            "type": "integer"
+          },
+          "terms_known": {
+            "default": true,
+            "title": "Terms Known",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "balance_cents",
+          "apr_bps",
+          "min_payment_cents",
+          "due_day",
+          "kind",
+          "terms_known"
+        ],
+        "title": "Debt",
+        "type": "object"
+      },
+      "DebtCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "debt": {
+            "$ref": "#/components/schemas/Debt-Input"
+          },
+          "revision": {
+            "minimum": 0.0,
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision",
+          "debt"
+        ],
+        "title": "DebtCommand",
+        "type": "object"
+      },
+      "DebtPayoffSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "debt_id": {
+            "title": "Debt Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "months": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Months"
+          },
+          "principal_paid_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Principal Paid Cents"
+          },
+          "status": {
+            "enum": [
+              "paid",
+              "non_amortizing",
+              "needs_input",
+              "unsupported"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "total_interest_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Interest Cents"
+          },
+          "total_paid_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Paid Cents"
+          }
+        },
+        "required": [
+          "debt_id",
+          "label",
+          "status",
+          "months",
+          "total_interest_cents",
+          "total_paid_cents",
+          "principal_paid_cents"
+        ],
+        "title": "DebtPayoffSummary",
+        "type": "object"
+      },
+      "DebtSimulateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "debts": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Debt-Input"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Debts"
+          },
+          "one_off_extra_cents": {
+            "default": 0,
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "One Off Extra Cents",
+            "type": "integer"
+          },
+          "recurring_extra_cents": {
+            "default": 0,
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "Recurring Extra Cents",
+            "type": "integer"
+          },
+          "target_debt_id": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Debt Id"
+          }
+        },
+        "title": "DebtSimulateRequest",
+        "type": "object"
+      },
+      "DebtSimulationView": {
+        "additionalProperties": false,
+        "properties": {
+          "avalanche": {
+            "$ref": "#/components/schemas/StrategyResult"
+          },
+          "baseline": {
+            "$ref": "#/components/schemas/StrategyResult"
+          },
+          "one_off_extra_cents": {
+            "default": 0,
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "One Off Extra Cents",
+            "type": "integer"
+          },
+          "one_off_preview": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OneOffExtraPreview"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recurring_extra_cents": {
+            "default": 0,
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "Recurring Extra Cents",
+            "type": "integer"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "rounding_rule": {
+            "default": "round-half-up-monthly-bps-v1",
+            "title": "Rounding Rule",
+            "type": "string"
+          },
+          "snowball": {
+            "$ref": "#/components/schemas/StrategyResult"
+          },
+          "status": {
+            "enum": [
+              "paid",
+              "non_amortizing",
+              "needs_input",
+              "unsupported"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision",
+          "status",
+          "rounding_rule",
+          "recurring_extra_cents",
+          "one_off_extra_cents",
+          "baseline",
+          "avalanche",
+          "snowball",
+          "one_off_preview"
+        ],
+        "title": "DebtSimulationView",
+        "type": "object"
+      },
+      "DebtsView": {
+        "additionalProperties": false,
+        "properties": {
+          "comparison": {
+            "$ref": "#/components/schemas/DebtSimulationView"
+          },
+          "debts": {
+            "items": {
+              "$ref": "#/components/schemas/Debt-Output"
+            },
+            "title": "Debts",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision",
+          "debts",
+          "comparison"
+        ],
+        "title": "DebtsView",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -706,6 +1087,112 @@
           "kind"
         ],
         "title": "Obligation",
+        "type": "object"
+      },
+      "OneOffExtraPreview": {
+        "additionalProperties": false,
+        "properties": {
+          "applied_extra_cents": {
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "Applied Extra Cents",
+            "type": "integer"
+          },
+          "interest_saved_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interest Saved Cents"
+          },
+          "months": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Months"
+          },
+          "months_saved": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Months Saved"
+          },
+          "requested_extra_cents": {
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "Requested Extra Cents",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "paid",
+              "non_amortizing",
+              "needs_input",
+              "unsupported"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target_debt_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Debt Id"
+          },
+          "total_interest_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Interest Cents"
+          },
+          "total_paid_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Paid Cents"
+          }
+        },
+        "required": [
+          "requested_extra_cents",
+          "applied_extra_cents",
+          "target_debt_id",
+          "status",
+          "months",
+          "total_interest_cents",
+          "total_paid_cents",
+          "interest_saved_cents",
+          "months_saved"
+        ],
+        "title": "OneOffExtraPreview",
         "type": "object"
       },
       "Preview": {
@@ -1107,6 +1594,13 @@
           "breakdown": {
             "$ref": "#/components/schemas/Breakdown"
           },
+          "debts": {
+            "items": {
+              "$ref": "#/components/schemas/Debt-Output"
+            },
+            "title": "Debts",
+            "type": "array"
+          },
           "deferred": {
             "title": "Deferred",
             "type": "boolean"
@@ -1159,6 +1653,7 @@
           "history",
           "income_ids",
           "deferred",
+          "debts",
           "available",
           "breakdown",
           "recommendation",
@@ -1166,6 +1661,104 @@
           "mode"
         ],
         "title": "StateView",
+        "type": "object"
+      },
+      "StrategyResult": {
+        "additionalProperties": false,
+        "properties": {
+          "debts": {
+            "items": {
+              "$ref": "#/components/schemas/DebtPayoffSummary"
+            },
+            "title": "Debts",
+            "type": "array"
+          },
+          "interest_saved_vs_baseline_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interest Saved Vs Baseline Cents"
+          },
+          "months": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Months"
+          },
+          "months_saved_vs_baseline": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Months Saved Vs Baseline"
+          },
+          "status": {
+            "enum": [
+              "paid",
+              "non_amortizing",
+              "needs_input",
+              "unsupported"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "strategy": {
+            "enum": [
+              "minimum_only",
+              "avalanche",
+              "snowball"
+            ],
+            "title": "Strategy",
+            "type": "string"
+          },
+          "total_interest_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Interest Cents"
+          },
+          "total_paid_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Paid Cents"
+          }
+        },
+        "required": [
+          "strategy",
+          "status",
+          "months",
+          "total_interest_cents",
+          "total_paid_cents",
+          "interest_saved_vs_baseline_cents",
+          "months_saved_vs_baseline",
+          "debts"
+        ],
+        "title": "StrategyResult",
         "type": "object"
       },
       "Summary": {
@@ -1841,6 +2434,273 @@
           }
         },
         "summary": "Erase"
+      }
+    },
+    "/v1/debts": {
+      "get": {
+        "operationId": "get_debts_v1_debts_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DebtsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Debts"
+      },
+      "post": {
+        "operationId": "add_debt_v1_debts_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DebtCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StateView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Debt"
+      }
+    },
+    "/v1/debts/simulate": {
+      "post": {
+        "operationId": "simulate_debts_v1_debts_simulate_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DebtSimulateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DebtSimulationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Simulate Debts"
+      }
+    },
+    "/v1/debts/{debt_id}": {
+      "delete": {
+        "operationId": "delete_debt_v1_debts__debt_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "debt_id",
+            "required": true,
+            "schema": {
+              "title": "Debt Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Revision"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Command"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StateView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Debt"
       }
     },
     "/v1/defer": {

@@ -77,6 +77,68 @@ export type CostCommand = {
   "obligation": Obligation_Input;
 };
 
+export type Debt_Input = {
+  "id": string;
+  "label"?: string;
+  "balance_cents": number;
+  "apr_bps"?: number;
+  "min_payment_cents"?: number;
+  "due_day"?: number;
+  "kind"?: "credit_card" | "personal_loan" | "overdraft" | "other";
+  "terms_known"?: boolean;
+};
+
+export type Debt_Output = {
+  "id": string;
+  "label": string;
+  "balance_cents": number;
+  "apr_bps": number;
+  "min_payment_cents": number;
+  "due_day": number;
+  "kind": "credit_card" | "personal_loan" | "overdraft" | "other";
+  "terms_known": boolean;
+};
+
+export type DebtCommand = {
+  "revision": number;
+  "debt": Debt_Input;
+};
+
+export type DebtPayoffSummary = {
+  "debt_id": string;
+  "label": string;
+  "status": "paid" | "non_amortizing" | "needs_input" | "unsupported";
+  "months": number | null;
+  "total_interest_cents": number | null;
+  "total_paid_cents": number | null;
+  "principal_paid_cents": number | null;
+};
+
+export type DebtSimulateRequest = {
+  "recurring_extra_cents"?: number;
+  "one_off_extra_cents"?: number;
+  "target_debt_id"?: string | null;
+  "debts"?: (Debt_Input)[] | null;
+};
+
+export type DebtSimulationView = {
+  "revision": number;
+  "status": "paid" | "non_amortizing" | "needs_input" | "unsupported";
+  "rounding_rule": string;
+  "recurring_extra_cents": number;
+  "one_off_extra_cents": number;
+  "baseline": StrategyResult;
+  "avalanche": StrategyResult;
+  "snowball": StrategyResult;
+  "one_off_preview": OneOffExtraPreview | null;
+};
+
+export type DebtsView = {
+  "revision": number;
+  "debts": (Debt_Output)[];
+  "comparison": DebtSimulationView;
+};
+
 export type HTTPValidationError = {
   "detail"?: (ValidationError)[];
 };
@@ -130,6 +192,18 @@ export type Obligation_Output = {
   "amount": number;
   "due": string;
   "kind": "living" | "rent" | "debt" | "other";
+};
+
+export type OneOffExtraPreview = {
+  "requested_extra_cents": number;
+  "applied_extra_cents": number;
+  "target_debt_id": string | null;
+  "status": "paid" | "non_amortizing" | "needs_input" | "unsupported";
+  "months": number | null;
+  "total_interest_cents": number | null;
+  "total_paid_cents": number | null;
+  "interest_saved_cents": number | null;
+  "months_saved": number | null;
 };
 
 export type Preview = {
@@ -205,11 +279,23 @@ export type StateView = {
   "history": (Record<string, unknown>)[];
   "income_ids": (string)[];
   "deferred": boolean;
+  "debts": (Debt_Output)[];
   "available": number;
   "breakdown": Breakdown;
   "recommendation": Recommendation;
   "summary": Summary;
   "mode": "local";
+};
+
+export type StrategyResult = {
+  "strategy": "minimum_only" | "avalanche" | "snowball";
+  "status": "paid" | "non_amortizing" | "needs_input" | "unsupported";
+  "months": number | null;
+  "total_interest_cents": number | null;
+  "total_paid_cents": number | null;
+  "interest_saved_vs_baseline_cents": number | null;
+  "months_saved_vs_baseline": number | null;
+  "debts": (DebtPayoffSummary)[];
 };
 
 export type Summary = {

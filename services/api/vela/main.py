@@ -5,12 +5,13 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Annotated, Literal
 from uuid import uuid4
-from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
+from fastapi import Body, Depends, FastAPI, File, Header, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import Field
-from .domain import (Record, Snapshot, PositiveMoney, Money, Obligation, StateView, PreviewView, Transaction,
+from .domain import (Record, Snapshot, PositiveMoney, Money, Obligation, Debt, StateView, PreviewView, Transaction,
                      fixture, view, accept, complete, eligibility, merge_transactions)
+from .debt import DebtSimulationView, compare_and_simulate
 from .store import Store, Conflict
 from .ai import Quotas, MODELS, ROUTES, enabled
 from .imports import ImportPreview, ImportError_, build_preview, MAX_BYTES
@@ -41,6 +42,23 @@ class CostCommand(Command):
 
 class BillDone(Command):
     paid: bool
+
+
+class DebtCommand(Command):
+    debt: Debt
+
+
+class DebtSimulateRequest(Record):
+    recurring_extra_cents: Money = 0
+    one_off_extra_cents: Money = 0
+    target_debt_id: str | None = Field(default=None, max_length=80)
+    debts: list[Debt] | None = Field(default=None, max_length=50)
+
+
+class DebtsView(Record):
+    revision: int
+    debts: list[Debt]
+    comparison: DebtSimulationView
 
 
 class ConfirmCommand(Command):
@@ -230,6 +248,59 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
                    and body.amount <= max(0, s.snapshot.goal_target-s.snapshot.saved))
         return {"revision": s.revision, "amount": body.amount, "eligible": allowed,
                 "remaining": data["available"]-body.amount, "goal_after": (s.snapshot.saved if s.snapshot else 0)+body.amount}
+
+    # ---------- debts ----------
+
+    @app.get("/v1/debts", response_model=DebtsView)
+    def get_debts(who=Depends(owner)):
+        s = store.read(who)
+        return {
+            "revision": s.revision,
+            "debts": s.debts,
+            "comparison": compare_and_simulate(s.debts, revision=s.revision),
+        }
+
+    @app.post("/v1/debts", response_model=StateView)
+    def add_debt(body: DebtCommand, who=Depends(owner), key=Depends(idempotency)):
+        def apply(s):
+            if any(d.id == body.debt.id for d in s.debts):
+                raise ValueError("Debt ID must be unique.")
+            s.debts.append(body.debt)
+            s.deferred = False
+        return change(who, key, body, "add_debt", apply)
+
+    @app.delete("/v1/debts/{debt_id}", response_model=StateView)
+    def delete_debt(
+        debt_id: str,
+        body: Annotated[Command | None, Body()] = None,
+        revision: Annotated[int | None, Query(ge=0, strict=True)] = None,
+        who=Depends(owner),
+        key=Depends(idempotency),
+    ):
+        rev = body.revision if body is not None else revision
+        if rev is None:
+            raise ValueError("Provide expected revision in request body or query parameter.")
+        cmd = Command(revision=rev)
+
+        def apply(s):
+            if not any(d.id == debt_id for d in s.debts):
+                raise ValueError("Debt not found.")
+            s.debts = [d for d in s.debts if d.id != debt_id]
+            s.deferred = False
+
+        return change(who, key, cmd, "delete_debt", apply, {"debt_id": debt_id})
+
+    @app.post("/v1/debts/simulate", response_model=DebtSimulationView)
+    def simulate_debts(body: DebtSimulateRequest, who=Depends(owner)):
+        s = store.read(who)
+        debts = body.debts if body.debts is not None else s.debts
+        return compare_and_simulate(
+            debts=debts,
+            revision=s.revision,
+            recurring_extra_cents=body.recurring_extra_cents,
+            one_off_extra_cents=body.one_off_extra_cents,
+            target_debt_id=body.target_debt_id,
+        )
 
     # ---------- statements ----------
 

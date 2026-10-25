@@ -27,6 +27,20 @@ class Obligation(Record):
     kind: Literal["living", "rent", "debt", "other"] = "other"
 
 
+DebtKind = Literal["credit_card", "personal_loan", "overdraft", "other"]
+
+
+class Debt(Record):
+    id: str = Field(min_length=1, max_length=80)
+    label: str = Field(default="Debt", min_length=1, max_length=100)
+    balance_cents: Money
+    apr_bps: Annotated[int, Field(strict=True, ge=0, le=100_000)] = 0
+    min_payment_cents: Money = 0
+    due_day: Annotated[int, Field(strict=True, ge=1, le=31)] = 1
+    kind: DebtKind = "other"
+    terms_known: bool = True
+
+
 class Snapshot(Record):
     nickname: str = Field(default="Alex", min_length=1, max_length=40)
     currency: Literal["EUR"] = "EUR"
@@ -80,6 +94,7 @@ class State(Record):
     income_ids: list[str] = Field(default_factory=list)
     deferred: bool = False
     transactions: list[Transaction] = Field(default_factory=list)
+    debts: list[Debt] = Field(default_factory=list)
 
 
 class Recommendation(Record):
@@ -123,6 +138,7 @@ class StateView(Record):
     history: list[dict] = Field(default_factory=list)
     income_ids: list[str] = Field(default_factory=list)
     deferred: bool
+    debts: list[Debt] = Field(default_factory=list)
     available: int
     breakdown: Breakdown
     recommendation: Recommendation
