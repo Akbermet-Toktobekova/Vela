@@ -22,6 +22,37 @@ function readUriAsBase64(uri: string): Promise<string> {
 }
 
 export interface Obligation { id: string; label: string; amount: number; due: string; kind: 'rent' | 'living' | 'debt' | 'other' }
+export interface Debt {
+  id: string; label: string; balance_cents: number; apr_bps: number;
+  min_payment_cents: number; due_day: number;
+  kind: 'credit_card' | 'personal_loan' | 'overdraft' | 'other';
+  terms_known: boolean;
+}
+export type AmortizationStatus = 'paid' | 'non_amortizing' | 'needs_input' | 'unsupported';
+export interface DebtPayoffSummary {
+  debt_id: string; label: string; status: AmortizationStatus;
+  months: number | null; total_interest_cents: number | null;
+  total_paid_cents: number | null; principal_paid_cents: number | null;
+}
+export interface StrategyResult {
+  strategy: 'minimum_only' | 'avalanche' | 'snowball';
+  status: AmortizationStatus;
+  months: number | null; total_interest_cents: number | null; total_paid_cents: number | null;
+  interest_saved_vs_baseline_cents: number | null; months_saved_vs_baseline: number | null;
+  debts: DebtPayoffSummary[];
+}
+export interface OneOffExtraPreview {
+  requested_extra_cents: number; applied_extra_cents: number; target_debt_id: string | null;
+  status: AmortizationStatus; months: number | null; total_interest_cents: number | null;
+  total_paid_cents: number | null; interest_saved_cents: number | null; months_saved: number | null;
+}
+export interface DebtSimulationView {
+  revision: number; status: AmortizationStatus; rounding_rule: string;
+  recurring_extra_cents: number; one_off_extra_cents: number;
+  baseline: StrategyResult; avalanche: StrategyResult; snowball: StrategyResult;
+  one_off_preview: OneOffExtraPreview | null;
+}
+export interface DebtsView { revision: number; debts: Debt[]; comparison: DebtSimulationView }
 export interface Snapshot {
   nickname: string; currency: 'EUR'; as_of: string; horizon: string; cash: number; saved: number;
   protected: number; goal_target: number; goal_name: string; obligations: Obligation[];
@@ -41,7 +72,7 @@ export interface Recommendation {
 }
 export interface FinancialState {
   revision: number; snapshot: Snapshot | null; available: number; breakdown: Breakdown;
-  actions: Action[]; recommendation: Recommendation; summary: Summary;
+  actions: Action[]; debts: Debt[]; recommendation: Recommendation; summary: Summary;
   history: {event: string; revision: number}[]; mode: 'local';
 }
 export interface Preview { revision: number; amount: number; eligible: boolean; remaining: number; goal_after: number }
@@ -140,6 +171,14 @@ export function cents(text: string): number {
   if (value > 1000000000) throw new Error('This amount is above the supported limit.');
   return value;
 }
+export function aprBps(text: string): number {
+  if (!/^\d{1,3}([.,]\d{1,2})?$/.test(text.trim())) throw new Error('Enter an APR percentage (e.g. 12.5 or 0).');
+  const [whole, fractional = ''] = text.trim().replace(',', '.').split('.');
+  const value = Number(whole) * 100 + Number(fractional.padEnd(2, '0'));
+  if (value > 100000) throw new Error('APR cannot exceed 1000%.');
+  return value;
+}
+export const formatApr = (bps: number) => `${(bps / 100).toFixed(bps % 100 === 0 ? 0 : 2)}%`;
 export function localDate(offsetDays = 0) {
   const d = new Date();
   if (offsetDays) d.setDate(d.getDate() + offsetDays);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { router } from 'expo-router';
+import { router, Href } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Card, Chip, Copy, Field, Notice, Row, Screen } from '../../components/ui';
 import { StateGate } from '../../components/StateGate';
@@ -116,6 +116,22 @@ function PlanContent({state}: {state: FinancialState}) {
           </View>
         </View>
       ))}
+    </Card>
+
+    <Card>
+      <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+        <Copy variant="title">Debts & payoff ({(state.debts ?? []).length})</Copy>
+        <Button label="Manage debts" small secondary onPress={() => router.push('/debts' as Href)} />
+      </View>
+      {(state.debts ?? []).length === 0 ? (
+        <Copy variant="small" muted>Compare Avalanche vs Snowball payoff and preview extra payments without changing your plan.</Copy>
+      ) : (
+        <Row
+          label="Total recorded debt balance"
+          value={money((state.debts ?? []).reduce((sum, d) => sum + d.balance_cents, 0))}
+          bold
+        />
+      )}
     </Card>
 
     {state.summary.transaction_count > 0 && <Card>

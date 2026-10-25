@@ -82,13 +82,13 @@
 - **Verify:** `python -m pytest services/api/tests/test_debt.py -v`, `python scripts/check.py`, `python scripts/generate-contracts.py`.
 
 ### T13 — Экран долгов в мобильном приложении
-- **Model:** Argon · **Status:** todo · **Depends on:** T12
+- **Model:** Argon · **Status:** review · **Depends on:** T12
 - **Scope:** `apps/mobile/src/app/debts.tsx` (новый), `apps/mobile/src/lib/api.ts`, переход из `(tabs)/plan.tsx`
 - **Acceptance:** добавление/удаление долга, сравнение Avalanche vs Snowball (срок, проценты), превью досрочного платежа без мутации; стиль из `theme.ts`/`components/ui.tsx`.
 - **Verify:** `cd apps/mobile; npm run typecheck`; ручная проверка в Expo Go (пользователь).
 
 ### T14 — Каталог 15 действий как версионная политика
-- **Model:** Argon · **Status:** todo · **Depends on:** T12 · `[OPUS-REVIEW]`
+- **Model:** Argon · **Status:** in_progress · **Depends on:** T12 · `[OPUS-REVIEW]`
 - **Goal:** Спецификация §9: 15 действий с prerequisites, contraindications, effects, связанным уроком.
 - **Scope:** `policies/action-catalogue.v1.json` (или `.yaml`, по существующему стилю `policies/`), `services/api/vela/catalogue.py` (новый), `services/api/tests/test_catalogue.py`
 - **Acceptance:** все 15 действий из §9 присутствуют; генератор кандидатов выдаёт только допустимые действия для состояния; `maintain current plan` (baseline) всегда кандидат; нет действий, двигающих деньги.
