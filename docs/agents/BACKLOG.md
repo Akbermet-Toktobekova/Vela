@@ -25,7 +25,7 @@
 - **Verify:** `git status` (чисто), команда из Acceptance.
 
 ### T01 — Привести release-readiness к формату спецификации §18
-- **Model:** Flash · **Status:** todo · **Depends on:** T00 · `[PARALLEL-OK]`
+- **Model:** Flash · **Status:** review · **Depends on:** T00 · `[PARALLEL-OK]`
 - **Goal:** Сейчас в `docs/release-readiness.md` свои 14 гейтов, а не те, что в §18 спецификации. Статусы указаны значками, а нужно PASS/FAIL/BLOCKED/NOT APPLICABLE + owner + date. Также `eas.json` уже существует, а гейт 14 называет его отсутствующим.
 - **Scope:** `docs/release-readiness.md`
 - **Context:** спецификация строки 694–717 (§18), текущий `docs/release-readiness.md`, `PROGRESS.md`.
