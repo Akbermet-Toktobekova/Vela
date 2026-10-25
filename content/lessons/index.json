@@ -1,0 +1,213 @@
+[
+  {
+    "id": "emergency-fund",
+    "title": "Building an Emergency Cushion",
+    "summary": "Why an emergency reserve protects your daily plan and prevents high-interest borrowing.",
+    "file": "content/lessons/emergency-fund.md",
+    "related_actions": [
+      "build_reserve",
+      "contribute_savings_goal"
+    ],
+    "reviewed": false,
+    "quiz": {
+      "question": "If an unexpected expense of €250 arises and you have a €500 emergency buffer, what is the safest next step?",
+      "options": [
+        "Borrow money from a high-interest credit card to keep the cushion untouched",
+        "Use €250 from your buffer for the expense, then gradually replenish it when possible",
+        "Ignore the expense and skip upcoming scheduled bills"
+      ],
+      "correct_index": 1,
+      "explanation": "An emergency cushion is specifically designed to absorb unexpected necessary costs without relying on high-interest debt. After using it, the recommended action is to replenish the cushion gradually when cash flow allows."
+    }
+  },
+  {
+    "id": "liquidity-buffer",
+    "title": "Liquidity Buffer vs Long-Term Savings",
+    "summary": "Understanding the difference between money kept in your checking account for upcoming bills and true savings.",
+    "file": "content/lessons/liquidity-buffer.md",
+    "related_actions": [
+      "preserve_cash_until_payment",
+      "reserve_necessary_expense"
+    ],
+    "reviewed": false,
+    "quiz": {
+      "question": "What is the primary purpose of maintaining a liquidity buffer in your day-to-day checking account?",
+      "options": [
+        "To earn the highest long-term interest rate on your money",
+        "To absorb billing timing mismatches and prevent accidental overdrafts before payday",
+        "To lock money away so that it can never be accessed for bills"
+      ],
+      "correct_index": 1,
+      "explanation": "A liquidity buffer provides immediate breathing room in your checking account, absorbing temporary timing differences between outgoing debits and incoming salary without fees."
+    }
+  },
+  {
+    "id": "apr-and-minimum-payment",
+    "title": "APR and the True Cost of Minimum Payments",
+    "summary": "How annual interest rates compound and why paying only the minimum prolongs debt.",
+    "file": "content/lessons/apr-and-minimum-payment.md",
+    "related_actions": [
+      "prepare_required_debt",
+      "extra_debt_payment_one_off"
+    ],
+    "reviewed": false,
+    "quiz": {
+      "question": "What happens when you pay more than the required minimum payment on a loan or credit card?",
+      "options": [
+        "The extra payment is held by the bank as an administrative penalty",
+        "The extra amount reduces the principal directly, reducing future interest charges",
+        "Your interest rate is automatically increased by the lender"
+      ],
+      "correct_index": 1,
+      "explanation": "Any payment above the minimum goes directly toward reducing the loan's principal balance, which immediately shrinks the baseline on which next month's interest is calculated."
+    }
+  },
+  {
+    "id": "avalanche-vs-snowball",
+    "title": "Debt Payoff: Avalanche vs Snowball",
+    "summary": "Comparing the two most effective deterministic repayment strategies to choose what works best for you.",
+    "file": "content/lessons/avalanche-vs-snowball.md",
+    "related_actions": [
+      "compare_repayment_strategies",
+      "extra_debt_payment_one_off"
+    ],
+    "reviewed": false,
+    "quiz": {
+      "question": "Which debt repayment strategy is mathematically optimal for minimizing total interest paid?",
+      "options": [
+        "Debt Avalanche (targeting the debt with the highest APR first)",
+        "Debt Snowball (targeting the debt with the smallest balance first)",
+        "Paying random amounts across all accounts with no set priority"
+      ],
+      "correct_index": 0,
+      "explanation": "The Avalanche method focuses all extra repayment capacity on the highest interest rate first, which mathematically saves the most money in total interest charges over time."
+    }
+  },
+  {
+    "id": "irregular-income-budget",
+    "title": "Budgeting with Irregular or Variable Income",
+    "summary": "Practical rules for planning spending when your pay varies from month to month.",
+    "file": "content/lessons/irregular-income-budget.md",
+    "related_actions": [
+      "preserve_cash_until_payment",
+      "clarify_material_unknown"
+    ],
+    "reviewed": false,
+    "quiz": {
+      "question": "What is the recommended strategy when you experience a higher-than-average income month on variable earnings?",
+      "options": [
+        "Immediately lock all surplus money into illiquid multi-year investments",
+        "Deposit the surplus into an income holding buffer to smooth future lower-income months",
+        "Increase ongoing fixed recurring commitments to match that month's earnings"
+      ],
+      "correct_index": 1,
+      "explanation": "Channeling surplus from strong months into an accessible holding buffer ensures you have funds ready to cover non-negotiable bills during slower months without stress."
+    }
+  },
+  {
+    "id": "subscriptions-and-recurring",
+    "title": "Auditing Subscriptions and Recurring Charges",
+    "summary": "How small recurring debits quietly erode cash flow and how to review them calmly.",
+    "file": "content/lessons/subscriptions-and-recurring.md",
+    "related_actions": [
+      "review_recurring_charge",
+      "pause_optional_allocation"
+    ],
+    "reviewed": false,
+    "quiz": {
+      "question": "What is the most effective approach to handling recurring subscriptions you haven't used recently?",
+      "options": [
+        "Keep paying in case you might want to use them six months from now",
+        "Cancel or pause them, knowing you can easily reactivate if genuinely needed later",
+        "Ignore bank statements to avoid making decisions"
+      ],
+      "correct_index": 1,
+      "explanation": "Canceling inactive subscriptions immediately stops cash leakage with zero long-term penalty, as virtually all modern digital services allow instant reactivation."
+    }
+  },
+  {
+    "id": "savings-goals-planning",
+    "title": "Structuring Realistic Savings Goals",
+    "summary": "Breaking targets into sustainable milestones without suffocating daily life.",
+    "file": "content/lessons/savings-goals-planning.md",
+    "related_actions": [
+      "contribute_savings_goal",
+      "adjust_contribution",
+      "adjust_goal_timeline"
+    ],
+    "reviewed": false,
+    "quiz": {
+      "question": "If your monthly living costs increase, what is the recommended way to handle an active savings goal?",
+      "options": [
+        "Skip paying utility bills to keep your savings target unchanged",
+        "Adjust the monthly contribution or extend the goal target date to keep cash flow safe",
+        "Take out a personal loan to hit the savings deadline"
+      ],
+      "correct_index": 1,
+      "explanation": "Savings goals should adapt to real-world cash flow changes. Extending the timeline or reducing monthly contributions preserves financial stability without derailing the goal entirely."
+    }
+  },
+  {
+    "id": "dealing-with-shortfall",
+    "title": "Navigating a Cash Shortfall and Seeking Help",
+    "summary": "Objective, calm steps to take when upcoming obligations exceed available cash.",
+    "file": "content/lessons/dealing-with-shortfall.md",
+    "related_actions": [
+      "external_assistance_shortfall",
+      "pause_optional_allocation"
+    ],
+    "reviewed": false,
+    "quiz": {
+      "question": "What is the critical first action when an upcoming cash shortfall is identified?",
+      "options": [
+        "Continue funding optional discretionary savings goals as normal",
+        "Pause optional allocations and triage essential survival bills (rent, food, heat)",
+        "Borrow from unregulated high-interest payday lenders"
+      ],
+      "correct_index": 1,
+      "explanation": "In a shortfall, immediately pausing non-essential allocations protects available cash for non-negotiable living needs while you arrange payment plans or seek qualified external help."
+    }
+  },
+  {
+    "id": "understanding-bank-statements",
+    "title": "How to Read and Reconcile Bank Statements",
+    "summary": "Decoding transaction dates, pending authorizations, and statement balances.",
+    "file": "content/lessons/understanding-bank-statements.md",
+    "related_actions": [
+      "clarify_material_unknown",
+      "reserve_necessary_expense"
+    ],
+    "reviewed": false,
+    "quiz": {
+      "question": "Why might your bank account's available balance be lower than your posted balance?",
+      "options": [
+        "The bank made an irreversible accounting error",
+        "Pending card authorizations have been reserved by merchants but not yet settled",
+        "Future salary deposits have already been credited early"
+      ],
+      "correct_index": 1,
+      "explanation": "Pending authorizations immediately reduce your available spending capacity so that funds are reserved until the merchant finalizes settlement, preventing overdrafts."
+    }
+  },
+  {
+    "id": "planned-vs-actual-transfers",
+    "title": "Planned Steps vs Real Transfers",
+    "summary": "Why creating a step in your plan does not automatically move money.",
+    "file": "content/lessons/planned-vs-actual-transfers.md",
+    "related_actions": [
+      "maintain_current_plan",
+      "contribute_savings_goal"
+    ],
+    "reviewed": false,
+    "quiz": {
+      "question": "When you accept a savings recommendation in FinAgent, what happens to your real bank account?",
+      "options": [
+        "FinAgent automatically debits your bank account via direct debit",
+        "Nothing; it records a planned reservation in the app until you make the transfer yourself",
+        "Your money is locked by the government"
+      ],
+      "correct_index": 1,
+      "explanation": "FinAgent never initiates transactions or moves money. Accepting an action records a planned reservation within the app, which you execute in your real bank account when ready."
+    }
+  }
+]

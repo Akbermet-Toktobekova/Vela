@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
 - **Current phase:** 1 — Финансовое ядро (Приоритет 1)
-- **Current task:** T17 (in_progress, Gemini Flash 3.8)
+- **Current task:** T17 (review, Gemini Flash 3.8); T11 (todo, Gemini 4 Argon)
 - **Last reviewed:** T10 — ACCEPT (Gemini 4 Argon, 2026-10-25)
-- **Next action:** **Gemini 4 Argon** → `Выполни T11` (довести домен до всех деталей фикстуры §9). Параллельно Flash завершает `T17`.
+- **Next action:** Оркестратор: `Проверь T17`. Для задач финансового ядра: переключить на **Gemini 4 Argon** → `Выполни T11`.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`)
 
 ## Открытые вопросы пользователю
