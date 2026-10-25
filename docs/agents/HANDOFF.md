@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
 - **Current phase:** 1 — Финансовое ядро (Приоритет 1)
-- **Current task:** T10 (review, Gemini Flash 3.8)
-- **Last reviewed:** T01, T02 — ACCEPT; CHECKPOINT-0 — PASS (2026-10-25)
-- **Next action:** Оркестратор: `Проверь T10` (затем Argon: `Выполни T11`). Параллельно для Flash доступна `Выполни T17` (`[PARALLEL-OK]`).
+- **Current task:** T17 (in_progress, Gemini Flash 3.8)
+- **Last reviewed:** T10 — ACCEPT (Gemini 4 Argon, 2026-10-25)
+- **Next action:** **Gemini 4 Argon** → `Выполни T11` (довести домен до всех деталей фикстуры §9). Параллельно Flash завершает `T17`.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`)
 
 ## Открытые вопросы пользователю
@@ -23,7 +23,7 @@
 
 ## Последние проверенные показатели (baseline 2026-10-25, из PROGRESS.md)
 
-- `python scripts/check.py` → 31/31
+- `python scripts/check.py` → 40/40
 - `npm run typecheck` → 0 ошибок
 - `npx expo-doctor` → 20/20
 
@@ -34,10 +34,11 @@
 | 2026-10-25 | Claude Opus 5.5 | Создан протокол команды (AGENTS.md, skills, BACKLOG, HANDOFF) |
 | 2026-10-25 | Claude Opus 5.5 | Review T00: ACCEPT |
 | 2026-10-25 | Claude Opus 5.5 / Gemini 4 Argon | Review T01, T02: ACCEPT; наследование роли оркестратора; CHECKPOINT-0 закрыт |
+| 2026-10-25 | Gemini 4 Argon | Review T10: ACCEPT (40/40 тестов) |
 
 ## Phase log
 
 | Фаза | Статус | Дата | Итог |
 |---|---|---|---|
 | 0 | done | 2026-10-25 | Git инициализирован (`baseline`), `docs/release-readiness.md` приведён к §18, `docs/skills-manifest.md` создан (26 папок). Тег `phase-0`. |
-| 1 | in progress | 2026-10-25 | Следующая задача: T10 (Flash) |
+| 1 | in progress | 2026-10-25 | T10 принята; следующая задача: T11 (Argon), параллельно T17 (Flash) |
