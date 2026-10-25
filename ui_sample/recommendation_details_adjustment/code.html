@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;min-height:100%;background-color:#FAF8F5;color:#29231F;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "surface": "#FAF8F5", "surface-card": "#FFFFFF", "primary-orange": "#9C4628", "primary-dark": "#29231F", "muted-text": "#6D6259", "surface-border": "#E8E1D9", "surface-subtle": "#F4EFEA", "accent-soft": "#FBF1EC" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "0.875rem", "full": "9999px" }, spacing: { "margin": "1.25rem" }, fontFamily: { "sans": ["Manrope", "sans-serif"] } } } };</script></head><body class="bg-surface font-sans text-primary-dark flex flex-col min-h-screen antialiased"><header class="fixed top-0 w-full z-50 bg-[#FAF8F5]/90 backdrop-blur-md pt-safe border-b border-[#E8E1D9]"><div class="h-14 px-margin flex items-center justify-between"><div class="flex items-center gap-2"><button aria-label="Go back" class="w-10 h-10 -ml-2 flex items-center justify-center rounded-full text-primary-dark hover:bg-black/5 active:scale-95 transition-all" onclick="history.back()"><span class="material-symbols-outlined text-[22px]">arrow_back</span></button><h1 class="font-semibold text-[17px] text-primary-dark tracking-tight">Recommendation Details</h1></div><span class="text-xs font-semibold uppercase tracking-wider text-muted-text px-2 py-0.5 rounded bg-[#F4EFEA]">Weekly Step</span></div></header><main class="flex-1 flex flex-col relative w-full px-margin pt-16 pb-safe bg-surface"><div class="flex flex-col w-full pb-36 max-w-lg mx-auto pt-2">
+<!-- 1. Reason: Why this step was selected -->
+<section class="bg-surface-card rounded-2xl p-5 border border-surface-border shadow-sm mb-4">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5 text-primary-orange text-xs font-semibold uppercase tracking-wide">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+<span>Decision Context</span>
+</div>
+<span class="text-xs text-muted-text font-medium">Sep 14 Sync</span>
+</div>
+<h2 class="text-[19px] font-semibold text-primary-dark mb-2 tracking-tight">Why this step was selected</h2>
+<p class="text-[14px] leading-relaxed text-muted-text">
+    Based on your Sep 14 statement, you have <strong class="text-primary-dark font-semibold">€340</strong> available after essential bills and rent. Contributing <strong class="text-primary-orange font-semibold" id="reason-amount">€25</strong> builds safety while leaving <strong class="text-primary-dark font-semibold" id="reason-remaining">€315</strong> for groceries and routine spending.
+  </p>
+</section>
+<!-- 2. Calculation Breakdown Card -->
+<section class="bg-surface-card rounded-2xl p-5 border border-surface-border shadow-sm mb-4">
+<div class="flex items-center justify-between pb-3 mb-3 border-b border-surface-border/70">
+<div>
+<h3 class="text-[16px] font-semibold text-primary-dark">Cash Flow &amp; Spending Split</h3>
+<p class="text-[12px] text-muted-text mt-0.5">Clear separation between reserve savings and everyday spending</p>
+</div>
+<span class="material-symbols-outlined text-muted-text text-[20px]">calculate</span>
+</div>
+<!-- Clear Calculation Steps -->
+<div class="space-y-2.5 text-[14px]">
+<div class="flex items-center justify-between">
+<span class="text-muted-text">Available after essential expenses</span>
+<span class="font-medium text-primary-dark">€340</span>
+</div>
+<div class="flex items-center justify-between text-primary-orange">
+<span class="flex items-center gap-1">
+<span>Contribution to reserve</span>
+</span>
+<span class="font-semibold" id="calc-contrib">−€25</span>
+</div>
+<div class="pt-2 border-t border-surface-border flex items-baseline justify-between">
+<div class="flex flex-col">
+<span class="font-semibold text-primary-dark text-[15px]">= Remaining for everyday spending</span>
+<span class="text-[12px] text-muted-text">Protected cash left in checking</span>
+</div>
+<span class="text-[20px] font-bold text-primary-dark tracking-tight" id="calc-remaining">€315</span>
+</div>
+</div>
+<!-- Reserve Progress Distinction -->
+<div class="mt-4 pt-3.5 border-t border-dashed border-surface-border bg-surface-subtle/60 -mx-5 -mb-5 p-4 rounded-b-2xl">
+<div class="flex items-center justify-between text-[13px] mb-1.5">
+<span class="font-medium text-primary-dark">Reserve buffer target</span>
+<span class="text-muted-text"><span class="font-semibold text-primary-dark" id="reserve-label">€120 → €145</span> of €500</span>
+</div>
+<div class="w-full h-2 rounded-full bg-[#E5DED5] overflow-hidden flex">
+<div class="h-full bg-primary-dark transition-all duration-300" style="width: 24%;"></div>
+<div class="h-full bg-primary-orange transition-all duration-300" id="reserve-bar" style="width: 5%;"></div>
+</div>
+<div class="flex items-center justify-between text-[11px] text-muted-text mt-1.5">
+<span>Current: €120 (24%)</span>
+<span class="text-primary-orange font-medium" id="reserve-target-text">New projected: €145 (29%)</span>
+</div>
+</div>
+</section>
+<!-- 3. Amount Adjustment Selector -->
+<section class="bg-surface-card rounded-2xl p-5 border border-surface-border shadow-sm mb-4">
+<div class="flex items-center justify-between mb-1.5">
+<h3 class="text-[16px] font-semibold text-primary-dark">Adjust Amount</h3>
+<span class="text-[12px] text-primary-orange font-medium">Safe range</span>
+</div>
+<p class="text-[13px] text-muted-text mb-3.5">Select a contribution that matches your week's comfort level.</p>
+<!-- Horizontal Pill Options -->
+<div class="grid grid-cols-2 gap-2 mb-3" role="radiogroup">
+<button class="tier-pill py-2.5 px-3 rounded-xl border text-left flex flex-col transition-all bg-surface-subtle border-transparent text-primary-dark" onclick="selectAmount(15, this)" type="button">
+<span class="text-[14px] font-bold">€15</span>
+<span class="text-[11px] text-muted-text mt-0.5">leaves €325</span>
+</button>
+<button class="tier-pill active-pill py-2.5 px-3 rounded-xl border text-left flex flex-col transition-all bg-accent-soft border-primary-orange text-primary-orange shadow-sm" onclick="selectAmount(25, this)" type="button">
+<div class="flex items-center justify-between">
+<span class="text-[14px] font-bold">€25</span>
+<span class="text-[10px] uppercase font-bold tracking-wider bg-primary-orange text-white px-1.5 py-0.2 rounded">Suggested</span>
+</div>
+<span class="text-[11px] text-primary-orange/80 mt-0.5">leaves €315</span>
+</button>
+<button class="tier-pill py-2.5 px-3 rounded-xl border text-left flex flex-col transition-all bg-surface-subtle border-transparent text-primary-dark" onclick="selectAmount(40, this)" type="button">
+<span class="text-[14px] font-bold">€40</span>
+<span class="text-[11px] text-muted-text mt-0.5">leaves €300</span>
+</button>
+<button class="tier-pill py-2.5 px-3 rounded-xl border text-left flex flex-col justify-center transition-all bg-surface-subtle border-transparent text-primary-dark" id="custom-pill-btn" onclick="toggleCustom(this)" type="button">
+<span class="text-[14px] font-bold">Custom</span>
+<span class="text-[11px] text-muted-text mt-0.5" id="custom-pill-sub">Choose amount</span>
+</button>
+</div>
+<!-- Custom Input Stepper (conditionally visible) -->
+<div class="hidden mb-3 p-3 bg-surface-subtle rounded-xl flex items-center justify-between" id="custom-controls">
+<span class="text-xs text-muted-text font-medium">Custom Amount</span>
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 rounded-lg bg-surface-card border border-surface-border flex items-center justify-center font-bold text-primary-dark active:scale-95 transition-transform" onclick="stepAmount(-5)" type="button"><span class="material-symbols-outlined text-[16px]">remove</span></button>
+<div class="flex items-center">
+<span class="text-[15px] font-bold text-primary-dark">€</span>
+<input class="w-14 bg-transparent text-center font-bold text-primary-dark text-[16px] p-0 border-none focus:ring-0" id="custom-input" max="250" min="5" oninput="handleManualInput(this.value)" step="5" type="number" value="30"/>
+</div>
+<button class="w-8 h-8 rounded-lg bg-surface-card border border-surface-border flex items-center justify-center font-bold text-primary-dark active:scale-95 transition-transform" onclick="stepAmount(5)" type="button"><span class="material-symbols-outlined text-[16px]">add</span></button>
+</div>
+</div>
+<!-- Dynamic Explanation Note -->
+<div class="p-3 bg-surface-subtle rounded-xl border border-surface-border/60 flex items-start gap-2.5">
+<span class="material-symbols-outlined text-primary-orange text-[18px] shrink-0 mt-0.5">info</span>
+<p class="text-[13px] leading-snug text-primary-dark" id="dynamic-note">
+      At €25, your reserve reaches €145 with €315 remaining for spending.
+    </p>
+</div>
+</section>
+<!-- 4. Concise Autonomy Disclaimer -->
+<section class="bg-surface-card rounded-2xl p-4 border border-surface-border shadow-sm mb-4">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-muted-text text-[20px] shrink-0 mt-0.5">account_balance</span>
+<p class="text-[13px] leading-relaxed text-muted-text">
+<strong class="text-primary-dark font-medium">FinAgent does not move money.</strong> Accepting this creates a planned action for you to complete in your own bank.
+    </p>
+</div>
+</section>
+</div></main>
+<!-- 5. Bottom Action Bar -->
+<div class="fixed bottom-0 left-0 right-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md px-margin py-3 pb-safe border-t border-[#E8E1D9]">
+<div class="max-w-lg mx-auto flex flex-col gap-2">
+<button class="w-full h-12 bg-primary-orange active:scale-[0.98] text-white rounded-[14px] font-semibold text-[15px] flex items-center justify-center gap-2 shadow-sm hover:opacity-95 transition-all" id="confirm-btn" onclick="confirmAction()" type="button">
+<span class="material-symbols-outlined text-[18px]">add_task</span>
+<span id="cta-label">Add to my plan</span>
+</button>
+<button class="w-full py-1.5 text-center text-[13px] font-medium text-muted-text hover:text-primary-dark transition-colors" onclick="history.back()" type="button">
+      Keep as proposal for now
+    </button>
+</div>
+</div>
+<script>
+  let currentContribution = 25;
+  const initialAvailable = 340;
+  const currentReserveBase = 120;
+  const targetReserve = 500;
+
+  function recalculate(amount) {
+    currentContribution = amount;
+    const remaining = initialAvailable - amount;
+    const projectedReserve = currentReserveBase + amount;
+    const projectedPercent = Math.round((projectedReserve / targetReserve) * 100);
+    const addedPercent = Math.max(1, Math.round((amount / targetReserve) * 100));
+
+    // Update Reason copy
+    document.getElementById('reason-amount').innerText = `€${amount}`;
+    document.getElementById('reason-remaining').innerText = `€${remaining}`;
+
+    // Update Calculation Breakdown
+    document.getElementById('calc-contrib').innerText = `−€${amount}`;
+    document.getElementById('calc-remaining').innerText = `€${remaining}`;
+    document.getElementById('reserve-label').innerText = `€120 → €${projectedReserve}`;
+    document.getElementById('reserve-bar').style.width = `${addedPercent}%`;
+    document.getElementById('reserve-target-text').innerText = `New projected: €${projectedReserve} (${projectedPercent}%)`;
+
+    // Update Dynamic Note
+    document.getElementById('dynamic-note').innerText = `At €${amount}, your reserve reaches €${projectedReserve} with €${remaining} remaining for spending.`;
+  }
+
+  function resetPills() {
+    document.querySelectorAll('.tier-pill').forEach(pill => {
+      pill.className = 'tier-pill py-2.5 px-3 rounded-xl border text-left flex flex-col transition-all bg-surface-subtle border-transparent text-primary-dark';
+      const badge = pill.querySelector('span.bg-primary-orange');
+      if (badge) {
+        badge.className = 'text-[10px] uppercase font-bold tracking-wider bg-black/10 text-muted-text px-1.5 py-0.2 rounded';
+      }
+      const sub = pill.querySelector('span:last-child');
+      if (sub && !sub.id) {
+        sub.className = 'text-[11px] text-muted-text mt-0.5';
+      }
+    });
+  }
+
+  function selectAmount(amount, elem) {
+    document.getElementById('custom-controls').classList.add('hidden');
+    resetPills();
+    elem.className = 'tier-pill active-pill py-2.5 px-3 rounded-xl border text-left flex flex-col transition-all bg-accent-soft border-primary-orange text-primary-orange shadow-sm';
+    const badge = elem.querySelector('span.bg-black\\/10');
+    if (badge) {
+      badge.className = 'text-[10px] uppercase font-bold tracking-wider bg-primary-orange text-white px-1.5 py-0.2 rounded';
+    }
+    const sub = elem.querySelector('span:last-child');
+    if (sub && !sub.id) {
+      sub.className = 'text-[11px] text-primary-orange/80 mt-0.5';
+    }
+    recalculate(amount);
+  }
+
+  function toggleCustom(elem) {
+    const box = document.getElementById('custom-controls');
+    box.classList.remove('hidden');
+    resetPills();
+    elem.className = 'tier-pill active-pill py-2.5 px-3 rounded-xl border text-left flex flex-col justify-center transition-all bg-accent-soft border-primary-orange text-primary-orange shadow-sm';
+    const val = parseInt(document.getElementById('custom-input').value, 10) || 30;
+    document.getElementById('custom-pill-sub').innerText = `leaves €${initialAvailable - val}`;
+    recalculate(val);
+  }
+
+  function handleManualInput(val) {
+    const num = Math.max(5, parseInt(val, 10) || 5);
+    document.getElementById('custom-pill-sub').innerText = `leaves €${initialAvailable - num}`;
+    recalculate(num);
+  }
+
+  function stepAmount(delta) {
+    const input = document.getElementById('custom-input');
+    let val = (parseInt(input.value, 10) || 30) + delta;
+    val = Math.max(5, Math.min(250, val));
+    input.value = val;
+    handleManualInput(val);
+  }
+
+  function confirmAction() {
+    const btn = document.getElementById('confirm-btn');
+    btn.innerHTML = `
+      <span class="material-symbols-outlined text-[18px]">check_circle</span>
+      <span>Added €${currentContribution} to your plan</span>
+    `;
+    btn.classList.add('bg-[#29231F]');
+    btn.classList.remove('bg-primary-orange');
+    setTimeout(() => {
+      window.history.back();
+    }, 700);
+  }
+</script>
+</body></html>

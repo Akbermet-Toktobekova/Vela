@@ -1,0 +1,328 @@
+import os
+import secrets
+import time
+from datetime import date, timedelta
+from pathlib import Path
+from typing import Annotated, Literal
+from uuid import uuid4
+from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import Field
+from .domain import (Record, Snapshot, PositiveMoney, Money, Obligation, StateView, PreviewView, Transaction,
+                     fixture, view, accept, complete, eligibility, merge_transactions)
+from .store import Store, Conflict
+from .ai import Quotas, MODELS, ROUTES, enabled
+from .imports import ImportPreview, ImportError_, build_preview, MAX_BYTES
+from .chat import ChatRequest, ChatReply, chat
+
+
+class Command(Record):
+    revision: int = Field(ge=0, strict=True)
+
+
+class SnapshotCommand(Command):
+    snapshot: Snapshot
+
+
+class AmountCommand(Command):
+    amount: PositiveMoney
+
+
+class IncomeCommand(AmountCommand):
+    event_id: str = Field(min_length=8, max_length=80)
+    received_on: date
+    already_in_balance: bool
+
+
+class CostCommand(Command):
+    obligation: Obligation
+
+
+class BillDone(Command):
+    paid: bool
+
+
+class ConfirmCommand(Command):
+    field: Literal["debt_known", "obligations_complete"]
+
+
+class ApplyImport(Command):
+    cash: Money | None = None
+    obligation_ids: list[str] = Field(default_factory=list, max_length=20)
+
+
+class UploadBase64(Record):
+    filename: str = Field(min_length=1, max_length=180)
+    content_type: str | None = None
+    data_base64: str = Field(min_length=1, max_length=22_000_000)
+
+
+class Preview(Record):
+    amount: Money
+
+
+class TransactionsView(Record):
+    transactions: list[Transaction]
+    total: int
+
+
+class ModelUsage(Record):
+    model: str
+    requests_today: int
+    daily_limit: int
+    requests_last_minute: int
+    tokens_last_minute: int
+    cooling_down: bool
+
+
+class AIStatus(Record):
+    enabled: bool
+    routes: dict[str, str]
+    models: list[ModelUsage]
+
+
+def create_app(database_url: str | None = None, demo_token: str | None = None, today=None, local_dir: Path | None = None) -> FastAPI:
+    if os.getenv("APP_MODE", "demo") not in ("demo", "local"):
+        raise RuntimeError("Only the local single-user mode is implemented.")
+    local = local_dir or Path(__file__).resolve().parents[3] / ".local"
+    local.mkdir(parents=True, exist_ok=True)
+    token = demo_token or os.getenv("DEMO_API_TOKEN")
+    if not token or len(token) < 24:
+        raise RuntimeError("Set DEMO_API_TOKEN to a random token of at least 24 characters. Use scripts/setup-local.py.")
+    clock = today or date.today
+    store = Store(database_url or os.getenv("DATABASE_URL", f"sqlite:///{local / 'demo.db'}"))
+    quotas = Quotas(local / "quota.db")
+    app = FastAPI(title="Vela local API", version="0.2.0")
+    app.state.store = store
+    app.state.quotas = quotas
+    app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:8081", "http://localhost:19006"],
+                       allow_methods=["GET", "POST", "PUT", "DELETE"],
+                       allow_headers=["Authorization", "Content-Type", "Idempotency-Key"])
+
+    def owner(authorization: Annotated[str | None, Header()] = None) -> str:
+        if not authorization or not secrets.compare_digest(authorization, f"Bearer {token}"):
+            raise HTTPException(401, "Connect this device using your local token.")
+        return "local-demo"
+
+    def idempotency(idempotency_key: Annotated[str, Header(min_length=8, max_length=100)]) -> str:
+        return idempotency_key
+
+    @app.exception_handler(Conflict)
+    async def conflict_handler(request, exc):
+        return JSONResponse(status_code=409, content={"detail": str(exc)})
+
+    @app.exception_handler(ValueError)
+    async def value_handler(request, exc):
+        return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+    def change(who, key, body, kind, apply, extra=None):
+        return store.mutate(who, key, body.revision, {"kind": kind, **body.model_dump(mode="json"), **(extra or {})},
+                            apply, lambda state: view(state, clock()))
+
+    def rebuild(s, **changes) -> Snapshot:
+        return Snapshot.model_validate({**s.snapshot.model_dump(), **changes})
+
+    @app.get("/health")
+    def health():
+        return {"status": "ok", "mode": "local", "ai_enabled": enabled()}
+
+    @app.get("/v1/state", response_model=StateView)
+    def get_state(who=Depends(owner)):
+        return view(store.read(who), clock())
+
+    @app.post("/v1/demo", response_model=StateView)
+    def load_demo(body: Command, who=Depends(owner), key=Depends(idempotency)):
+        def apply(s):
+            if s.snapshot is not None:
+                raise ValueError("You already have data. Delete it in Settings before loading the example.")
+            s.snapshot = fixture(clock())
+        return change(who, key, body, "load_demo", apply)
+
+    @app.put("/v1/snapshot", response_model=StateView)
+    def snapshot(body: SnapshotCommand, who=Depends(owner), key=Depends(idempotency)):
+        def apply(s):
+            if body.snapshot.as_of != clock():
+                raise ValueError("Use today's balance.")
+            # Saved allocation is authoritative once plans exist; prevent accidental double counting.
+            if s.snapshot and any(a.status == "completed" for a in s.actions) and body.snapshot.saved != s.snapshot.saved:
+                raise ValueError("Keep the amount already set aside unchanged; it's tracked by your completed steps.")
+            s.snapshot = body.snapshot
+            s.deferred = False
+        return change(who, key, body, "snapshot", apply)
+
+    @app.post("/v1/confirm", response_model=StateView)
+    def confirm(body: ConfirmCommand, who=Depends(owner), key=Depends(idempotency)):
+        def apply(s):
+            if not s.snapshot:
+                raise ValueError("Add your balance first.")
+            setattr(s.snapshot, body.field, True)
+        return change(who, key, body, "confirm", apply)
+
+    @app.post("/v1/actions", response_model=StateView)
+    def accept_action(body: AmountCommand, who=Depends(owner), key=Depends(idempotency)):
+        return change(who, key, body, "accept", lambda s: accept(s, body.amount, str(uuid4()), clock()))
+
+    @app.post("/v1/actions/{action_id}/complete", response_model=StateView)
+    def complete_action(action_id: str, body: Command, who=Depends(owner), key=Depends(idempotency)):
+        return change(who, key, body, "complete", lambda s: complete(s, action_id, clock()), {"action_id": action_id})
+
+    @app.post("/v1/actions/{action_id}/cancel", response_model=StateView)
+    def cancel_action(action_id: str, body: Command, who=Depends(owner), key=Depends(idempotency)):
+        def apply(s):
+            action = next((a for a in s.actions if a.id == action_id), None)
+            if not action or action.status != "planned":
+                raise ValueError("Only a planned step can be cancelled.")
+            action.status = "cancelled"
+        return change(who, key, body, "cancel", apply, {"action_id": action_id})
+
+    @app.post("/v1/defer", response_model=StateView)
+    def defer(body: Command, who=Depends(owner), key=Depends(idempotency)):
+        return change(who, key, body, "defer", lambda s: setattr(s, "deferred", True))
+
+    @app.post("/v1/income", response_model=StateView)
+    def income(body: IncomeCommand, who=Depends(owner), key=Depends(idempotency)):
+        def apply(s):
+            if not s.snapshot:
+                raise ValueError("Add your balance first.")
+            if body.received_on > clock():
+                raise ValueError("Expected income cannot increase today's balance.")
+            if body.event_id in s.income_ids:
+                raise ValueError("This income is already recorded.")
+            if not body.already_in_balance:
+                if body.received_on <= s.snapshot.as_of:
+                    raise ValueError("Income on or before the balance date needs a refreshed balance, not an addition.")
+                s.snapshot.cash += body.amount
+            s.income_ids.append(body.event_id)
+            s.deferred = False
+        return change(who, key, body, "income", apply)
+
+    @app.post("/v1/obligations", response_model=StateView)
+    def obligation(body: CostCommand, who=Depends(owner), key=Depends(idempotency)):
+        def apply(s):
+            if not s.snapshot:
+                raise ValueError("Add your balance first.")
+            s.snapshot = rebuild(s, obligations=[*s.snapshot.model_dump()["obligations"], body.obligation.model_dump()])
+            s.deferred = False
+        return change(who, key, body, "obligation", apply)
+
+    @app.post("/v1/obligations/{obligation_id}/done", response_model=StateView)
+    def obligation_done(obligation_id: str, body: BillDone, who=Depends(owner), key=Depends(idempotency)):
+        def apply(s):
+            if not s.snapshot:
+                raise ValueError("Add your balance first.")
+            bill = next((o for o in s.snapshot.obligations if o.id == obligation_id), None)
+            if not bill:
+                raise ValueError("Bill not found.")
+            rest = [o.model_dump() for o in s.snapshot.obligations if o.id != obligation_id]
+            # Paying a bill lowers cash by the same amount; removing a mistaken bill does not.
+            cash = s.snapshot.cash - bill.amount if body.paid else s.snapshot.cash
+            if cash < 0:
+                raise ValueError("Your cash is lower than this bill. Update your balance instead.")
+            s.snapshot = rebuild(s, obligations=rest, cash=cash)
+        return change(who, key, body, "bill_paid" if body.paid else "bill_removed", apply, {"obligation_id": obligation_id})
+
+    @app.post("/v1/preview", response_model=PreviewView)
+    def preview(body: Preview, who=Depends(owner)):
+        s = store.read(who)
+        data = view(s, clock())
+        allowed = (s.snapshot is not None and eligibility(s, clock()) is None and 0 < body.amount <= data["available"]
+                   and body.amount <= max(0, s.snapshot.goal_target-s.snapshot.saved))
+        return {"revision": s.revision, "amount": body.amount, "eligible": allowed,
+                "remaining": data["available"]-body.amount, "goal_after": (s.snapshot.saved if s.snapshot else 0)+body.amount}
+
+    # ---------- statements ----------
+
+    @app.post("/v1/imports", response_model=ImportPreview)
+    async def upload(file: Annotated[UploadFile, File()], who=Depends(owner)):
+        data = await file.read(MAX_BYTES + 1)
+        preview_id = f"imp-{int(time.time()*1000):014d}-{uuid4().hex[:6]}"
+        try:
+            result = await build_preview(data, file.filename or "statement", file.content_type, quotas, clock(), preview_id)
+        except ImportError_ as exc:
+            raise HTTPException(422, str(exc)) from exc
+        store.save_preview(who, preview_id, result.model_dump_json())
+        return result
+
+    @app.post("/v1/imports/base64", response_model=ImportPreview)
+    async def upload_base64(body: UploadBase64, who=Depends(owner)):
+        import base64
+        raw = body.data_base64.split(",", 1)[-1]
+        try:
+            data = base64.b64decode(raw, validate=False)
+        except Exception as exc:
+            raise HTTPException(422, "Could not decode uploaded file.") from exc
+        preview_id = f"imp-{int(time.time()*1000):014d}-{uuid4().hex[:6]}"
+        try:
+            result = await build_preview(data, body.filename, body.content_type, quotas, clock(), preview_id)
+        except ImportError_ as exc:
+            raise HTTPException(422, str(exc)) from exc
+        store.save_preview(who, preview_id, result.model_dump_json())
+        return result
+
+    @app.get("/v1/imports/{preview_id}", response_model=ImportPreview)
+    def get_import(preview_id: str, who=Depends(owner)):
+        payload = store.get_preview(who, preview_id)
+        if not payload:
+            raise HTTPException(404, "This upload has expired. Upload the file again.")
+        return ImportPreview.model_validate_json(payload)
+
+    @app.post("/v1/imports/{preview_id}/apply", response_model=StateView)
+    def apply_import(preview_id: str, body: ApplyImport, who=Depends(owner), key=Depends(idempotency)):
+        payload = store.get_preview(who, preview_id)
+        if not payload:
+            raise HTTPException(404, "This upload has expired. Upload the file again.")
+        imported = ImportPreview.model_validate_json(payload)
+
+        def apply(s):
+            today = clock()
+            merge_transactions(s, imported.transactions)
+            chosen = [r for r in imported.recurring if r.id in body.obligation_ids]
+            if s.snapshot is None:
+                if body.cash is None:
+                    raise ValueError("Enter your current balance to finish setting up.")
+                s.snapshot = Snapshot(as_of=today, horizon=today+timedelta(days=30), cash=body.cash,
+                                      protected=min(10000, body.cash), goal_target=100000, provenance="import")
+            elif body.cash is not None:
+                kept = [o.model_dump() for o in s.snapshot.obligations if o.due >= today]
+                s.snapshot = rebuild(s, cash=body.cash, as_of=today, obligations=kept,
+                                     horizon=max(s.snapshot.horizon, today), provenance="import")
+            existing = {o.id for o in s.snapshot.obligations}
+            chosen = [r for r in chosen if r.id not in existing]
+            if chosen:
+                # Stretch the plan-through date to cover the selected bills (max 93 days).
+                limit = s.snapshot.as_of + timedelta(days=93)
+                horizon = min(limit, max(s.snapshot.horizon, *(r.next_due for r in chosen)))
+                new = [Obligation(id=r.id, label=r.label, amount=r.amount, due=r.next_due, kind=r.kind).model_dump()
+                       for r in chosen if s.snapshot.as_of <= r.next_due <= horizon]
+                s.snapshot = rebuild(s, horizon=horizon, obligations=[*s.snapshot.model_dump()["obligations"], *new])
+            s.deferred = False
+        return change(who, key, body, "import", apply, {"preview_id": preview_id})
+
+    @app.get("/v1/transactions", response_model=TransactionsView)
+    def transactions(limit: int = 300, who=Depends(owner)):
+        txns = store.read(who).transactions
+        return {"transactions": txns[:max(1, min(limit, 3000))], "total": len(txns)}
+
+    # ---------- AI ----------
+
+    @app.post("/v1/chat", response_model=ChatReply)
+    async def assistant_chat(body: ChatRequest, who=Depends(owner)):
+        return await chat(body, store.read(who), clock(), quotas)
+
+    @app.get("/v1/ai/status", response_model=AIStatus)
+    def ai_status(who=Depends(owner)):
+        return {"enabled": enabled(), "routes": ROUTES, "models": quotas.usage()}
+
+    # ---------- data rights ----------
+
+    @app.get("/v1/export")
+    def export(who=Depends(owner)):
+        return JSONResponse(store.read(who).model_dump(mode="json"), headers={"Content-Disposition": "attachment; filename=vela-export.json"})
+
+    @app.delete("/v1/data")
+    def erase(who=Depends(owner)):
+        store.erase(who)
+        return {"status": "deleted", "scope": "Balance, bills, plans, transactions and pending uploads. Anonymous AI usage counters are kept."}
+
+    return app

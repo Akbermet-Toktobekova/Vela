@@ -1,0 +1,107 @@
+"""Free-form finance chat grounded in the user's computed figures."""
+import json
+from collections import defaultdict
+from datetime import date, timedelta
+from typing import Literal
+from pydantic import Field
+from .ai import Quotas, generate, estimate_tokens, AIUnavailable, money
+from .domain import Record, State, capacity, recommendation, summary
+
+
+class ChatMessage(Record):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=4000)
+
+
+class ChatRequest(Record):
+    messages: list[ChatMessage] = Field(min_length=1, max_length=40)
+
+
+class ChatReply(Record):
+    reply: str
+    source: Literal["gemini", "local"]
+    model: str | None
+    revision: int
+
+
+SYSTEM = """You are Vela, a calm, practical personal-finance assistant inside a budgeting app.
+You help the user understand their cash, bills, spending and savings goal, and plan small next steps.
+
+Rules:
+- Use the DATA block. Figures under "computed" come from the app's verified calculations: quote them, never recompute them differently.
+- All money is EUR. Write amounts like €1,234.56.
+- "available" = cash − money already set aside for the goal − protected buffer − planned steps − unpaid bills (lowest point before the plan-through date). Expected income is NOT counted.
+- If data is missing (no transactions, unconfirmed bills), say what to add and where: "Upload statement" on Home, "Update balance", or Plan → Bills.
+- Vela never moves money. You can suggest the user add a step to their plan in the app.
+- No investment, tax or legal advice. For those, suggest a qualified professional. No guarantees about returns.
+- Be concise: under 170 words unless asked for detail. Short paragraphs; "- " bullets are fine; use **bold** sparingly. No tables, no headings.
+- Answer in the user's language."""
+
+
+def context(state: State, today: date) -> dict:
+    s = state.snapshot
+    data: dict = {"today": today.isoformat()}
+    if s is None:
+        data["note"] = "No balance entered yet."
+    else:
+        rec = recommendation(state, today)
+        data["profile"] = {"name": s.nickname, "goal_name": s.goal_name}
+        data["computed"] = {
+            "balance_date": s.as_of.isoformat(), "plan_through": s.horizon.isoformat(),
+            "cash_total": money(s.cash), "set_aside_for_goal": money(s.saved), "goal_target": money(s.goal_target),
+            "goal_remaining": money(max(0, s.goal_target - s.saved)), "protected_buffer": money(s.protected),
+            "unpaid_bills_total": money(sum(o.amount for o in s.obligations)), "available": money(capacity(state)),
+            "bills_confirmed_complete": s.obligations_complete, "debts_confirmed_included": s.debt_known,
+            "app_suggestion": {"kind": rec["kind"], "amount": money(rec["amount"]), "message": rec["message"]},
+        }
+        data["unpaid_bills"] = [{"label": o.label, "amount": money(o.amount), "due": o.due.isoformat(), "kind": o.kind}
+                                for o in sorted(s.obligations, key=lambda o: o.due)]
+        data["plan_steps"] = [{"amount": money(a.amount), "status": a.status, "created": a.created_on.isoformat()}
+                              for a in state.actions[-10:]]
+    txns = state.transactions
+    if txns:
+        sm = summary(state)
+        data["spending_last_30_days_of_data"] = {"from": sm["period_start"], "to": sm["period_end"],
+            "income": money(sm["income"]), "spending": money(sm["spending"]),
+            "by_category": {c["category"]: money(c["amount"]) for c in sm["top_categories"]}}
+        months: dict[str, dict] = defaultdict(lambda: {"in": 0, "out": 0})
+        merchants: dict[str, int] = defaultdict(int)
+        cutoff = max(t.date for t in txns) - timedelta(days=180)
+        for t in txns:
+            if t.date < cutoff or t.category == "transfers":
+                continue
+            key = t.date.strftime("%Y-%m")
+            months[key]["in" if t.amount > 0 else "out"] += abs(t.amount)
+            if t.amount < 0:
+                merchants[t.description[:40]] += -t.amount
+        data["monthly_totals"] = {k: {"in": money(v["in"]), "out": money(v["out"])} for k, v in sorted(months.items())}
+        data["top_merchants_6_months"] = {k: money(v) for k, v in sorted(merchants.items(), key=lambda kv: -kv[1])[:12]}
+        data["recent_transactions"] = [f"{t.date} | {t.description[:60]} | {money(t.amount)} | {t.category}" for t in txns[:60]]
+        data["transaction_count"] = len(txns)
+    return data
+
+
+def local_reply(state: State, today: date, reason: str) -> str:
+    s = state.snapshot
+    if s is None:
+        return f"{reason}\n\nAdd your balance first (Home → Update balance), then I can explain your numbers."
+    return (f"{reason}\n\nHere's what I can tell you from your numbers:\n"
+            f"- Cash: {money(s.cash)} (as of {s.as_of})\n- Unpaid bills: {money(sum(o.amount for o in s.obligations))}\n"
+            f"- Buffer: {money(s.protected)} · Set aside: {money(s.saved)}\n- **Free to plan until {s.horizon}: {money(capacity(state))}**")
+
+
+async def chat(request: ChatRequest, state: State, today: date, quotas: Quotas) -> dict:
+    if request.messages[-1].role != "user":
+        raise ValueError("The last message must be from you.")
+    data = json.dumps(context(state, today), ensure_ascii=False)
+    history = request.messages[-20:]
+    contents = [{"role": "user" if m.role == "user" else "model", "parts": [{"text": m.content}]} for m in history]
+    while contents and contents[0]["role"] != "user":
+        contents.pop(0)
+    try:
+        response, model = await generate(quotas, "chat", contents,
+            {"system_instruction": SYSTEM + "\n\nDATA:\n" + data, "temperature": 0.4, "max_output_tokens": 1200},
+            estimate_tokens(SYSTEM, data, *[m.content for m in history]) + 1200, timeout_ms=40_000)
+        return {"reply": response.text.strip(), "source": "gemini", "model": model, "revision": state.revision}
+    except AIUnavailable as exc:
+        return {"reply": local_reply(state, today, str(exc)), "source": "local", "model": None, "revision": state.revision}

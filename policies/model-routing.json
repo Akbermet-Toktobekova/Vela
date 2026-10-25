@@ -1,0 +1,18 @@
+{
+  "version": "flash-lite-only-v1",
+  "routine": "gemini-3.1-flash-lite",
+  "comparison": "gemini-3.5-flash-lite",
+  "pro_enabled": false,
+  "per_model_provider_limits": {"rpm": 15, "input_tpm": 250000, "rpd": 500},
+  "per_model_app_limits": {"rpm": 12, "reserved_tpm": 225000, "rpd": 450},
+  "observed_usage_not_live_counters": {
+    "gemini-3.1-flash-lite": {"rpm": 6, "tpm": 23630, "rpd": 23},
+    "gemini-3.5-flash-lite": {"rpm": 2, "tpm": 784, "rpd": 3}
+  },
+  "daily_reset_timezone": "America/Los_Angeles",
+  "provider_attempts_per_turn": 1,
+  "timeout_ms": 12000,
+  "max_output_tokens": 256,
+  "fallback": "deterministic-approved-facts",
+  "note": "Historical usage is not seeded into timeless runtime counters. App caps leave 50 daily requests of headroom per model; other consumers require shared accounting. Financial decisions never go to a model."
+}

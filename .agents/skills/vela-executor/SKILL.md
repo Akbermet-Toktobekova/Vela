@@ -1,0 +1,43 @@
+---
+name: vela-executor
+description: Execute exactly one Vela backlog task (T<NN>) as Gemini 4 Argon or Gemini Flash 3.8. Use when the user says "Выполни T<NN>" or asks to implement a backlog item. Covers scope control, verification, report writing and escalation.
+---
+
+# Vela executor — выполнение одной задачи
+
+## Шаг 0. Проверка роли
+- Найди задачу `T<NN>` в `docs/agents/BACKLOG.md`. Сверь поле `Model` со своей моделью.
+  - Задача для Argon, а ты Flash → **не выполняй**. Ответь: «Эта задача для Argon, переключи модель».
+  - Задача для Flash, а ты Argon → можно выполнять (Argon — резерв Flash).
+- Проверь `Depends on`: все зависимости должны быть `done`. Иначе остановись и сообщи пользователю.
+- Статус должен быть `todo`, `rework` или `escalated`. Если `rework`, сначала прочитай замечания в `docs/agents/reports/T<NN>.md` (раздел `Review`).
+
+## Шаг 1. Старт
+1. Поставь статус задачи `in_progress` в BACKLOG.
+2. Обнови `docs/agents/HANDOFF.md`: `Current task: T<NN> (in_progress, <модель>)`.
+3. Если репозиторий уже под git: `git status` должен быть чистым. Если нет, закоммить чужие изменения отдельно: `git add -A; git commit -m "wip: before T<NN>"`.
+4. Прочитай файлы из `Context` и `Scope`. Читай только нужное.
+
+## Шаг 2. Работа
+- Меняй только файлы из `Scope`. Новые файлы создавай только внутри указанных путей.
+- Сначала тест/фикстура из `Acceptance`, потом реализация (для логики).
+- Финансы: только целые центы, без `float`, без новых правил «от себя».
+- Для мелкого фикса используй `surgical-patch`, для новой фичи `lean-build`, для схемы/БД `migration`.
+- Нужно выйти за scope, добавить зависимость или решить продуктовый вопрос → статус `blocked`, вопрос в отчёте, стоп.
+
+## Шаг 3. Проверка
+Запусти **все** команды из `Verify` задачи и базовые проверки из `AGENTS.md` §6. Сохрани реальный вывод (хвост, итоговые строки).
+Если проверка красная, чини. Flash: не больше 2 попыток, потом `escalated`.
+
+## Шаг 4. Отчёт и сдача
+1. Создай/обнови `docs/agents/reports/T<NN>.md` по шаблону `docs/agents/reports/_TEMPLATE.md`.
+2. Поставь статус `review` (или `blocked` / `escalated`) в BACKLOG.
+3. Обнови `docs/agents/HANDOFF.md`: текущая задача, статус, следующий шаг: «Оркестратор: `Проверь T<NN>`».
+4. Коммит (если есть git): `git add -A; git commit -m "T<NN>: <кратко>"`.
+5. Ответ пользователю, 3–5 строк: статус, что сделано, итоги проверок, какую модель включить дальше.
+
+## Запрещено
+- Менять статус на `done`.
+- Править `PROGRESS.md` и `docs/release-readiness.md` (это делает оркестратор), если задача прямо этого не требует.
+- Выполнять больше одной задачи за сессию.
+- Писать в отчёт результаты команд, которые не запускались.

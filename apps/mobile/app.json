@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Vela",
+    "slug": "vela",
+    "scheme": "vela",
+    "version": "0.1.0",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      "expo-status-bar"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.vela.demo"
+    },
+    "android": {
+      "package": "app.vela.demo"
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
