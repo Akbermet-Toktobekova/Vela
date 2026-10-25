@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
 - **Current phase:** 1 — Финансовое ядро (Приоритет 1)
-- **Current task:** T12 (review, Gemini 4 Argon)
-- **Last reviewed:** T11 — ACCEPT (Gemini 4 Argon, 2026-10-25)
-- **Next action:** **Оркестратор** (Opus или Argon **в новом чате** по правилу `[OPUS-REVIEW]`) → `Проверь T12`. Затем Argon: `Выполни T13` / `Выполни T14`.
+- **Current task:** — (T12 принята)
+- **Last reviewed:** T12 — ACCEPT (Gemini 4 Argon, 2026-10-26)
+- **Next action:** **Gemini 4 Argon** → `Выполни T13` (экран долгов в мобильном приложении `apps/mobile/src/app/debts.tsx`) или `Выполни T14` (каталог 15 действий `policies/action-catalogue.v1.json` + `services/api/vela/catalogue.py`). Обе задачи зависят только от T12 и развязаны между собой.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`)
 
 ## Открытые вопросы пользователю
@@ -23,7 +23,7 @@
 
 ## Последние проверенные показатели (baseline 2026-10-25, из PROGRESS.md)
 
-- `python scripts/check.py` → 44/44
+- `python scripts/check.py` → 52/52
 - `npm run typecheck` → 0 ошибок
 - `npx expo-doctor` → 20/20
 
@@ -37,10 +37,11 @@
 | 2026-10-25 | Gemini 4 Argon | Review T10: ACCEPT (40/40 тестов) |
 | 2026-10-25 | Gemini 4 Argon | Review T17: ACCEPT (10 мини-уроков в `content/lessons/`) |
 | 2026-10-25 | Gemini 4 Argon | Review T11: ACCEPT (44/44 тестов, все 13 тестов фикстуры §9 зелёные) |
+| 2026-10-26 | Gemini 4 Argon | Review T12: ACCEPT (52/52 тестов, Debt Engine + 500 рандомизированных инвариантов + 0 drift) |
 
 ## Phase log
 
 | Фаза | Статус | Дата | Итог |
 |---|---|---|---|
 | 0 | done | 2026-10-25 | Git инициализирован (`baseline`), `docs/release-readiness.md` приведён к §18, `docs/skills-manifest.md` создан (26 папок). Тег `phase-0`. |
-| 1 | in progress | 2026-10-25 | T10, T17, T11 приняты; следующая задача: T12 (Argon) |
+| 1 | in progress | 2026-10-26 | T10, T17, T11, T12 приняты; следующие задачи: T13 и T14 (Argon) |
