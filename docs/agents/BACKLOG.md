@@ -61,7 +61,7 @@
 - **Verify:** `python -m pytest services/api/tests/test_acceptance_fixture.py -v`, `python scripts/check.py`.
 
 ### T11 — Довести домен до прохождения фикстуры T10
-- **Model:** Argon · **Status:** review · **Depends on:** T10 · `[OPUS-REVIEW]`
+- **Model:** Argon · **Status:** done · **Depends on:** T10 · `[OPUS-REVIEW]`
 - **Goal:** Ядро проходит фикстуру §9: доступность по минимальному прогнозному балансу на горизонте, а не по текущему.
 - **Scope:** `services/api/vela/domain.py`, `services/api/vela/store.py`, `services/api/tests/`
 - **Acceptance:** все тесты T10 зелёные; 500 рандомизированных инвариантов зелёные; публикация устаревшего снапшота отклоняется.
