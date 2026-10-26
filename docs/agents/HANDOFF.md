@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
 - **Current phase:** 1 — Финансовое ядро (Приоритет 1)
-- **Current task:** — (T15 принята)
+- **Current task:** T16 (review, Gemini 4 Argon), T18 (in_progress, Gemini 4 Argon)
 - **Last reviewed:** T15 — ACCEPT (Gemini 4 Argon, 2026-10-26)
-- **Next action:** **Gemini 4 Argon** → `Выполни T16` (машина состояний координации: cooldown 14 дней для `dismissed`, пересчёт при падении кэша > 20% или просрочке шага > 7 дней, защита от устаревших ревизий) и/или `Выполни T18` (Journey E: API уроков + экран обучения `learn.tsx` + прогресс). После T16 и T18 Фаза 1 будет полностью завершена (`Чекпоинт фазы 1`).
+- **Next action:** **Оркестратор (в новом чате по правилу `[OPUS-REVIEW]`)** → `Проверь T16`; **Gemini 4 Argon** завершает `T18`.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`)
 
 ## Открытые вопросы пользователю

@@ -19,6 +19,14 @@ receipts = Table("command_receipt", metadata, Column("owner", String, primary_ke
 # Parsed-but-not-applied statement imports. Kept outside State so previews never bump the revision.
 previews = Table("import_preview", metadata, Column("owner", String, primary_key=True),
                  Column("id", String, primary_key=True), Column("payload", Text, nullable=False))
+# Durable coordination runs and published recommendation cards (§10).
+coordination_runs = Table("coordination_run", metadata, Column("owner", String, primary_key=True),
+                          Column("run_id", String, primary_key=True), Column("financial_revision", Integer, nullable=False),
+                          Column("status", String, nullable=False), Column("payload", Text, nullable=False))
+published_recommendations = Table("published_recommendation", metadata, Column("owner", String, primary_key=True),
+                                  Column("publication_key", String, primary_key=True),
+                                  Column("financial_revision", Integer, nullable=False),
+                                  Column("payload", Text, nullable=False))
 
 
 class Store:
@@ -63,6 +71,109 @@ class Store:
             conn.execute(delete(receipts).where(receipts.c.owner == owner))
             conn.execute(delete(states).where(states.c.owner == owner))
             conn.execute(delete(previews).where(previews.c.owner == owner))
+            conn.execute(delete(coordination_runs).where(coordination_runs.c.owner == owner))
+            conn.execute(delete(published_recommendations).where(published_recommendations.c.owner == owner))
+
+    def save_run(self, owner: str, run_id: str, financial_revision: int, status: str, payload: str):
+        with self.lock, self.engine.begin() as conn:
+            existing = conn.execute(
+                select(coordination_runs.c.run_id).where(
+                    coordination_runs.c.owner == owner,
+                    coordination_runs.c.run_id == run_id,
+                )
+            ).first()
+            if existing:
+                conn.execute(
+                    update(coordination_runs)
+                    .where(coordination_runs.c.owner == owner, coordination_runs.c.run_id == run_id)
+                    .values(financial_revision=financial_revision, status=status, payload=payload)
+                )
+            else:
+                conn.execute(
+                    coordination_runs.insert().values(
+                        owner=owner,
+                        run_id=run_id,
+                        financial_revision=financial_revision,
+                        status=status,
+                        payload=payload,
+                    )
+                )
+
+    def get_run(self, owner: str, run_id: str) -> str | None:
+        with self.engine.connect() as conn:
+            row = conn.execute(
+                select(coordination_runs.c.payload).where(
+                    coordination_runs.c.owner == owner,
+                    coordination_runs.c.run_id == run_id,
+                )
+            ).first()
+            return row[0] if row else None
+
+    def get_publication(self, owner: str, publication_key: str) -> str | None:
+        with self.engine.connect() as conn:
+            row = conn.execute(
+                select(published_recommendations.c.payload).where(
+                    published_recommendations.c.owner == owner,
+                    published_recommendations.c.publication_key == publication_key,
+                )
+            ).first()
+            return row[0] if row else None
+
+    def get_latest_publication(self, owner: str) -> str | None:
+        with self.engine.connect() as conn:
+            row = conn.execute(
+                select(published_recommendations.c.payload)
+                .where(published_recommendations.c.owner == owner)
+                .order_by(published_recommendations.c.financial_revision.desc())
+            ).first()
+            return row[0] if row else None
+
+    def publish_atomic(
+        self,
+        owner: str,
+        run_id: str,
+        publication_key: str,
+        expected_revision: int,
+        run_payload_fn,
+        publication_payload: str,
+    ) -> dict:
+        """Atomically validates that the store's current financial revision still matches
+        `expected_revision`, deduplicates by `publication_key`, persists the published card,
+        and marks the coordination run as `published`. Raises `Conflict` if state revision
+        has changed (e.g. newer income or bill arrived during processing).
+        """
+        with self.lock, self.engine.begin() as conn:
+            existing_pub = conn.execute(
+                select(published_recommendations.c.payload).where(
+                    published_recommendations.c.owner == owner,
+                    published_recommendations.c.publication_key == publication_key,
+                )
+            ).first()
+            if existing_pub:
+                return json.loads(existing_pub[0])
+
+            row = conn.execute(select(states.c.revision).where(states.c.owner == owner)).first()
+            current_revision = row[0] if row else 0
+            if current_revision != expected_revision:
+                raise Conflict(
+                    f"Stale coordination run: expected revision {expected_revision}, current is {current_revision}."
+                )
+
+            conn.execute(
+                published_recommendations.insert().values(
+                    owner=owner,
+                    publication_key=publication_key,
+                    financial_revision=expected_revision,
+                    payload=publication_payload,
+                )
+            )
+            final_run_payload = run_payload_fn()
+            conn.execute(
+                update(coordination_runs)
+                .where(coordination_runs.c.owner == owner, coordination_runs.c.run_id == run_id)
+                .values(status="published", payload=final_run_payload)
+            )
+            return json.loads(publication_payload)
 
     def save_preview(self, owner: str, preview_id: str, payload: str, keep: int = 5):
         with self.lock, self.engine.begin() as conn:
