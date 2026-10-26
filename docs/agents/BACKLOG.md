@@ -198,7 +198,7 @@
 - **Verify:** `python evals/run.py --offline --validate-only`, `python evals/run.py --offline`.
 
 ### T24a — Автономный модуль инструментов чата и верификации чисел (`tools.py` + тесты)
-- **Model:** Argon · **Status:** review · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
+- **Model:** Argon · **Status:** done · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
 - **Scope:** `services/api/vela/tools.py` (новый), `services/api/tests/test_chat_tools.py` (новый)
 - **Steps:**
   1. Создать `services/api/vela/tools.py` с 4 чистыми детерминированными функциями-инструментами, работающими поверх `State` / `StateView` и `debt.py`:
