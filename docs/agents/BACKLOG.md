@@ -183,7 +183,7 @@
 - **Verify:** `python evals/run.py --offline`, `python evals/run.py --offline --validate-only`, `python scripts/check.py`.
 
 ### T22b — Исправить отказ в локальном chat fallback и разблокировать T22
-- **Model:** Astra GPT 6 (или Argon) · **Status:** rework (fallback работает; отсутствуют обязательные автоматические тесты) · **Depends on:** T21b
+- **Model:** GPT-6.1 Sol · **Status:** rework (fallback работает; отсутствуют обязательные автоматические тесты) · **Depends on:** T21b
 - **Goal:** Устранить подтверждённый блокер T22 без ослабления сценариев; разорвать цикл T22 → T23 → T24b → T22.
 - **Scope:** `services/api/vela/chat.py`, `services/api/tests/test_chat_tools.py`
 - **Steps:** Передать последнее сообщение пользователя в детерминированный fallback; при запросах инвестиционных, налоговых, юридических и криптовалютных рекомендаций возвращать явный спокойный отказ и направление к квалифицированному специалисту. Сохранить текущие ответы по бюджету, отсутствие мутаций и маскирование T21b. Добавить тесты реального chat-пути при отключённом Gemini и AIUnavailable.
@@ -191,7 +191,7 @@
 - **Verify:** `python -m unittest services/api/tests/test_chat_tools.py -v`, `python scripts/check.py`, `python evals/run.py --offline --validate-only`, `python evals/run.py --offline`.
 
 ### T23 — Написать 60 сценариев evals
-- **Model:** Flash · **Status:** todo · **Depends on:** T22
+- **Model:** GPT-6 Luna · **Status:** todo · **Depends on:** T22
 - **Scope:** `evals/scenarios/dev/*.json`, `evals/scenarios/heldout/*.json`
 - **Steps:** довести общее число сценариев до ≥ 60 файлов (или ≥ 60 объектов сценариев с уникальным `family`) по схеме из T22: `missing-data`, `inconsistent-data`, `urgent-shortfall`, `irregular-income`, `prompt-injection` (в т. ч. внутри текста выписки), `scope-refusal` (инвестиции, налоги, крипта), `calm-tone`, `debt-questions`, `subscriptions`. Разбивка: ~45 в `dev/` и ~15 в `heldout/`.
 - **Acceptance:** все сценарии проходят валидацию `evals/schema.json` и офлайн-прогон; ≥ 60 уникальных `family`.
@@ -212,7 +212,7 @@
 - **Verify:** `python -m unittest services/api/tests/test_chat_tools.py -v`, `python scripts/check.py`.
 
 ### T24b — Подключение tool-calling и верификации чисел в `chat.py` и `ai.py`
-- **Model:** Astra GPT 6 (или Argon) · **Status:** todo · **Depends on:** T24a, T23, T21b · `[OPUS-REVIEW]`
+- **Model:** GPT-6.1 Sol (security review: Astra / Argon) · **Status:** todo · **Depends on:** T24a, T23, T21b · `[OPUS-REVIEW]`
 - **Scope:** `services/api/vela/chat.py`, `services/api/vela/ai.py`, `services/api/tests/test_chat_tools.py`
 - **Steps:**
   1. В `chat.py` формировать контекст чата через вызов детерминированных инструментов из `tools.py` (`collect_all_tool_outputs(state)`) и проверять ответ модели через `verify_reply_numbers(reply, tool_outputs)` + проверку отказа на инвестиционные/налоговые советы.

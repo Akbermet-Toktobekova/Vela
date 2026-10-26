@@ -9,7 +9,7 @@
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
 - **Current task:** T24a accepted (attempt 6); T22 remains done. Remaining phase 2: T22b, T23, T24b.
 - **Last reviewed:** 2026-10-26, T24a attempt 6 ACCEPT; backend 187/187, tools 36/36, independent bypass probes 11/11 rejected.
-- **Next action:** Astra GPT 6 / Argon: `Выполни T22b` (first remaining eligible task). T23 is unblocked; T24b waits for done T23, with T24a/T21b already done.
+- **Next action:** GPT-6.1 Sol: `Выполни T22b` (пользователь просит экономить). T23 → GPT-6 Luna; T24b → GPT-6.1 Sol, независимое security-ревью Astra/Argon. T24b ждёт done T23.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -163,3 +163,18 @@ REWORK: prior suffix/fraction/apostrophe bypasses fixed; malformed repeated sepa
 ## T24a Attempt 6 review — 2026-10-26
 
 ACCEPT, commit reviewed 3ab98f6. Remaining malformed separator/operator finding closed. Backend 187/187; tools 36/36; independent 11 negative probes rejected and 4 exact-value controls passed with adjacent-cent rejection. Detailed evidence in reports/T24a.md. T24a done; T24b still todo pending T23. Next by backlog order T22b. No application source changes during review; release gates unchanged.
+
+## Выбор моделей с приоритетом экономии — 2026-10-26
+
+Прямая инструкция пользователя: учитывать доступные в Codex модели и экономить. На присланном скриншоте доступны GPT-6.1 Sol, GPT-6 Astra, GPT-6 Sol, GPT-6 Luna, GPT-5.6 Sol, GPT-5.6 Terra, GPT-5.6 Luna. Gemini/Claude остаются вариантами вне этого списка, если доступны пользователю; не считать их исчезнувшими.
+
+Рабочая рекомендация для проекта (не утверждение о списании квоты конкретного тарифа):
+- GPT-6 Luna: чётко заданные JSON-сценарии, документация, небольшие автономные изменения и тесты по готовым требованиям. Не принимать собственную работу и не выполнять роль оркестратора.
+- GPT-6.1 Sol: основной исполнитель для обычного кода, регрессий и интеграции; начать с medium, повышать сложность рассуждения при необходимости.
+- GPT-6 Astra / Argon: оркестрация по действующему протоколу, независимое ревью безопасности/финансов, сложные неясные ошибки и эскалации. Не тратить на рутинные правки.
+- GPT-6 Sol и GPT-5.6 Sol/Terra/Luna: резерв при недоступности основной модели или подтверждённо более выгодных условиях аккаунта; не выбирать старую версию только по возрасту.
+- После двух неуспешных попыток лёгкой модели передавать Sol/Astra с конкретными падающими тестами. Не повторять полное ревью неизменённого кода; обязательные Verify/DoD сохраняются. Одна задача на чат; самостоятельное переключение текущего чата не выполнялось.
+
+Ближайшие назначения: T22b → GPT-6.1 Sol; T23 → GPT-6 Luna; T24b → GPT-6.1 Sol с независимым ревью Astra/Argon. Назначения исполнителей уточняют старые поля Model по прямому запросу пользователя, требования приёмки не ослабляются.
+
+Источник общих характеристик: https://developers.openai.com/api/docs/models (проверено 2026-10-26): Sol — баланс качества/стоимости, Luna — экономичные узкие задачи, Astra — сложные задачи. API-цены не используются как доказательство расхода лимитов Codex на пользовательском тарифе.
