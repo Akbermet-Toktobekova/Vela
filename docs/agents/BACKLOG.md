@@ -168,7 +168,7 @@
 - **Verify:** `python -m unittest services/api/tests/test_pii.py -v`, `python scripts/check.py`.
 
 ### T22 — Каркас evals (harness + схема сценариев + 5 базовых сценариев)
-- **Model:** Argon · **Status:** rework · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
+- **Model:** Argon · **Status:** review · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
 - **Scope:** `evals/schema.json` (новый), `evals/run.py` (новый), `evals/graders/__init__.py` (новый), `evals/graders/checks.py` (новый), `evals/scenarios/dev/` (3 файла), `evals/scenarios/heldout/` (2 файла), `evals/README.md` (новый), `services/api/tests/test_evals_harness.py` (новый), `services/api/vela/chat.py` (детерминированный отказ в `local_reply`)
 - **Steps:**
   1. Создать JSON-схему описания сценария `evals/schema.json` со следующими обязательными полями каждого сценария (`.json`):

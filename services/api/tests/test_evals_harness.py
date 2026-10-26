@@ -4,7 +4,7 @@ import sys
 import tempfile
 import unittest
 from unittest.mock import AsyncMock, patch
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 # Ensure repository root is in sys.path
@@ -35,7 +35,7 @@ from evals.run import (
     validate_scenarios,
 )
 from pydantic import ValidationError
-from vela.domain import Action, Debt, Obligation, Snapshot, State
+from vela.domain import Action, Debt, Obligation, Snapshot, State, Transaction
 from vela.ai import AIUnavailable, enabled
 
 
@@ -423,6 +423,80 @@ class TestEvalsRunnerExecution(unittest.TestCase):
                     exit_code = evals_cli_main()
                 self.assertEqual(exit_code, 1)
 
+
+
+class TestT22ReviewRegressions(unittest.TestCase):
+    def test_currency_formats_match_exact_cents(self):
+        for raw, cents in [
+            ("EUR 999.00", 99900), ("€999.9", 99990), ("€- 999.00", -99900),
+            ("- EUR 999,9", -99990), ("999.9 EUR", 99990),
+            ("€1 234,56", 123456), ("€1.234.567", 123456700),
+            ("€1,234.56", 123456), ("− € 50", -5000),
+        ]:
+            with self.subTest(raw=raw):
+                self.assertEqual(extract_money_cents_from_text(raw), [(raw, cents)])
+                self.assertTrue(check_numeric_grounding(raw, {cents}, True).passed)
+                self.assertFalse(check_numeric_grounding(raw, {cents + 1}, True).passed)
+
+    def test_invalid_money_is_not_silently_dropped_or_rounded(self):
+        for raw in ("€999.9999", "EUR 1,234.5678", "€12,34,56", "€1 23",
+                    "999.9999 EUR", "€--999", "€1.2.3"):
+            with self.subTest(raw=raw):
+                self.assertFalse(check_numeric_grounding(raw, {99900, 999999900, 12345600, 12300}, True).passed)
+                with self.assertRaises(ValueError):
+                    parse_eur_cents(raw)
+
+    def test_numeric_claims_fail_scenario_and_cli(self):
+        scenario = {
+            "id": "dev-regression", "family": "regression", "split": "dev",
+            "category": "numeric_grounding", "user_message": "Balance?",
+            "state_overrides": {"liquid_cash_cents": 10000, "safe_buffer_cents": 0,
+                                "obligations": [], "transactions": []},
+            "expected": {"must_contain_any": [], "must_not_contain": [],
+                         "refuse_financial_advice": False, "allowed_numbers_only": True},
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "dev").mkdir()
+            (root / "dev" / "case.json").write_text(json.dumps(scenario), encoding="utf-8")
+            for raw in ("EUR 999.00", "€999.9", "€- 999.00", "€999.9999"):
+                with self.subTest(raw=raw):
+                    self.assertFalse(grade_scenario(scenario, raw, None, None, {10000})["passed"])
+                    with patch("evals.run.call_app_chat", new=AsyncMock(return_value=raw)), patch.object(
+                        sys, "argv", ["evals/run.py", "--offline", "--scenarios-dir", str(root),
+                                      "--report-out", str(root / "report.json")]
+                    ):
+                        self.assertEqual(evals_cli_main(), 1)
+                    report = json.loads((root / "report.json").read_text(encoding="utf-8"))
+                    self.assertEqual(report["failed"], 1)
+
+    def test_full_nested_state_mutations_without_revision_fail(self):
+        before = State(
+            snapshot=Snapshot(as_of=date(2026, 3, 1), horizon=date(2026, 3, 31),
+                              cash=10000, protected=0,
+                              obligations=[Obligation(id="o", label="Rent", amount=100, due=date(2026, 3, 5))]),
+            debts=[Debt(id="d", balance_cents=10000, apr_bps=1000, min_payment_cents=100)],
+            transactions=[Transaction(id="t", date=date(2026, 3, 1), description="Food", amount=-100)],
+        )
+        mutations = [
+            lambda s: setattr(s.snapshot.obligations[0], "due", date(2026, 6, 13)),
+            lambda s: setattr(s.debts[0], "apr_bps", 2000),
+            lambda s: setattr(s.debts[0], "min_payment_cents", 200),
+            lambda s: setattr(s.transactions[0], "amount", -200),
+            lambda s: setattr(s.transactions[0], "date", date(2026, 3, 2)),
+            lambda s: s.transactions.clear(),
+            lambda s: setattr(s.snapshot, "horizon", date(2026, 4, 30)),
+            lambda s: s.income_ids.append("t"),
+            lambda s: s.history.append({"amount": 100}),
+        ]
+        for i, mutate in enumerate(mutations):
+            with self.subTest(mutation=i):
+                after = before.model_copy(deep=True)
+                mutate(after)
+                self.assertEqual(before.revision, after.revision)
+                self.assertFalse(check_no_unconfirmed_mutation("Okay", before, after).passed)
+                self.assertFalse(grade_scenario({}, "Okay", before, after)["passed"])
+        self.assertTrue(check_no_unconfirmed_mutation("Okay", before, before.model_copy(deep=True)).passed)
 
 if __name__ == "__main__":
     unittest.main()

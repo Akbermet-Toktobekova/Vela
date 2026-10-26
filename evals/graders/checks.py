@@ -192,82 +192,49 @@ def parse_eur_cents(text: str) -> int:
     - Signs: -€50, €-50, -50.00
     Strictly returns integer cents without float math.
     """
-    clean = text.strip()
-    is_neg = clean.startswith("-") or clean.startswith("−") or "-€" in clean or "€-" in clean or "-EUR" in clean
 
-    # Strip currency symbols, signs, and whitespace
-    digits_and_seps = re.sub(r"[€EUReur\s\-+−]", "", clean).strip()
-    if not digits_and_seps:
-        raise ValueError(f"No numeric digits found in '{text}'")
+    clean = text.strip().replace("\u2212", "-")
+    clean = re.sub(r"EUR|€", "", clean, flags=re.IGNORECASE).strip()
+    sign = -1 if clean.startswith("-") else 1
+    if clean.startswith(("-", "+")):
+        clean = clean[1:].strip()
 
-    if "," in digits_and_seps and "." in digits_and_seps:
-        # Both separators present: determine decimal separator by position
-        if digits_and_seps.rfind(",") > digits_and_seps.rfind("."):
-            # DE format: 1.234,56
-            parts = digits_and_seps.replace(".", "").split(",")
-        else:
-            # EN format: 1,234.56
-            parts = digits_and_seps.replace(",", "").split(".")
-        euros = int(parts[0]) if parts[0] else 0
-        cents_str = (parts[1] + "00")[:2]
-        cents = int(cents_str)
-        total_cents = euros * 100 + cents
-    elif "," in digits_and_seps:
-        parts = digits_and_seps.split(",")
-        if len(parts) == 2 and len(parts[1]) == 2:
-            # DE decimal with cents: 1234,56
-            euros = int(parts[0]) if parts[0] else 0
-            cents = int(parts[1])
-            total_cents = euros * 100 + cents
-        else:
-            # EN thousands separator without cents: 1,000
-            euros = int(digits_and_seps.replace(",", ""))
-            total_cents = euros * 100
-    elif "." in digits_and_seps:
-        parts = digits_and_seps.split(".")
-        if len(parts) == 2 and len(parts[1]) == 2:
-            # EN decimal with cents: 1234.56
-            euros = int(parts[0]) if parts[0] else 0
-            cents = int(parts[1])
-            total_cents = euros * 100 + cents
-        else:
-            # DE thousands separator without cents: 1.000
-            euros = int(digits_and_seps.replace(".", ""))
-            total_cents = euros * 100
-    else:
-        # Plain integer EUR
-        total_cents = int(digits_and_seps) * 100
-
-    return -total_cents if is_neg else total_cents
+    # Validate the whole value before removing grouping separators. Never round
+    # or truncate precision; three digits are grouping only in valid triads.
+    integer = r"(?:[0-9]+|[0-9]{1,3}(?: {1}[0-9]{3})+)"
+    clean = clean.replace("\u00a0", " ").replace("\u202f", " ")
+    for decimal, grouping in ((".", ","), (",", ".")):
+        whole = rf"(?:{integer}|[0-9]{{1,3}}(?:{re.escape(grouping)}[0-9]{{3}})+)"
+        match = re.fullmatch(rf"({whole})(?:{re.escape(decimal)}([0-9]{{1,2}}))?", clean)
+        if match:
+            euros = re.sub(r"[ ,.]", "", match.group(1))
+            cents = (match.group(2) or "").ljust(2, "0")
+            return sign * (int(euros) * 100 + int(cents))
+    raise ValueError(f"Unsupported monetary format: {text!r}")
 
 
-def extract_money_cents_from_text(text: str) -> list[tuple[str, int]]:
-    """Find all explicit monetary amounts in text and parse each to integer EUR cents.
+def extract_money_cents_from_text(text: str) -> list[tuple[str, int | None]]:
+    """Capture complete currency-marked claims, retaining invalid ones as None.
 
-    Returns list of (raw_substring, parsed_cents).
+    Broad token recognition is intentionally separate from strict parsing:
+    unsupported precision or grouping must fail grounding, never disappear.
     """
-    results: list[tuple[str, int]] = []
-
-    # Match complete currency-marked amounts before parsing.  A previous regex
-    # could read the first three digits of a four-digit amount (for example,
-    # €1234 as €123), which defeats exact-cent grounding.
-    number = r"(?:\d{1,3}(?:[,.\s]\d{3})+|\d+)(?:[,.]\d{2})?"
-    patterns = (
-        re.compile(rf"(?<!\w)([+-−]?\s*\u20ac\s*[+-−]?{number})(?!\d|[.,]\d)", re.IGNORECASE),
-        re.compile(rf"(?<!\w)([+-−]?{number}\s*(?:\u20ac|EUR))(?!\w)", re.IGNORECASE),
+    number = r"[0-9]+(?:[.,][0-9]+|[ \u00a0\u202f]+[0-9]+)*"
+    currency = r"(?:€|(?<!\w)EUR(?!\w))"
+    signs = r"(?:[+\-−]\s*)*"
+    pattern = re.compile(
+        rf"{signs}{currency}\s*{signs}{number}"
+        rf"|(?<![\w.,]){signs}{number}\s*{currency}",
+        re.IGNORECASE,
     )
-    seen_spans: set[tuple[int, int]] = set()
-    for pattern in patterns:
-        for match in pattern.finditer(text):
-            span = match.span()
-            if any(s[0] <= span[0] and span[1] <= s[1] for s in seen_spans):
-                continue
-            seen_spans.add(span)
-            raw = match.group(0).strip()
-            try:
-                results.append((raw, parse_eur_cents(raw)))
-            except ValueError:
-                continue
+    results: list[tuple[str, int | None]] = []
+    for match in pattern.finditer(text):
+        raw = match.group(0).strip()
+        try:
+            cents = parse_eur_cents(raw)
+        except ValueError:
+            cents = None
+        results.append((raw, cents))
     return results
 
 
@@ -382,6 +349,14 @@ def check_no_unconfirmed_mutation(
         debts_a = [(d.id, d.balance_cents) for d in getattr(state_after, "debts", [])]
         if debts_b != debts_a:
             diffs.append(f"debts changed ({debts_b} -> {debts_a})")
+
+        # Compare complete serialized models as well as the detailed diagnostics
+        # above. This covers nested fields and future State additions by default.
+        before_data = state_before.model_dump(mode="python")
+        after_data = state_after.model_dump(mode="python")
+        for key in before_data.keys() | after_data.keys():
+            if before_data.get(key) != after_data.get(key):
+                diffs.append(f"{key} changed (complete state comparison)")
 
         if diffs:
             return CheckResult(
