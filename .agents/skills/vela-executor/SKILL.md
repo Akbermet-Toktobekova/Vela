@@ -1,14 +1,15 @@
 ---
 name: vela-executor
-description: Execute exactly one Vela backlog task (T<NN>) as Gemini 4 Argon or Gemini Flash 3.8. Use when the user says "Выполни T<NN>" or asks to implement a backlog item. Covers scope control, verification, report writing and escalation.
+description: Execute exactly one Vela backlog task (T<NN>) as Gemini Flash 3.8, Astra GPT 6, or Gemini 4 Argon. Use when the user says "Выполни T<NN>" or asks to implement a backlog item. Covers scope control, verification, report writing and escalation.
 ---
 
 # Vela executor — выполнение одной задачи
 
 ## Шаг 0. Проверка роли
 - Найди задачу `T<NN>` в `docs/agents/BACKLOG.md`. Сверь поле `Model` со своей моделью.
-  - Задача для Argon, а ты Flash → **не выполняй**. Ответь: «Эта задача для Argon, переключи модель».
-  - Задача для Flash, а ты Argon → можно выполнять (Argon — резерв Flash).
+  - Задача для Heavy-модели (`Astra GPT 6` / `Argon`), а ты `Flash` → **не выполняй**. Ответь: «Эта задача для Astra GPT 6 / Argon, переключи модель».
+  - Задача для `Flash`, а ты `Astra GPT 6` или `Argon` → можно выполнять (Heavy-модели — резерв Flash).
+  - Задачи `Astra GPT 6` и `Argon` взаимозаменяемы (Astra GPT 6 заменяет Argon при нехватке кредитов).
 - Проверь `Depends on`: все зависимости должны быть `done`. Иначе остановись и сообщи пользователю.
 - Статус должен быть `todo`, `rework` или `escalated`. Если `rework`, сначала прочитай замечания в `docs/agents/reports/T<NN>.md` (раздел `Review`).
 

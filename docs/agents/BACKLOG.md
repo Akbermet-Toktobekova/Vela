@@ -132,87 +132,146 @@
 
 ### T20 — Защита CSV от формульных инъекций
 - **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
-- **Scope:** `services/api/vela/csv_safe.py` (новый) + места генерации CSV (если есть), `services/api/tests/test_csv_safe.py`
-- **Steps:** функция `escape_cell(value: str) -> str`: если начинается с `=`, `+`, `-`, `@`, `\t`, `\r`, добавить префикс `'`. Если CSV-экспорта нет, создать только хелпер + тесты и указать в отчёте, где его подключить.
-- **Acceptance:** тесты на все 6 символов + обычные значения + отрицательные числа в числовых колонках (числа не портить, экранировать только текст).
-- **Verify:** `python -m pytest services/api/tests/test_csv_safe.py -v`, `python scripts/check.py`.
+- **Scope:** `services/api/vela/csv_safe.py` (новый) + места генерации CSV (если есть), `services/api/tests/test_csv_safe.py` (новый)
+- **Steps:**
+  1. Создать `services/api/vela/csv_safe.py` с функцией `escape_cell(value: object) -> str` (и `escape_row(row: Sequence[object]) -> list[str]`): если строковое значение начинается с `=`, `+`, `-`, `@`, `\t`, `\r`, но НЕ является чистым отрицательным/положительным числом (например `-42`, `-19.99`, `+100` в числовом виде или `int`/`float`), добавить префикс `'`. Если передана строка с формулой вида `=SUM(A1:A2)`, `+cmd|...`, `-2+3`, `@SUM(1)`, `\t=1`, `\r=1` — экранировать префиксом `'`.
+  2. Так как CSV-экспорта в `main.py` сейчас нет (только JSON `/v1/export`), не трогать `main.py`, а в отчёте указать, где подключить `csv_safe`.
+  3. Написать `services/api/tests/test_csv_safe.py` (`unittest.TestCase`).
+- **Acceptance:** тесты на все 6 опасных префиксов (`=`, `+`, `-`, `@`, `\t`, `\r`) + обычные строки + отрицательные числа (`-150`, `-12.50`) не портятся.
+- **Verify:** `python -m unittest services/api/tests/test_csv_safe.py -v`, `python scripts/check.py`.
 
-### T21 — Маскирование PII перед Gemini
-- **Model:** Argon · **Status:** todo · **Depends on:** CHECKPOINT-1 · `[OPUS-REVIEW]`
-- **Scope:** `services/api/vela/pii.py` (новый), `services/api/vela/ai.py`, `services/api/vela/imports.py`, `services/api/vela/chat.py`, `services/api/tests/test_pii.py`
-- **Steps:** маскировать IBAN (с проверкой контрольной суммы), номера карт (Luhn), номера счетов, email, телефоны, ФИО владельца из заголовка выписки, адреса (эвристика). Маскирование до **любого** вызова Gemini. Флаг `PII_MASKING=true` по умолчанию. Для изображений: отправка только при явном флаге, иначе только локальный парсер + предупреждение в отчёте.
-- **Acceptance:** тест-корпус ≥ 20 строк (DE/EN/RU) — ни одного утёкшего IBAN/карты; суммы и даты не повреждены; категоризация по-прежнему работает.
-- **Verify:** `python -m pytest services/api/tests/test_pii.py -v`, `python scripts/check.py`.
+### T21a — Автономный модуль маскирования PII (`pii.py` + тесты)
+- **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
+- **Scope:** `services/api/vela/pii.py` (новый), `services/api/tests/test_pii.py` (новый)
+- **Steps:**
+  1. Создать автономный модуль `services/api/vela/pii.py` (без изменения `ai.py`/`imports.py`/`chat.py`):
+     - `is_pii_masking_enabled() -> bool`: читает `os.getenv("PII_MASKING", "true")`, по умолчанию `True`.
+     - `mask_pii(text: str) -> str`: заменяет в тексте:
+       - **IBAN** (2 буквы страны + 2 контрольные цифры + 11..30 алфавитно-цифровых символов, с пробелами или без, с проверкой контрольной суммы `mod 97 == 1`) → `[REDACTED_IBAN]`.
+       - **Номера банковских карт** (13–19 цифр подряд или группами по 4 через пробел/дефис, проходящие проверку алгоритмом Луна / Luhn, и не являющиеся датами/суммами) → `[REDACTED_CARD]`.
+       - **Email-адреса** → `[REDACTED_EMAIL]`.
+       - **Телефоны** (международные форматы `+49...`, `+7...`, `+998...`, `0049...` от 9 до 15 цифр, не затрагивая даты `2026-03-15` и суммы `1200.50` / `-45,00 EUR`) → `[REDACTED_PHONE]`.
+       - **Заголовки ФИО и адреса в шапке выписки** (строки с префиксами `Account holder:`, `Kontoinhaber:`, `Владелец счёта:`, `Address:`, `Adresse:`, `Адрес:`) → префикс + `[REDACTED_NAME]` / `[REDACTED_ADDRESS]`.
+     - `mask_pii_lines(lines: list[str]) -> list[str]`: применяет `mask_pii` к списку строк.
+  2. Создать `services/api/tests/test_pii.py` (`unittest.TestCase`) с корпусом ≥ 20 реалистичных строк выписок (DE/EN/RU): проверить, что ни один валидный IBAN, карта Luhn, email, телефон или `Kontoinhaber:` не остаётся в открытом виде, а даты (`2026-03-01`, `15.03.2026`), суммы (`-125,40 EUR`, `2400.00`) и названия мерчантов (`REWE Markt`, `Spotify`, `Netflix`) остаются неизменными.
+- **Acceptance:** тест-корпус ≥ 20 строк (DE/EN/RU) — 0 утёкших IBAN/карт/email/телефонов; суммы, даты и мерчанты не повреждены.
+- **Verify:** `python -m unittest services/api/tests/test_pii.py -v`, `python scripts/check.py`.
 
-### T22 — Каркас evals (harness + схема сценариев)
-- **Model:** Argon · **Status:** todo · **Depends on:** CHECKPOINT-1
-- **Scope:** `evals/` (новый): `evals/schema.json`, `evals/run.py`, `evals/graders/`, `evals/scenarios/dev/`, `evals/scenarios/heldout/`, `evals/README.md`
-- **Acceptance:** запуск в офлайн-режиме (без Gemini, по `local_reply`) и в live-режиме за флагом; кодовые грейдеры: числа совпадают с инструментами, отказ на инвест/налоговые советы, нет записи без подтверждения; отчёт в `evals/reports/`. 5 примерных сценариев.
-- **Verify:** `python evals/run.py --offline`.
+### T21b — Интеграция маскирования PII перед вызовами Gemini
+- **Model:** Astra GPT 6 (или Argon) · **Status:** todo · **Depends on:** T21a · `[OPUS-REVIEW]`
+- **Scope:** `services/api/vela/ai.py`, `services/api/vela/imports.py`, `services/api/vela/chat.py`, `services/api/tests/test_pii.py`
+- **Steps:**
+  1. Подключить `mask_pii` из `services/api/vela/pii.py` перед **любым** текстовым вызовом Gemini в `ai.py`, `imports.py`, `chat.py` (если `is_pii_masking_enabled()` = `True`).
+  2. Для мультимодальной отправки сырых изображений/PDF в `imports.py`: отправлять бинарник в Gemini только если явно задан `ALLOW_RAW_DOCUMENT_AI=true` (или когда маскирование отключено), иначе использовать локальный текстовый парсер (`pypdf` + `mask_pii` перед отправкой текста в ИИ) и записывать предупреждение.
+  3. Дополнить `services/api/tests/test_pii.py` тестом, проверяющим через mock Gemini, что в промпт `ai.generate` уходит уже замаскированный текст без реального IBAN/карты, и категоризация продолжает работать.
+- **Acceptance:** ни один вызов Gemini не получает необработанный IBAN/карту при `PII_MASKING=true`; категоризация и импорт работают; все тесты зелёные.
+- **Verify:** `python -m unittest services/api/tests/test_pii.py -v`, `python scripts/check.py`.
+
+### T22 — Каркас evals (harness + схема сценариев + 5 базовых сценариев)
+- **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
+- **Scope:** `evals/schema.json` (новый), `evals/run.py` (новый), `evals/graders/__init__.py` (новый), `evals/graders/checks.py` (новый), `evals/scenarios/dev/` (3 файла), `evals/scenarios/heldout/` (2 файла), `evals/README.md` (новый), `services/api/tests/test_evals_harness.py` (новый)
+- **Steps:**
+  1. Создать JSON-схему описания сценария `evals/schema.json` со следующими обязательными полями каждого сценария (`.json`):
+     - `id` (str), `family` (str), `split` (`"dev"` | `"heldout"`), `category` (`"numeric_grounding"` | `"scope_refusal"` | `"prompt_injection"` | `"missing_data"` | `"calm_tone"` | `"no_unconfirmed_mutation"`), `user_message` (str), `state_overrides` (dict: `liquid_cash_cents`, `safe_buffer_cents`, `obligations`, `transactions`), `expected` (dict: `must_contain_any`: list[str], `must_not_contain`: list[str], `refuse_financial_advice`: bool, `allowed_numbers_only`: bool).
+  2. Создать кодовые грейдеры в `evals/graders/checks.py`:
+     - проверка отказа на инвестиционные/налоговые/крипто советы (например, при вопросе «купить акции/биткоин/как списать налоги» ассистент не даёт рекомендаций купить актив);
+     - проверка отсутствия выдуманных чисел или запрещённых фраз (`must_not_contain`);
+     - проверка спокойного нестыдящего тона и отсутствия несанкционированной мутации состояния.
+  3. Создать `evals/run.py` с CLI-аргументами `--offline` (по умолчанию тестирует через детерминированный `local_reply` / `chat_reply` с отключённым внешним API) и `--validate-only` (проверяет все JSON в `evals/scenarios/dev/*.json` и `evals/scenarios/heldout/*.json` на соответствие `evals/schema.json` и уникальность `id`/`family`). Скрипт должен сохранять JSON-сводку в `evals/reports/latest.json` и возвращать код `0` при успехе.
+  4. Создать 5 эталонных сценариев (3 в `evals/scenarios/dev/`, 2 в `evals/scenarios/heldout/`) и короткий тест `services/api/tests/test_evals_harness.py`.
+- **Acceptance:** `python evals/run.py --offline` и `python evals/run.py --offline --validate-only` завершаются с кодом 0 (5/5 PASS); отчёт создаётся в `evals/reports/latest.json`.
+- **Verify:** `python evals/run.py --offline`, `python evals/run.py --offline --validate-only`, `python scripts/check.py`.
 
 ### T23 — Написать 60 сценариев evals
 - **Model:** Flash · **Status:** todo · **Depends on:** T22
 - **Scope:** `evals/scenarios/dev/*.json`, `evals/scenarios/heldout/*.json`
-- **Steps:** ≥ 60 семейств по схеме: missing-data, inconsistent-data, urgent-shortfall, irregular-income, prompt-injection (в т. ч. внутри текста выписки), scope-refusal (инвестиции, налоги, крипта), calm-tone, debt questions, subscriptions. Раздел ~45 dev / ~15 heldout по семействам.
-- **Acceptance:** все файлы проходят валидацию `evals/schema.json`; ≥ 60 уникальных `family`.
-- **Verify:** `python evals/run.py --offline --validate-only`.
+- **Steps:** довести общее число сценариев до ≥ 60 файлов (или ≥ 60 объектов сценариев с уникальным `family`) по схеме из T22: `missing-data`, `inconsistent-data`, `urgent-shortfall`, `irregular-income`, `prompt-injection` (в т. ч. внутри текста выписки), `scope-refusal` (инвестиции, налоги, крипта), `calm-tone`, `debt-questions`, `subscriptions`. Разбивка: ~45 в `dev/` и ~15 в `heldout/`.
+- **Acceptance:** все сценарии проходят валидацию `evals/schema.json` и офлайн-прогон; ≥ 60 уникальных `family`.
+- **Verify:** `python evals/run.py --offline --validate-only`, `python evals/run.py --offline`.
 
-### T24 — Tool-calling чат + верификация чисел
-- **Model:** Argon · **Status:** todo · **Depends on:** T23, T21 · `[OPUS-REVIEW]`
-- **Scope:** `services/api/vela/chat.py`, `services/api/vela/tools.py` (новый), `services/api/vela/ai.py`, `services/api/tests/test_chat_tools.py`
-- **Steps:** инструменты `get_financial_snapshot`, `calculate_cash_flow`, `simulate_debt_payment`, `get_spending_by_category`; через function calling Gemini; пост-проверка: каждое число в ответе должно встречаться в выводе инструментов, иначе ответ отклоняется → повтор → шаблонный фоллбэк. Дедлайн 20 с.
-- **Acceptance:** офлайн-evals проходят; тест с «галлюцинированным» числом отклоняется; квоты и фоллбэк работают как раньше.
-- **Verify:** `python scripts/check.py`, `python evals/run.py --offline`.
+### T24a — Автономный модуль инструментов чата и верификации чисел (`tools.py` + тесты)
+- **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
+- **Scope:** `services/api/vela/tools.py` (новый), `services/api/tests/test_chat_tools.py` (новый)
+- **Steps:**
+  1. Создать `services/api/vela/tools.py` с 4 чистыми детерминированными функциями-инструментами, работающими поверх `State` / `StateView` и `debt.py`:
+     - `get_financial_snapshot(state: State) -> dict` (баланс, буфер, доступно, обязательства на 30 дней, запланированный шаг в центах и отформатированных EUR);
+     - `calculate_cash_flow(state: State, days: int = 30) -> dict` (доходы, расходы, чистый поток и минимальный прогнозный баланс в центах и EUR);
+     - `simulate_debt_payment(state: State, extra_payment_cents: int = 0) -> dict` (сводка по долгам, Avalanche vs Snowball из `debt.py`);
+     - `get_spending_by_category(state: State, limit: int = 5) -> dict` (топ категорий расходов и подписок за 30 дней).
+  2. В `services/api/vela/tools.py` реализовать функцию пост-проверки чисел `verify_reply_numbers(reply_text: str, tool_outputs: dict) -> tuple[bool, list[str]]`: извлекает денежные суммы и проценты из текста ответа ИИ и проверяет, что каждое числовое значение присутствует среди чисел `tool_outputs` (в евро или центах, либо входит в белый список тривиальных констант вроде `30` дней / `14` дней / `1` шаг). Если в ответе есть «галлюцинированная» сумма, которой нет в `tool_outputs`, возвращает `(False, [список неподтверждённых чисел])`.
+  3. Написать unit-тесты в `services/api/tests/test_chat_tools.py` (`unittest.TestCase`): проверка всех 4 инструментов на тестовом `State` и проверка, что `verify_reply_numbers` пропускает ответ с точными суммами из инструментов и отклоняет ответ с выдуманной суммой (например, `€999.00`).
+- **Acceptance:** все 4 инструмента возвращают точные данные из домена; `verify_reply_numbers` надёжно ловит галлюцинированные суммы.
+- **Verify:** `python -m unittest services/api/tests/test_chat_tools.py -v`, `python scripts/check.py`.
 
-### CHECKPOINT-2 — Оркестратор Opus: `Чекпоинт фазы 2`
+### T24b — Подключение tool-calling и верификации чисел в `chat.py` и `ai.py`
+- **Model:** Astra GPT 6 (или Argon) · **Status:** todo · **Depends on:** T24a, T23, T21b · `[OPUS-REVIEW]`
+- **Scope:** `services/api/vela/chat.py`, `services/api/vela/ai.py`, `services/api/tests/test_chat_tools.py`
+- **Steps:**
+  1. В `chat.py` формировать контекст чата через вызов детерминированных инструментов из `tools.py` (`collect_all_tool_outputs(state)`) и проверять ответ модели через `verify_reply_numbers(reply, tool_outputs)` + проверку отказа на инвестиционные/налоговые советы.
+  2. Если ответ Gemini содержит неподтверждённое число («галлюцинацию») или нарушает границы советов — отклонять ответ, делать максимум 1 повтор с жёстким напоминанием использовать только числа из инструментов, а при повторной неудаче или таймауте (> 20 с) возвращать детерминированный `local_reply`.
+  3. Дополнить `services/api/tests/test_chat_tools.py` интеграционным тестом `chat_reply` с замоканным ответом Gemini, содержащим галлюцинированное число (проверить, что он отклоняется и срабатывает фоллбэк).
+- **Acceptance:** офлайн-evals (60 сценариев) проходят; тест с галлюцинированным числом в `chat_reply` отклоняется и уходит в безопасный фоллбэк; квоты работают как раньше.
+- **Verify:** `python -m unittest services/api/tests/test_chat_tools.py -v`, `python scripts/check.py`, `python evals/run.py --offline`.
+
+### CHECKPOINT-2 — Оркестратор: `Чекпоинт фазы 2`
 
 ---
 
 ## Фаза 3 — Продакшн-инфраструктура (Приоритет 3)
 
-### T30 — Решение по БД и авторизации
-- **Model:** Orchestrator + пользователь · **Status:** blocked · **Depends on:** CHECKPOINT-2
-- **Decision:** (A) локальный PostgreSQL в Docker + Supabase позже (рекомендуется: бесплатно, обратимо); (B) Supabase cloud dev-проект сразу (нужны аккаунт и ключи); (C) пока остаться на SQLite и сделать только Alembic.
-- **Output:** ADR `docs/adr/0001-database-and-auth.md`.
+### T30 — Решение по БД и авторизации (ADR)
+- **Model:** Flash (после ответа пользователя) · **Status:** blocked · **Depends on:** CHECKPOINT-2
+- **Decision:** (A) локальный PostgreSQL в Docker + Supabase позже; (B) Supabase cloud dev-проект сразу (нужны аккаунт и ключи); (C) пока остаться на SQLite + сделать Alembic-миграции и JWT-изоляцию `user_id` на уровне таблиц.
+- **Scope:** `docs/adr/0001-database-and-auth.md` (новый)
+- **Steps:** зафиксировать выбранный пользователем вариант в архитектурном решении `docs/adr/0001-database-and-auth.md` (Context, Decision, Consequences, Migration Path).
+- **Acceptance:** файл `docs/adr/0001-database-and-auth.md` создан и отражает выбранный вариант.
 
 ### T31 — Alembic-миграции
-- **Model:** Argon · **Status:** todo · **Depends on:** T30
-- **Scope:** `services/api/alembic/`, `services/api/alembic.ini`, `services/api/vela/store.py`, `services/api/requirements.txt` (alembic)
-- **Acceptance:** `upgrade head` → `downgrade base` → `upgrade head` на чистой БД; `metadata.create_all` убран из продакшн-пути; тесты зелёные.
-- **Verify:** команды alembic из отчёта, `python scripts/check.py`.
+- **Model:** Flash · **Status:** todo · **Depends on:** T30
+- **Scope:** `services/api/alembic/`, `services/api/alembic.ini`, `services/api/vela/store.py`, `services/api/tests/test_migrations.py` (новый)
+- **Steps:** настроить `alembic.ini` и `services/api/alembic/env.py` + начальную миграцию `0001_initial_schema.py` для всех таблиц `store.py` (`upgrade` создаёт таблицы, `downgrade` удаляет). Добавить тест `test_migrations.py`, проверяющий программный вызов `upgrade` → `downgrade` → `upgrade` на временной SQLite БД.
+- **Acceptance:** `upgrade head` → `downgrade base` → `upgrade head` на чистой БД проходит в тесте; все тесты `check.py` зелёные.
+- **Verify:** `python -m unittest services/api/tests/test_migrations.py -v`, `python scripts/check.py`.
 
-### T32 — Многопользовательская авторизация JWT + изоляция (RLS)
-- **Model:** Argon · **Status:** todo · **Depends on:** T31 · `[OPUS-REVIEW]`
-- **Scope:** `services/api/vela/auth.py` (новый), `services/api/vela/main.py`, `services/api/vela/store.py`, миграции, `services/api/tests/test_isolation.py`, `apps/mobile/src/lib/api.ts`
-- **Acceptance:** каждая таблица с `user_id`; RLS-политики (если Postgres); тесты: пользователь A не читает/не меняет данные B, подмена `user_id` в теле игнорируется, истёкший токен → 401; `DEMO_API_TOKEN` работает только при `APP_ENV=local`.
-- **Verify:** `python -m pytest services/api/tests/test_isolation.py -v`, `python scripts/check.py`.
+### T32 — Многопользовательская авторизация JWT + изоляция по `user_id`
+- **Model:** Astra GPT 6 (или Argon) · **Status:** todo · **Depends on:** T31 · `[OPUS-REVIEW]`
+- **Scope:** `services/api/vela/auth.py` (новый), `services/api/vela/main.py`, `services/api/vela/store.py`, `services/api/alembic/`, `services/api/tests/test_isolation.py` (новый), `apps/mobile/src/lib/api.ts`
+- **Acceptance:** изоляция состояния по `user_id` (из проверенного JWT-токена или `DEMO_API_TOKEN` при `APP_ENV=local`); тесты в `test_isolation.py`: пользователь A не читает и не меняет данные пользователя B, подмена `user_id` в теле запроса игнорируется, истёкший/невалидный токен → `401`; `DEMO_API_TOKEN` работает только при `APP_ENV=local`.
+- **Verify:** `python -m unittest services/api/tests/test_isolation.py -v`, `python scripts/check.py`.
 
 ### T33 — Durable worker + outbox для импорта
-- **Model:** Argon · **Status:** todo · **Depends on:** T31
-- **Scope:** `services/api/vela/worker.py` (новый), `services/api/vela/jobs.py` (новый), `services/api/vela/imports.py`, `services/api/vela/main.py`, `scripts/run-worker.py`, тесты
-- **Acceptance:** загрузка → `202` + `job_id` < 2 с; статус `GET /v1/jobs/{id}`; ретраи с backoff, dead-letter, возврат зависших задач (lease timeout); удаление данных во время импорта корректно; мобильный клиент опрашивает прогресс.
-- **Verify:** `python scripts/check.py` + тест «крэш воркера посреди задачи».
+- **Model:** Astra GPT 6 (или Argon) · **Status:** todo · **Depends on:** T31
+- **Scope:** `services/api/vela/worker.py` (новый), `services/api/vela/jobs.py` (новый), `services/api/vela/imports.py`, `services/api/vela/main.py`, `scripts/run-worker.py` (новый), `services/api/tests/test_worker.py` (новый)
+- **Acceptance:** постановка импорта в очередь `POST /v1/imports/jobs` → `202` + `job_id`; статус `GET /v1/jobs/{id}`; ретраи с backoff, dead-letter, возврат зависших задач по `lease_until` (lease timeout); удаление данных (`DELETE /v1/data`) очищает задачи пользователя.
+- **Verify:** `python -m unittest services/api/tests/test_worker.py -v`, `python scripts/check.py`.
 
-### T34 — Приватное файловое хранилище
-- **Model:** Argon · **Status:** todo · **Depends on:** T33
-- **Scope:** `services/api/vela/storage.py` (новый), `imports.py`, `main.py`, тесты
-- **Acceptance:** файлы вне webroot в папке пользователя; SHA-256 при записи и проверка при чтении; `DELETE /v1/data` удаляет файлы (тест проверяет, что на диске пусто).
-- **Verify:** `python scripts/check.py`.
+### T34 — Приватное файловое хранилище (`storage.py`)
+- **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-2 · `[PARALLEL-OK]`
+- **Scope:** `services/api/vela/storage.py` (новый), `services/api/vela/main.py`, `services/api/tests/test_storage.py` (новый)
+- **Steps:**
+  1. Создать `services/api/vela/storage.py` (`PrivateStorage` с корневой папкой `.local/storage/` вне webroot):
+     - `save_file(user_id: str, filename: str, data: bytes) -> StoredFile`: сохраняет файл в изолированную папку пользователя `.local/storage/<safe_user_id>/<file_id>`, считает и сохраняет контрольную сумму `sha256` в `.meta.json`. Запрещает path traversal (`..`, `/`, `\`).
+     - `read_file(user_id: str, file_id: str) -> bytes`: читает файл и проверяет `sha256` (при несовпадении выбрасывает `ValueError("Integrity check failed")`).
+     - `erase_user_files(user_id: str) -> None` и `erase_all() -> None`: полностью удаляет файлы с диска.
+  2. Подключить `erase_all()` в `DELETE /v1/data` в `services/api/vela/main.py`.
+  3. Написать `services/api/tests/test_storage.py`: сохранение, проверка `sha256`, ошибка при повреждении байтов на диске, защита от path traversal, полное удаление файлов при `DELETE /v1/data`.
+- **Acceptance:** файлы хранятся в папке пользователя с проверкой `SHA-256` при чтении; `DELETE /v1/data` удаляет все файлы с диска (проверено тестом).
+- **Verify:** `python -m unittest services/api/tests/test_storage.py -v`, `python scripts/check.py`.
 
 ### T35 — Структурные логи + X-Correlation-ID
 - **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-2 · `[PARALLEL-OK]`
-- **Scope:** `services/api/vela/logging_setup.py` (новый), `services/api/vela/main.py` (только подключение middleware), `services/api/tests/test_correlation.py`
-- **Acceptance:** JSON-логи; заголовок `X-Correlation-ID` принимается или генерируется и возвращается в ответе; никаких сумм, описаний транзакций и PII в логах.
-- **Verify:** `python -m pytest services/api/tests/test_correlation.py -v`, `python scripts/check.py`.
+- **Scope:** `services/api/vela/logging_setup.py` (новый), `services/api/vela/main.py` (только подключение middleware), `services/api/tests/test_correlation.py` (новый)
+- **Acceptance:** JSON-форматтер логов; middleware принимает заголовок `X-Correlation-ID` (или генерирует UUID4, если не передан) и возвращает его в заголовке ответа `X-Correlation-ID`; фильтр логов гарантирует отсутствие сырых сумм, описаний транзакций и PII в логах.
+- **Verify:** `python -m unittest services/api/tests/test_correlation.py -v`, `python scripts/check.py`.
 
-### CHECKPOINT-3 — Оркестратор Opus: `Чекпоинт фазы 3`
+### CHECKPOINT-3 — Оркестратор: `Чекпоинт фазы 3`
 
 ---
 
 ## Фаза 4 — Тесты, документация, CI (Приоритет 4)
 
 ### T40 — Jest + RNTL: настройка
-- **Model:** Argon · **Status:** todo · **Depends on:** CHECKPOINT-3
+- **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-3
 - **Scope:** `apps/mobile/package.json` (devDeps: `jest-expo`, `@testing-library/react-native`), `apps/mobile/jest.config.js`, `apps/mobile/src/__tests__/smoke.test.tsx`
 - **Acceptance:** `npm test` проходит; `npx expo-doctor` по-прежнему 20/20.
 - **Verify:** `cd apps/mobile; npm test; npx expo-doctor`.
@@ -223,31 +282,33 @@
 - **Acceptance:** ≥ 10 осмысленных тестов: `components/ui.tsx` (Chip, карточки), форма Add bill (валидация), Adjust (превью без мутации), состояние ошибки сети, пустые состояния.
 - **Verify:** `cd apps/mobile; npm test`.
 
-### T42 — Maestro E2E
-- **Model:** Argon · **Status:** todo · **Depends on:** T40
-- **Decision:** есть ли Android-эмулятор / iOS-симулятор / реальное устройство? Без этого задача `blocked`.
-- **Scope:** `tests/e2e/*.yaml`, `tests/e2e/README.md`
-- **Acceptance:** флоу A–E + export/delete; запуск зафиксирован пользователем со скриншотами.
+### T42 — Maestro E2E сценарии
+- **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-3 · `[PARALLEL-OK]`
+- **Decision:** есть ли Android-эмулятор / iOS-симулятор / реальное устройство для живого прогона? (Создание самих YAML-флоу не блокируется; живой прогон отмечается отдельно).
+- **Scope:** `tests/e2e/*.yaml` (новые), `tests/e2e/README.md` (новый)
+- **Steps:** написать декларативные Maestro E2E сценарии для Journeys A–E (`01_snapshot.yaml`, `02_import.yaml`, `03_plan_and_debts.yaml`, `04_assistant_chat.yaml`, `05_lessons_and_delete.yaml`) и инструкцию запуска в `tests/e2e/README.md`.
+- **Acceptance:** все 5 YAML-флоу для Journeys A–E + export/delete созданы и синтаксически валидны.
 
 ### T43 — Документация (ADR, design-system, ux-decisions, playbooks)
 - **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-3 · `[PARALLEL-OK]`
-- **Scope:** `docs/adr/0002..00NN-*.md`, `docs/design-system.md`, `docs/ux-decisions.md`, `docs/playbooks/{financial-correctness,design-consistency,agent-evaluation,release-verification}.md`
-- **Steps:** ADR на уже принятые решения: центы, только Flash-Lite модели, SQLite-квоты, base64-импорт, идемпотентность. design-system — из `apps/mobile/src/theme.ts`. Плейбуки — короткие чеклисты со ссылками на тесты/скрипты.
-- **Acceptance:** все файлы есть; каждый плейбук ≤ 1 страницы и ссылается на реальные команды.
+- **Scope:** `docs/adr/0002..0006-*.md`, `docs/design-system.md`, `docs/ux-decisions.md`, `docs/playbooks/{financial-correctness,design-consistency,agent-evaluation,release-verification}.md`
+- **Steps:** ADR на уже принятые решения: (0002) целые центы EUR и горизонтный прогноз баланса, (0003) только Gemini Flash-Lite модели + SQLite-квоты, (0004) идемпотентность и оптимистичная блокировка `expected_revision`, (0005) base64-импорт для React Native, (0006) каталог 15 действий и MCDA со снапшотами. `design-system.md` — токены из `apps/mobile/src/theme.ts`. Плейбуки — короткие чеклисты (≤ 1 страницы) с реальными командами проверки.
+- **Acceptance:** все файлы созданы; каждый плейбук ≤ 1 страницы и ссылается на реальные команды проекта.
 
-### T44 — Модель угроз
-- **Model:** Argon · **Status:** todo · **Depends on:** CHECKPOINT-3 · `[OPUS-REVIEW]`
-- **Scope:** `docs/security/threat-model.md`, `docs/security/data-map.md`
-- **Acceptance:** границы доверия (mobile ↔ API ↔ Gemini ↔ хранилище), STRIDE по каждой, prompt injection через выписки, хранение/удаление, владелец каждого риска.
+### T44 — Модель угроз и карта данных (`threat-model.md`, `data-map.md`)
+- **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-3 · `[PARALLEL-OK]` · `[OPUS-REVIEW]`
+- **Scope:** `docs/security/threat-model.md` (новый), `docs/security/data-map.md` (новый)
+- **Steps:** описать границы доверия (Mobile App ↔ FastAPI ↔ Gemini Cloud API ↔ Local/DB Storage), таблицу угроз по STRIDE для каждой границы, защиту от prompt injection через банковские выписки, маскирование PII (`pii.py`), хранение и полное удаление по `DELETE /v1/data`, владельца каждого остаточного риска.
+- **Acceptance:** оба документа созданы, покрывают STRIDE, prompt injection, PII и удаление данных; проходят ревью оркестратора.
 
 ### T45 — CI-пайплайн
 - **Model:** Flash · **Status:** todo · **Depends on:** T40
 - **Scope:** `.github/workflows/ci.yml`
-- **Acceptance:** джобы: `python scripts/check.py`, `npm ci && npm run typecheck && npm test`, contract drift (`generate-contracts.py` + `git diff --exit-code contracts/`), секрет-скан (gitleaks), `python evals/run.py --offline`; действия закреплены по версии.
-- **Verify:** `actionlint` (если установлен) или проверка YAML оркестратором.
+- **Acceptance:** джобы: `python scripts/check.py`, `npm ci && npm run typecheck && npm test`, contract drift (`generate-contracts.py --check`), секрет-скан (`gitleaks`), `python evals/run.py --offline`; все GitHub Actions закреплены по мажорной/полной версии.
+- **Verify:** проверка валидности YAML и совпадения команд с локальными скриптами.
 
 ### T46 — Финальный аудит готовности
-- **Model:** Opus (orchestrator) · **Status:** todo · **Depends on:** все выше
-- **Steps:** полный прогон проверок; обновить `docs/release-readiness.md` по 4 уровням (local demo / staging / pilot / public); перечислить, что требует людей (финансовый, юридический и security-ревью, учётки сторов).
+- **Model:** Astra GPT 6 (orchestrator) · **Status:** todo · **Depends on:** все выше
+- **Steps:** полный прогон проверок; обновить `docs/release-readiness.md` по 4 уровням (`local demo` / `staging` / `pilot` / `public`); перечислить гейты, требующие подписи человека (финансовый, юридический и security-ревью, учётки сторов).
 
-### CHECKPOINT-4 — Оркестратор Opus: `Чекпоинт фазы 4`
+### CHECKPOINT-4 — Оркестратор: `Чекпоинт фазы 4`

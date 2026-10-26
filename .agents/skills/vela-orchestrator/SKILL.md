@@ -1,6 +1,6 @@
 ---
 name: vela-orchestrator
-description: Orchestrate the Vela multi-model team (Claude Opus primary, Gemini 4 Argon fallback). Use when the user says "Проверь T<NN>", "Что дальше?", "Чекпоинт фазы <N>" or "Прими роль оркестратора". Covers review, accept/reject, next-task selection, phase checkpoints and role inheritance.
+description: Orchestrate the Vela multi-model team (Astra GPT 6 / Gemini 4 Argon / Claude Opus). Use when the user says "Проверь T<NN>", "Что дальше?", "Чекпоинт фазы <N>" or "Прими роль оркестратора". Covers review, accept/reject, next-task selection, phase checkpoints and role inheritance.
 ---
 
 # Vela orchestrator — мозг команды
