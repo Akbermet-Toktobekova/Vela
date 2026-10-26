@@ -283,5 +283,85 @@ class TestPIICorpusStatementMasking(unittest.TestCase):
         self.assertIn("IBAN;[REDACTED_IBAN];;;", masked)
 
 
+class TestPIIRegressionsReviewAttempt2(unittest.TestCase):
+    """Regressions identified during orchestrator review (attempt 1 to 2)."""
+
+    def test_nineteen_digit_cards_and_groupings(self):
+        # 19-digit cards (4-4-4-4-3)
+        valid_19_spaced = "4000 0000 0000 0000 006"
+        valid_19_hyphen = "4000-0000-0000-0000-006"
+        valid_19_cont = "4000000000000000006"
+        invalid_19 = "4000 0000 0000 0000 007"
+
+        self.assertTrue(is_valid_luhn(valid_19_spaced))
+        self.assertTrue(is_valid_luhn(valid_19_hyphen))
+        self.assertTrue(is_valid_luhn(valid_19_cont))
+        self.assertFalse(is_valid_luhn(invalid_19))
+
+        self.assertEqual(mask_pii(valid_19_spaced, force=True), "[REDACTED_CARD]")
+        self.assertEqual(mask_pii(valid_19_hyphen, force=True), "[REDACTED_CARD]")
+        self.assertEqual(mask_pii(valid_19_cont, force=True), "[REDACTED_CARD]")
+        self.assertEqual(mask_pii(invalid_19, force=True), invalid_19)
+
+        # Other standard card groupings
+        diners_14 = "3000 123456 1233"
+        self.assertTrue(is_valid_luhn(diners_14))
+        self.assertEqual(mask_pii(diners_14, force=True), "[REDACTED_CARD]")
+
+        visa_13 = "4000 1234 5678 8"
+        self.assertTrue(is_valid_luhn(visa_13))
+        self.assertEqual(mask_pii(visa_13, force=True), "[REDACTED_CARD]")
+
+    def test_phone_adjacent_amounts_and_dotted_formats(self):
+        # Case 1: Phone adjacent to amount (previously swallowed 1200.50 EUR)
+        s1 = "+491701234567 1200.50 EUR"
+        self.assertEqual(mask_pii(s1, force=True), "[REDACTED_PHONE] 1200.50 EUR")
+
+        # Case 2: Dotted phone number (previously failed decimal ending check)
+        s2 = "Phone: +49.170.123.45.67"
+        self.assertEqual(mask_pii(s2, force=True), "Phone: [REDACTED_PHONE]")
+
+        # Case 3: Dotted phone with sentence punctuation
+        s3 = "Phone: +49.170.123.45.67."
+        self.assertEqual(mask_pii(s3, force=True), "Phone: [REDACTED_PHONE].")
+
+        # Case 4: Dotted phone with following amount
+        s4 = "Phone: +49.170.123.45.67 and amount 500.00 EUR"
+        self.assertEqual(mask_pii(s4, force=True), "Phone: [REDACTED_PHONE] and amount 500.00 EUR")
+
+        # Case 5: Spaced phone with adjacent decimal amount
+        s5 = "Phone: +49 170 12 34 56 1200.50 EUR"
+        self.assertEqual(mask_pii(s5, force=True), "Phone: [REDACTED_PHONE] 1200.50 EUR")
+
+        # Case 6: Slashed phone
+        s6 = "Hotline: +49/170/1234567"
+        self.assertEqual(mask_pii(s6, force=True), "Hotline: [REDACTED_PHONE]")
+
+        # Case 7: Continuous phone in transaction
+        s7 = "Transaction +491701234567, amount: -150.00 EUR"
+        self.assertEqual(mask_pii(s7, force=True), "Transaction [REDACTED_PHONE], amount: -150.00 EUR")
+
+    def test_financial_amounts_and_dates_not_corrupted(self):
+        # Pure dates
+        d1 = "Date: 2026-03-15 and 01.10.2026"
+        self.assertEqual(mask_pii(d1, force=True), d1)
+
+        # Monetary amounts with plus or minus
+        a1 = "Profit: +100.00 EUR"
+        self.assertEqual(mask_pii(a1, force=True), a1)
+
+        a2 = "Big amount: +1000000.00 EUR"
+        self.assertEqual(mask_pii(a2, force=True), a2)
+
+        a3 = "Large balance: +1000000000 EUR"
+        self.assertEqual(mask_pii(a3, force=True), a3)
+
+        a4 = "German amount: +1.000.000,00 EUR"
+        self.assertEqual(mask_pii(a4, force=True), a4)
+
+        a5 = "Balance: -45,00 EUR"
+        self.assertEqual(mask_pii(a5, force=True), a5)
+
+
 if __name__ == "__main__":
     unittest.main()

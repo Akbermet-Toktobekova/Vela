@@ -100,13 +100,10 @@ IBAN_RE = re.compile(
     r"\b[A-Za-z]{2}\d{2}[A-Za-z0-9]{11,30}\b"
 )
 
-# Card numbers: 13-19 digits, in groups of 4 (with space/hyphen), Amex (4-6-5), or continuous
+# Card numbers: 13-19 digits, in groups of 4 (with space/hyphen), Amex (4-6-5), Diners (4-6-4),
+# 5 groups (4-4-4-4-3 up to 19 digits), or continuous.
 CARD_RE = re.compile(
-    r"(?<!\d)(?:"
-    r"\d{4}[ -]\d{4}[ -]\d{4}[ -]\d{1,7}|"
-    r"\d{4}[ -]\d{6}[ -]\d{5}|"
-    r"\d{13,19}"
-    r")(?!\d)"
+    r"(?<![\d+])(?:\d{13,19}|\d{4}[ -]\d{4,6}[ -]\d{4,5}|(?:\d{2,6}[ -]){3,5}\d{1,6})(?![ -]?\d)"
 )
 
 # Email address
@@ -115,19 +112,29 @@ EMAIL_RE = re.compile(
 )
 
 # International phone numbers: +XX... or 00XX... (9 to 15 digits)
-PHONE_CANDIDATE_RE = re.compile(
-    r"(?:(?<=\s)|(?<=\b)|(?<=^)|(?<=[\(\[,;:]))"
-    r"(\+(?:[0-9][ \-\(\)\/\.]{0,3}){8,16}[0-9]|"
-    r"00[1-9](?:[ \-\(\)\/\.]{0,3}[0-9]){8,16})"
-    r"(?=(?:\s|$|[,;:\)\].!?]))"
-)
+# Broken down by standard international representations to avoid greedy swallowing
+# of adjacent amounts or misidentifying currency amounts and dates.
+PHONE_PATTERNS = [
+    # 1. Dotted notation: +49.170.123.45.67 (no spaces allowed)
+    re.compile(r"(?<![A-Za-z0-9])(?:\+|00)[1-9]\d{0,3}(?:\.\d{1,8}){2,6}(?!\d)(?![,\.]\d)"),
+    # 2. Slashed notation: +49/170/1234567
+    re.compile(r"(?<![A-Za-z0-9])(?:\+|00)[1-9]\d{0,3}(?:/\d{1,8}){1,4}(?!\d)(?![,\.]\d)"),
+    # 3. Hyphenated notation: +1-800-555-0199 or +49-170-1234567
+    re.compile(r"(?<![A-Za-z0-9])(?:\+|00)[1-9]\d{0,3}(?:-\d{1,8}){1,5}(?!\d)(?![,\.]\d)"),
+    # 4. Spaced/parenthesized notation: +49 170 1234567, +7 (999) 123-45-67, +49 (0) 170 1234567
+    re.compile(
+        r"(?<![A-Za-z0-9])(?:\+|00)[1-9]\d{0,3}"
+        r"(?:[ \-]| \(\d{1,4}\) |-\(\d{1,4}\)-|\(\d{1,4}\))"
+        r"(?:[ \-]?(?!\d+[,\.]\d)\d{1,8}){1,5}(?!\d)(?![,\.]\d)"
+    ),
+    # 5. Continuous: +491701234567, 00491701234567
+    re.compile(r"(?<![A-Za-z0-9])(?:\+|00)[1-9]\d{8,14}(?!\d)(?![,\.]\d)"),
+]
 
 _CURRENCY_AHEAD_RE = re.compile(
     r"^(?:EUR|USD|GBP|RUB|CHF|€|\$|£|cents?|rubles?|евро|руб)",
     re.IGNORECASE,
 )
-_DECIMAL_AHEAD_RE = re.compile(r"^[,\.]\d{2}")
-_DECIMAL_END_RE = re.compile(r"[\.,]\d{2}$")
 
 
 # ---------------------------------------------------------------------------
@@ -177,6 +184,9 @@ def mask_pii(text: str, *, force: bool = False) -> str:
     # 3. Card numbers (Luhn check)
     def _repl_card(m: re.Match) -> str:
         raw = m.group(0)
+        digits = [c for c in raw if c.isdigit()]
+        if not (13 <= len(digits) <= 19):
+            return raw
         if is_valid_luhn(raw):
             return "[REDACTED_CARD]"
         return raw
@@ -187,26 +197,18 @@ def mask_pii(text: str, *, force: bool = False) -> str:
     text = EMAIL_RE.sub("[REDACTED_EMAIL]", text)
 
     # 5. Phone numbers (+XX... or 00XX..., 9 to 15 digits)
-    def _repl_phone(m: re.Match) -> str:
-        cand = m.group(1)
-        raw_digits = cand[1:] if cand.startswith("+") else cand[2:]
-        digits = [c for c in raw_digits if c.isdigit()]
-        if not (9 <= len(digits) <= 15):
-            return m.group(0)
+    for pat in PHONE_PATTERNS:
+        def _repl_phone(m: re.Match, cur_text: str = text) -> str:
+            cand = m.group(0)
+            digits = [c for c in cand if c.isdigit()]
+            if not (9 <= len(digits) <= 15):
+                return cand
+            trailing = cur_text[m.end() : m.end() + 15].strip()
+            if _CURRENCY_AHEAD_RE.match(trailing):
+                return cand
+            return "[REDACTED_PHONE]"
 
-        end = m.end(1)
-        trailing = text[end : end + 15].strip()
-        # Ensure candidate is not a monetary amount or math
-        if _CURRENCY_AHEAD_RE.match(trailing):
-            return m.group(0)
-        if _DECIMAL_AHEAD_RE.match(trailing):
-            return m.group(0)
-        if _DECIMAL_END_RE.search(cand):
-            return m.group(0)
-
-        return "[REDACTED_PHONE]"
-
-    text = PHONE_CANDIDATE_RE.sub(_repl_phone, text)
+        text = pat.sub(_repl_phone, text)
 
     return text
 

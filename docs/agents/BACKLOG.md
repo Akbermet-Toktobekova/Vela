@@ -141,7 +141,7 @@
 - **Verify:** `python -m unittest services/api/tests/test_csv_safe.py -v`, `python scripts/check.py`.
 
 ### T21a — Автономный модуль маскирования PII (`pii.py` + тесты)
-- **Model:** Flash · **Status:** rework · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
+- **Model:** Flash · **Status:** review · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
 - **Scope:** `services/api/vela/pii.py` (новый), `services/api/tests/test_pii.py` (новый)
 - **Steps:**
   1. Создать автономный модуль `services/api/vela/pii.py` (без изменения `ai.py`/`imports.py`/`chat.py`):
