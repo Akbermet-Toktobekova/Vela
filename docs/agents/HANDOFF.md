@@ -7,7 +7,7 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T22 attempt 4 reviewed: rework, one remaining monetary-token recognition finding.
+- **Current task:** T22 (in_progress, Codex GPT-6, attempt 5; full rework requested)
 - **Last reviewed:** 2026-10-26, T22 attempt 4: REWORK; mutation finding closed, monetary recognition partially fixed. Backend 170/170, harness 29/29, schema/offline 5/5, drift 0.
 - **Next action:** Astra GPT 6 / Argon: `Выполни T22` — закрыть оставшееся замечание распознавания полного денежного выражения из Review Attempt 4. Затем отдельное ревью. T23 ждёт done T22.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)

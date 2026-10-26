@@ -459,7 +459,8 @@ class TestT22ReviewRegressions(unittest.TestCase):
             root = Path(tmp)
             (root / "dev").mkdir()
             (root / "dev" / "case.json").write_text(json.dumps(scenario), encoding="utf-8")
-            for raw in ("EUR 999.00", "€999.9", "€- 999.00", "€999.9999"):
+            for raw in ("EUR 999.00", "€999.9", "€- 999.00", "€999.9999",
+                        "€.99", ".99 EUR", "EUR999.00", "€1e3", "€100e3"):
                 with self.subTest(raw=raw):
                     self.assertFalse(grade_scenario(scenario, raw, None, None, {10000})["passed"])
                     with patch("evals.run.call_app_chat", new=AsyncMock(return_value=raw)), patch.object(
@@ -497,6 +498,60 @@ class TestT22ReviewRegressions(unittest.TestCase):
                 self.assertFalse(check_no_unconfirmed_mutation("Okay", before, after).passed)
                 self.assertFalse(grade_scenario({}, "Okay", before, after)["passed"])
         self.assertTrue(check_no_unconfirmed_mutation("Okay", before, before.model_copy(deep=True)).passed)
+
+class TestT22FullRework(unittest.TestCase):
+    def test_numeric_continuations_never_approve_a_prefix(self):
+        for tail in ("e3", "E+3", "e-3", "k", "_000", "'000", "’000", "/2", "..99", "\u200b999", "²"):
+            for currency in ("€", "EUR", "eur"):
+                for raw in (f"{currency}1{tail}", f"1{tail} {currency}"):
+                    with self.subTest(raw=raw):
+                        self.assertFalse(check_numeric_grounding(raw, {100, 9900, 200}, True).passed)
+                        self.assertTrue(extract_money_cents_from_text(raw))
+
+    def test_supported_values_and_prose_boundaries(self):
+        for raw, cents in (("€.99", 99), (".99 EUR", 99), ("EUR999.00", 99900),
+                           ("999EUR", 99900), ("€− .9", -90), ("€1\u202f234,5", 123450)):
+            with self.subTest(raw=raw):
+                self.assertTrue(check_numeric_grounding(raw, {cents}, True).passed)
+                self.assertFalse(check_numeric_grounding(raw, {cents + 1}, True).passed)
+        self.assertTrue(check_numeric_grounding("Cash: €100.00. Buffer: 20 EUR; plan €5!", {10000, 2000, 500}, True).passed)
+        self.assertEqual(len(extract_money_cents_from_text("€100 and €20")), 2)
+        self.assertTrue(check_numeric_grounding("No confirmed balance yet.", set(), True).passed)
+
+    def test_each_currency_marker_is_accounted_for(self):
+        for raw in ("€", "EUR ???", "€oops", "€100 and €oops", "€NaN", "€inf"):
+            with self.subTest(raw=raw):
+                self.assertFalse(check_numeric_grounding(raw, {10000}, True).passed)
+
+    def test_empty_suite_and_invalid_domain_data_fail_validation_and_run(self):
+        base = json.loads((REPO_ROOT / "evals/scenarios/dev/numeric_grounding_available_cash.json").read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "dev").mkdir()
+            valid, _, _ = validate_scenarios(root, REPO_ROOT / "evals/schema.json")
+            self.assertFalse(valid)
+            for overrides in ({"saved_cents": 999999999}, {"liquid_cash_cents": True},
+                              {"transactions": [{"id": "t", "date": "2026-02-30", "description": "x", "amount_cents": 1}]},
+                              {"transactions": [{"id": "t", "date": "2026-03-01", "description": "x", "amount_cents": 1, "category": "nonsense"}]}):
+                case = json.loads(json.dumps(base))
+                case["state_overrides"].update(overrides)
+                (root / "dev/case.json").write_text(json.dumps(case), encoding="utf-8")
+                with self.subTest(overrides=overrides):
+                    self.assertFalse(validate_scenarios(root, REPO_ROOT / "evals/schema.json")[0])
+                    with patch("evals.run.call_app_chat", new=AsyncMock(return_value="Okay")) as chat_mock:
+                        passed, report = run_evals(root, root / "report.json")
+                        self.assertFalse(passed)
+                        self.assertTrue(report["validation_errors"])
+                        chat_mock.assert_not_called()
+
+    def test_offline_restores_environment_on_chat_error(self):
+        import asyncio
+        import os
+        with patch.dict(os.environ, {"ENABLE_GEMINI": "true"}), patch("evals.run.chat", new=AsyncMock(side_effect=RuntimeError("test"))):
+            with self.assertRaises(RuntimeError):
+                asyncio.run(call_app_chat("Hi", State(), date(2026, 3, 1)))
+            self.assertEqual(os.environ["ENABLE_GEMINI"], "true")
+
 
 if __name__ == "__main__":
     unittest.main()
