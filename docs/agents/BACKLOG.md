@@ -95,7 +95,7 @@
 - **Verify:** `python -m pytest services/api/tests/test_catalogue.py -v`, `python scripts/check.py`.
 
 ### T15 — MCDA-ранжирование, классы срочности, чувствительность
-- **Model:** Argon · **Status:** review · **Depends on:** T14 · `[OPUS-REVIEW]`
+- **Model:** Argon · **Status:** done · **Depends on:** T14 · `[OPUS-REVIEW]`
 - **Goal:** Спецификация §10: S(a) = wR·vR + wF·vF + wG·vG + wM·vM + wE·(1−cE).
 - **Scope:** `services/api/vela/decision.py` (новый), `policies/scoring.v1.json`, `services/api/vela/main.py`, `services/api/tests/test_decision.py`
 - **Steps:** жёсткие ограничения до скоринга; классы срочности вне скоринга (shortfall > due obligation > ordinary); якорные функции полезности; unknown ≠ 0; стабильный tie-break; проверка ±20% весов; при нестабильности → `clarify` или сохранение текущего плана; `DecisionEvaluationSnapshot` (inputs, versions, reason codes, selected + runner-up).
