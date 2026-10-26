@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T22 (in_progress, Codex GPT-6, attempt 5; full rework requested)
+- **Current task:** T22 (review, Codex GPT-6, attempt 5)
 - **Last reviewed:** 2026-10-26, T22 attempt 4: REWORK; mutation finding closed, monetary recognition partially fixed. Backend 170/170, harness 29/29, schema/offline 5/5, drift 0.
-- **Next action:** Astra GPT 6 / Argon: `Выполни T22` — закрыть оставшееся замечание распознавания полного денежного выражения из Review Attempt 4. Затем отдельное ревью. T23 ждёт done T22.
+- **Next action:** Независимый оркестратор в новом чате: `Проверь T22` (attempt 5); T23 ждёт done T22.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -135,3 +135,7 @@ Current task: T24a (in_progress, Codex GPT-6), parallel to the existing T22 exec
 ## T24a executor completion — Attempt 4 (2026-10-26)
 
 Current task: T24a (review, Codex GPT-6). Four numeric-verifier findings fixed; 32/32 tools tests, 180/180 backend tests, git diff --check exit 0. Report: docs/agents/reports/T24a.md. Next action: Оркестратор: `Проверь T24a` в отдельном чате. Existing T22 execution preserved; T24b still awaits dependencies.
+
+## T22 full rework — Attempt 5, 2026-10-26
+
+Исправлено распознавание полного денежного выражения; добавлены проверки всех маркеров валюты, строгая предвалидация каждого прогона, отказ на пустом наборе и ошибках доменных данных, отчёт FAIL при исключении чата, проверка исчезновения State. Harness 37/37, backend 183/183, schema/offline 5/5, drift 0. Во время выполнения другой чат создал 0211175 и 236a0a4 (T24a) и включил часть промежуточных изменений T22; история сохранена. Ревью T22 следует читать относительно 903b56f по файлам T22, а не только последний коммит.

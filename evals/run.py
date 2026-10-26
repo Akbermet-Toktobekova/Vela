@@ -181,6 +181,9 @@ def validate_scenarios(
     results: list[dict[str, Any]] = []
     errors: list[str] = []
 
+    if not files:
+        errors.append(f"No scenarios found in {scenarios_dir} (split={split})")
+
     for path in files:
         rel_path = _display_path(path, scenarios_dir)
         try:
@@ -202,6 +205,7 @@ def validate_scenarios(
         # Pydantic additionally proves this scenario can be safely converted to State.
         try:
             ScenarioModel.model_validate(data)
+            build_state_from_overrides(data["state_overrides"], date(2026, 3, 1))
         except Exception as exc:
             err = f"Schema validation failed for {rel_path}: {exc}"
             errors.append(err)
@@ -252,10 +256,6 @@ def build_state_from_overrides(overrides: dict[str, Any], today: date) -> tuple[
     safe_buffer = overrides.get("safe_buffer_cents")
     allowed_figures: set[str | int] = set()
 
-    if cash is None:
-        state = State(revision=0, snapshot=None, actions=[], transactions=[], debts=[])
-        return state, allowed_figures
-
     protected = safe_buffer if safe_buffer is not None else 0
     saved = overrides.get("saved_cents", 0)
     goal_target = overrides.get("goal_target_cents", 50000)
@@ -285,6 +285,11 @@ def build_state_from_overrides(overrides: dict[str, Any], today: date) -> tuple[
             category=t.get("category", "other"),
         ))
         allowed_figures.add(t["amount_cents"])
+
+    if cash is None:
+        # Validate nested inputs above even when there is no balance snapshot.
+        state = State(revision=0, snapshot=None, actions=[], transactions=[], debts=[])
+        return state, set()
 
     snapshot = Snapshot(
         nickname="Alex",
@@ -349,6 +354,7 @@ def run_evals(
     report_out: Path,
     split: str = "all",
     offline: bool = True,
+    schema_path: Path = REPO_ROOT / "evals" / "schema.json",
 ) -> tuple[bool, dict[str, Any]]:
     today = date(2026, 3, 1)
     scenario_files = find_scenario_files(scenarios_dir, split)
@@ -358,29 +364,55 @@ def run_evals(
     total = len(scenario_files)
     passed_count = 0
 
+    valid, validation_results, validation_errors = validate_scenarios(scenarios_dir, schema_path, split)
+    if not valid:
+        report = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "mode": "offline" if offline else "live", "split": split,
+            "total_scenarios": total, "passed": 0, "failed": total,
+            "pass_rate": 0.0, "duration_seconds": round(time.time() - start_time, 3),
+            "results": [], "validation_results": validation_results,
+            "validation_errors": validation_errors,
+        }
+        report_out.parent.mkdir(parents=True, exist_ok=True)
+        report_out.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+        return False, report
+
     for file_path in scenario_files:
         with open(file_path, "r", encoding="utf-8") as f:
             scenario = json.load(f)
 
-        state, allowed_figures = build_state_from_overrides(scenario.get("state_overrides", {}), today)
+        reply = ""
+        try:
+            state, allowed_figures = build_state_from_overrides(scenario.get("state_overrides", {}), today)
 
-        # Independent deep copy before application call
-        state_before = state.model_copy(deep=True)
+            # Independent deep copy before application call
+            state_before = state.model_copy(deep=True)
 
-        # Call real application chat path (never passing gold standard expected answers)
-        reply = asyncio.run(call_app_chat(scenario["user_message"], state, today, offline=offline))
+            # Call real application chat path (never passing gold standard expected answers)
+            reply = asyncio.run(call_app_chat(scenario["user_message"], state, today, offline=offline))
 
-        # Independent deep copy after application call
-        state_after = state.model_copy(deep=True)
+            # Independent deep copy after application call
+            state_after = state.model_copy(deep=True)
 
-        # Grade reply with invariant graders
-        grading = grade_scenario(
-            scenario=scenario,
-            reply=reply,
-            state_before=state_before,
-            state_after=state_after,
-            allowed_figures=allowed_figures,
-        )
+            # Grade reply with invariant graders
+            grading = grade_scenario(
+                scenario=scenario,
+                reply=reply,
+                state_before=state_before,
+                state_after=state_after,
+                allowed_figures=allowed_figures,
+            )
+
+        except Exception as exc:
+            # A failed application invocation must replace any old success report
+            # and must not prevent remaining independent scenarios from running.
+            grading = {
+                "scenario_id": scenario["id"], "family": scenario["family"],
+                "split": scenario["split"], "category": scenario["category"],
+                "passed": False, "checks": [],
+                "failure_reasons": [f"Scenario execution failed: {type(exc).__name__}: {exc}"],
+            }
 
         grading["file"] = _display_path(file_path, scenarios_dir)
         grading["reply"] = reply
@@ -463,9 +495,12 @@ def main() -> int:
         report_out=args.report_out,
         split=args.split,
         offline=True,
+        schema_path=args.schema_path,
     )
 
     print("-" * 60)
+    for error in report.get("validation_errors", []):
+        print(f"  [FAIL] {error}")
     for res in report["results"]:
         status = "PASS" if res["passed"] else "FAIL"
         print(f"  [{status}] {res['scenario_id']} ({res['category']}, split={res['split']})")

@@ -531,6 +531,7 @@ class TestT22FullRework(unittest.TestCase):
             valid, _, _ = validate_scenarios(root, REPO_ROOT / "evals/schema.json")
             self.assertFalse(valid)
             for overrides in ({"saved_cents": 999999999}, {"liquid_cash_cents": True},
+                              {"liquid_cash_cents": None, "transactions": [{"id": "t", "date": "2026-02-30", "description": "x", "amount_cents": 1}]},
                               {"transactions": [{"id": "t", "date": "2026-02-30", "description": "x", "amount_cents": 1}]},
                               {"transactions": [{"id": "t", "date": "2026-03-01", "description": "x", "amount_cents": 1, "category": "nonsense"}]}):
                 case = json.loads(json.dumps(base))
@@ -551,6 +552,31 @@ class TestT22FullRework(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 asyncio.run(call_app_chat("Hi", State(), date(2026, 3, 1)))
             self.assertEqual(os.environ["ENABLE_GEMINI"], "true")
+
+    def test_chat_error_is_a_failed_report_not_a_stale_success(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            report_path = Path(tmp) / "report.json"
+            report_path.write_text('{"passed": 999}', encoding="utf-8")
+            with patch("evals.run.call_app_chat", new=AsyncMock(side_effect=RuntimeError("chat failed"))):
+                passed, report = run_evals(REPO_ROOT / "evals/scenarios", report_path)
+            self.assertFalse(passed)
+            self.assertEqual(report["passed"], 0)
+            self.assertEqual(report["failed"], report["total_scenarios"])
+            self.assertTrue(all("RuntimeError" in result["failure_reasons"][0] for result in report["results"]))
+            self.assertEqual(json.loads(report_path.read_text(encoding="utf-8")), report)
+
+    def test_missing_state_on_one_side_is_a_mutation(self):
+        for before, after in ((None, State()), (State(), None)):
+            self.assertFalse(check_no_unconfirmed_mutation("Okay", before, after).passed)
+
+    def test_many_exact_amounts_never_match_neighboring_cent(self):
+        for cents in (0, 1, 9, 10, 99, 100, 101, 999, 1000, 10001, 123456789):
+            for sign in (1, -1):
+                amount = f"{'-' if sign < 0 else ''}{cents // 100:,}.{cents % 100:02d}"
+                for raw in (f"€{amount}", f"EUR{amount}", f"{amount} EUR"):
+                    with self.subTest(raw=raw):
+                        self.assertTrue(check_numeric_grounding(raw, {sign * cents}, True).passed)
+                        self.assertFalse(check_numeric_grounding(raw, {sign * cents + 1}, True).passed)
 
 
 if __name__ == "__main__":

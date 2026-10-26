@@ -78,7 +78,29 @@ python evals/run.py --split dev
 python evals/run.py --split heldout
 ```
 
-### 4. Live API Run (optional, requires GEMINI_API_KEY)
-```powershell
-python evals/run.py --live
-```
+### 4. Offline boundary
+The CLI always runs offline; there is no --live option. The internal Python helper supports an explicit offline=False for controlled integrations.
+
+
+## Grader boundaries and failure handling (T22 attempt 5)
+
+Money recognition accounts for every explicit € / EUR marker. Adjacent digits
+(EUR999), leading decimals (.99 EUR), signs, EN/DE grouping and space/NBSP/narrow
+NBSP grouping are supported. All values are parsed as exact integer cents.
+Attached exponent notation, scale suffixes, malformed grouping and unsupported
+precision are rejected as complete claims, never accepted by their numeric prefix.
+A single terminal prose delimiter and closing bold marker are permitted. Bare or
+unrecognized currency markers fail conservatively; even a prose mention of EUR
+without a number fails when allowed_numbers_only is enabled. Spelled-out money,
+other currencies and the semantics of advice are not proven by this EUR parser.
+Scope/tone graders are deterministic phrase checks, not exhaustive language safety.
+
+Every run validates the schema, uniqueness and construction of domain inputs before
+calling chat. Empty suites and invalid inputs produce a failed report; runtime
+chat errors become per-scenario failures and do not leave an earlier success report
+in place. Both validation and execution reports must be checked by the caller.
+Full State models, including nested fields and revision, are compared before/after;
+both absent states mean a text-only grader call, but absence on one side is a failure.
+
+Regression command: python -m unittest services/api/tests/test_evals_harness.py -q
+Negative CLI fixtures intentionally print FAIL while their enclosing tests pass.
