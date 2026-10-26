@@ -13,6 +13,8 @@ from .domain import (Record, Snapshot, PositiveMoney, Money, Obligation, Debt, S
                      fixture, view, accept, complete, eligibility, merge_transactions)
 from .debt import DebtSimulationView, compare_and_simulate
 from .decision import DecisionEvaluationSnapshot, evaluate_decision
+from .lessons import (LessonDetailView, LessonProgressCommand, LessonsListView,
+                      get_lesson_detail, list_lessons, record_lesson_progress)
 from .store import Store, Conflict
 from .ai import Quotas, MODELS, ROUTES, enabled
 from .imports import ImportPreview, ImportError_, build_preview, MAX_BYTES
@@ -338,6 +340,61 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
             key,
             body.revision,
             {"kind": "evaluate_decision", **body.model_dump(mode="json")},
+            apply,
+            render,
+        )
+
+    # ---------- lessons (Journey E) ----------
+
+    @app.get("/v1/lessons", response_model=LessonsListView)
+    def get_lessons(
+        action_id: Annotated[str | None, Query(min_length=1, max_length=80)] = None,
+        who=Depends(owner),
+    ):
+        s = store.read(who)
+        return list_lessons(s, clock(), action_id=action_id)
+
+    @app.get("/v1/lessons/{lesson_id}", response_model=LessonDetailView)
+    def get_lesson(lesson_id: str, who=Depends(owner)):
+        s = store.read(who)
+        try:
+            return get_lesson_detail(lesson_id, s, clock())
+        except KeyError as exc:
+            raise HTTPException(404, "Lesson not found.") from exc
+
+    @app.post("/v1/lessons/{lesson_id}/progress", response_model=LessonDetailView)
+    def save_lesson_progress(
+        lesson_id: str,
+        body: LessonProgressCommand,
+        idempotency_key: Annotated[str | None, Header(min_length=8, max_length=100)] = None,
+        who=Depends(owner),
+    ):
+        current_state = store.read(who)
+        try:
+            get_lesson_detail(lesson_id, current_state, clock())
+        except KeyError as exc:
+            raise HTTPException(404, "Lesson not found.") from exc
+
+        expected_rev = body.revision if body.revision is not None else current_state.revision
+        eff_key = idempotency_key or f"lesson-prog-{lesson_id}-{body.selected_index}-{body.completed}-{expected_rev}"
+
+        def apply(s):
+            record_lesson_progress(
+                s,
+                lesson_id=lesson_id,
+                today=clock(),
+                selected_index=body.selected_index,
+                completed=body.completed,
+            )
+
+        def render(s):
+            return get_lesson_detail(lesson_id, s, clock()).model_dump(mode="json")
+
+        return store.mutate(
+            who,
+            eff_key,
+            expected_rev,
+            {"kind": "lesson_progress", "lesson_id": lesson_id, **body.model_dump(mode="json")},
             apply,
             render,
         )

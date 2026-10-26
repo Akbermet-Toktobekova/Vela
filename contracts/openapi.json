@@ -1382,6 +1382,340 @@
         "title": "IncomeCommand",
         "type": "object"
       },
+      "LessonDetailView": {
+        "additionalProperties": false,
+        "properties": {
+          "body_markdown": {
+            "title": "Body Markdown",
+            "type": "string"
+          },
+          "completed": {
+            "default": false,
+            "title": "Completed",
+            "type": "boolean"
+          },
+          "completed_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed On"
+          },
+          "correct": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "paragraphs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Paragraphs",
+            "type": "array"
+          },
+          "quiz": {
+            "$ref": "#/components/schemas/LessonQuizView"
+          },
+          "recommended_for_current_step": {
+            "default": false,
+            "title": "Recommended For Current Step",
+            "type": "boolean"
+          },
+          "related_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Related Actions",
+            "type": "array"
+          },
+          "reviewed": {
+            "default": false,
+            "title": "Reviewed",
+            "type": "boolean"
+          },
+          "selected_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Index"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "summary",
+          "related_actions",
+          "reviewed",
+          "completed",
+          "selected_index",
+          "correct",
+          "completed_on",
+          "recommended_for_current_step",
+          "body_markdown",
+          "paragraphs",
+          "quiz"
+        ],
+        "title": "LessonDetailView",
+        "type": "object"
+      },
+      "LessonProgressCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "completed": {
+            "default": true,
+            "title": "Completed",
+            "type": "boolean"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision"
+          },
+          "selected_index": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Index"
+          }
+        },
+        "title": "LessonProgressCommand",
+        "type": "object"
+      },
+      "LessonQuizView": {
+        "additionalProperties": false,
+        "properties": {
+          "correct_index": {
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Correct Index",
+            "type": "integer"
+          },
+          "explanation": {
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Explanation",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 6,
+            "minItems": 2,
+            "title": "Options",
+            "type": "array"
+          },
+          "question": {
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question",
+          "options",
+          "correct_index",
+          "explanation"
+        ],
+        "title": "LessonQuizView",
+        "type": "object"
+      },
+      "LessonSummaryView": {
+        "additionalProperties": false,
+        "properties": {
+          "completed": {
+            "default": false,
+            "title": "Completed",
+            "type": "boolean"
+          },
+          "completed_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed On"
+          },
+          "correct": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "recommended_for_current_step": {
+            "default": false,
+            "title": "Recommended For Current Step",
+            "type": "boolean"
+          },
+          "related_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Related Actions",
+            "type": "array"
+          },
+          "reviewed": {
+            "default": false,
+            "title": "Reviewed",
+            "type": "boolean"
+          },
+          "selected_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Index"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "summary",
+          "related_actions",
+          "reviewed",
+          "completed",
+          "selected_index",
+          "correct",
+          "completed_on",
+          "recommended_for_current_step"
+        ],
+        "title": "LessonSummaryView",
+        "type": "object"
+      },
+      "LessonsListView": {
+        "additionalProperties": false,
+        "properties": {
+          "active_action_id": {
+            "title": "Active Action Id",
+            "type": "string"
+          },
+          "active_recommendation_kind": {
+            "title": "Active Recommendation Kind",
+            "type": "string"
+          },
+          "active_recommendation_message": {
+            "title": "Active Recommendation Message",
+            "type": "string"
+          },
+          "completed_count": {
+            "title": "Completed Count",
+            "type": "integer"
+          },
+          "lessons": {
+            "items": {
+              "$ref": "#/components/schemas/LessonSummaryView"
+            },
+            "title": "Lessons",
+            "type": "array"
+          },
+          "recommended_lesson": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LessonSummaryView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recommended_lessons": {
+            "items": {
+              "$ref": "#/components/schemas/LessonSummaryView"
+            },
+            "title": "Recommended Lessons",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "total_count": {
+            "title": "Total Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision",
+          "active_action_id",
+          "active_recommendation_kind",
+          "active_recommendation_message",
+          "recommended_lesson",
+          "recommended_lessons",
+          "completed_count",
+          "total_count",
+          "lessons"
+        ],
+        "title": "LessonsListView",
+        "type": "object"
+      },
       "ModelUsage": {
         "additionalProperties": false,
         "properties": {
@@ -3892,6 +4226,208 @@
           }
         },
         "summary": "Income"
+      }
+    },
+    "/v1/lessons": {
+      "get": {
+        "operationId": "get_lessons_v1_lessons_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "action_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Action Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonsListView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Lessons"
+      }
+    },
+    "/v1/lessons/{lesson_id}": {
+      "get": {
+        "operationId": "get_lesson_v1_lessons__lesson_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lesson_id",
+            "required": true,
+            "schema": {
+              "title": "Lesson Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonDetailView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Lesson"
+      }
+    },
+    "/v1/lessons/{lesson_id}/progress": {
+      "post": {
+        "operationId": "save_lesson_progress_v1_lessons__lesson_id__progress_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lesson_id",
+            "required": true,
+            "schema": {
+              "title": "Lesson Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "minLength": 8,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LessonProgressCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonDetailView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save Lesson Progress"
       }
     },
     "/v1/obligations": {

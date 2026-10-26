@@ -89,6 +89,26 @@ export interface AIStatus {
   enabled: boolean; routes: Record<string, string>;
   models: {model: string; requests_today: number; daily_limit: number; requests_last_minute: number; tokens_last_minute: number; cooling_down: boolean}[];
 }
+export interface LessonQuizView {
+  question: string; options: string[]; correct_index: number; explanation: string;
+}
+export interface LessonSummaryView {
+  id: string; title: string; summary: string; related_actions: string[];
+  reviewed: boolean; completed: boolean; selected_index: number | null;
+  correct: boolean | null; completed_on: string | null; recommended_for_current_step: boolean;
+}
+export interface LessonDetailView extends LessonSummaryView {
+  body_markdown: string; paragraphs: string[]; quiz: LessonQuizView;
+}
+export interface LessonsListView {
+  revision: number; active_action_id: string; active_recommendation_kind: string;
+  active_recommendation_message: string; recommended_lesson: LessonSummaryView | null;
+  recommended_lessons: LessonSummaryView[]; completed_count: number; total_count: number;
+  lessons: LessonSummaryView[];
+}
+export interface LessonProgressCommand {
+  revision?: number | null; selected_index?: number | null; completed?: boolean;
+}
 export interface Connection { url: string; token: string }
 let connection: Connection | null = null;
 const storageKey = 'vela-demo-connection';

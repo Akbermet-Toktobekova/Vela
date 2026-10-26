@@ -119,7 +119,7 @@
 - **Verify:** `python -c "import json;print(len(json.load(open('content/lessons/index.json',encoding='utf-8'))))"`.
 
 ### T18 — Journey E: API уроков + экран обучения + прогресс
-- **Model:** Argon · **Status:** in_progress · **Depends on:** T17, T14
+- **Model:** Argon · **Status:** review · **Depends on:** T17, T14
 - **Scope:** `services/api/vela/lessons.py` (новый), `services/api/vela/main.py`, `services/api/tests/test_lessons.py`, `apps/mobile/src/app/learn.tsx` (новый) + `learn/[id].tsx`, `apps/mobile/src/lib/api.ts`, контракты
 - **Acceptance:** `GET /v1/lessons`, `GET /v1/lessons/{id}`, `POST /v1/lessons/{id}/progress` (идемпотентно); урок предлагается контекстно рядом с рекомендацией (`related_actions`); прогресс сохраняется и удаляется при `DELETE /v1/data`.
 - **Verify:** `python scripts/check.py`, `npm run typecheck`, `python scripts/generate-contracts.py`.
