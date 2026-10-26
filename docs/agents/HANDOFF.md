@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T22 (review, Codex GPT-6, attempt 5)
-- **Last reviewed:** 2026-10-26, T22 attempt 4: REWORK; mutation finding closed, monetary recognition partially fixed. Backend 170/170, harness 29/29, schema/offline 5/5, drift 0.
-- **Next action:** Независимый оркестратор в новом чате: `Проверь T22` (attempt 5); T23 ждёт done T22.
+- **Current task:** T22 accepted (attempt 5); T24a rework (attempt 4).
+- **Last reviewed:** 2026-10-26: T22 ACCEPT, T24a REWORK; backend 183/183, targeted 69/69, schema/offline 5/5, drift 0.
+- **Next action:** Astra GPT 6 / Argon: `Выполни T22b` (first remaining eligible task). T23 is now unblocked; T24a needs one remaining complete-token recognition fix. T24b waits for T24a/T23.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -139,3 +139,7 @@ Current task: T24a (review, Codex GPT-6). Four numeric-verifier findings fixed; 
 ## T22 full rework — Attempt 5, 2026-10-26
 
 Исправлено распознавание полного денежного выражения; добавлены проверки всех маркеров валюты, строгая предвалидация каждого прогона, отказ на пустом наборе и ошибках доменных данных, отчёт FAIL при исключении чата, проверка исчезновения State. Harness 37/37, backend 183/183, schema/offline 5/5, drift 0. Во время выполнения другой чат создал 0211175 и 236a0a4 (T24a) и включил часть промежуточных изменений T22; история сохранена. Ревью T22 следует читать относительно 903b56f по файлам T22, а не только последний коммит.
+
+## Review T22 / T24a — 2026-10-26
+
+T22 attempt 5 ACCEPT; T23 dependency unblocked. Non-blocking Markdown false rejection documented in report. T24a attempt 4 REWORK: all four earlier defects fixed, but €1k / €1/2 / €1’000 still approved by balance_cents=100. Needs complete-token rejection instead of prefix approval. Backend 183/183; harness+tools 69/69; schema/offline 5/5; drift 0. T22b remains rework and is next by backlog order. Phase 2 not complete; release gates unchanged. No source edits in this review.
