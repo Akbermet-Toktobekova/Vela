@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T22b (review, GPT-6.1 Sol); T22/T24a remain done.
-- **Last reviewed:** 2026-10-26, T24a attempt 6 ACCEPT; backend 187/187, tools 36/36, independent bypass probes 11/11 rejected.
-- **Next action:** Оркестратор в новом чате: `Проверь T22b`. T23 → GPT-6 Luna; T24b → GPT-6.1 Sol, независимое security-ревью Astra/Argon. T24b ждёт done T23.
+- **Current task:** T22b accepted; T22/T24a remain done. Remaining phase 2: T23, T24b, CHECKPOINT-2.
+- **Last reviewed:** 2026-10-26, T22b ACCEPT; backend 191/191, tools/fallback 40/40, schema/offline 5/5.
+- **Next action:** GPT-6 Luna: `Выполни T23`. Затем независимое ревью; T24b → GPT-6.1 Sol после done T23, security-ревью Astra/Argon.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -178,3 +178,7 @@ ACCEPT, commit reviewed 3ab98f6. Remaining malformed separator/operator finding 
 Ближайшие назначения: T22b → GPT-6.1 Sol; T23 → GPT-6 Luna; T24b → GPT-6.1 Sol с независимым ревью Astra/Argon. Назначения исполнителей уточняют старые поля Model по прямому запросу пользователя, требования приёмки не ослабляются.
 
 Источник общих характеристик: https://developers.openai.com/api/docs/models (проверено 2026-10-26): Sol — баланс качества/стоимости, Luna — экономичные узкие задачи, Astra — сложные задачи. API-цены не используются как доказательство расхода лимитов Codex на пользовательском тарифе.
+
+## T22b review — 2026-10-26
+
+ACCEPT (c8e6d25): обязательное покрытие fallback добавлено; disabled/AIUnavailable, отказы, бюджет, последнее сообщение, неизменность состояния и PII проверены. Backend 191/191; targeted 40/40; schema/offline 5/5; независимые бюджетные эталоны 2/2. Следующее: GPT-6 Luna → Выполни T23. Релизные гейты не повышались.
