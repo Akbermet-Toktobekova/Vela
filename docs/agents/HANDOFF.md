@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T22b accepted; T22/T24a remain done. Remaining phase 2: T23, T24b, CHECKPOINT-2.
+- **Current task:** T23 (review, GPT-6 Luna).
 - **Last reviewed:** 2026-10-26, T22b ACCEPT; backend 191/191, tools/fallback 40/40, schema/offline 5/5.
-- **Next action:** GPT-6 Luna: `Выполни T23`. Затем независимое ревью; T24b → GPT-6.1 Sol после done T23, security-ревью Astra/Argon.
+- **Next action:** Оркестратор в новом чате: `Проверь T23`. T24b ждёт done T23; после приёмки выполнить T24b на GPT-6.1 Sol и передать на security-ревью Astra/Argon.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю

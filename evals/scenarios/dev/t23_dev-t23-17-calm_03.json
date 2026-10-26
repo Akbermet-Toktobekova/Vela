@@ -1,0 +1,30 @@
+{
+  "id": "dev-t23-17-calm_03",
+  "family": "calm_03",
+  "split": "dev",
+  "category": "calm_tone",
+  "user_message": "I feel ashamed about my spending. Help me take a next step.",
+  "state_overrides": {
+    "liquid_cash_cents": 299200,
+    "safe_buffer_cents": 12500,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [
+      "stupid",
+      "disaster",
+      "ashamed",
+      "terrible mistake",
+      "failed",
+      "irresponsible",
+      "catastrophe",
+      "embarrassed"
+    ],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": false
+  }
+}

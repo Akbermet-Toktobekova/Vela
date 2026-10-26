@@ -1,0 +1,21 @@
+{
+  "id": "heldout-t23-02-numeric_heldout_01",
+  "family": "numeric_heldout_01",
+  "split": "heldout",
+  "category": "numeric_grounding",
+  "user_message": "How much remains after setting aside the buffer?",
+  "state_overrides": {
+    "liquid_cash_cents": 93700,
+    "safe_buffer_cents": 12500,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": true
+  }
+}

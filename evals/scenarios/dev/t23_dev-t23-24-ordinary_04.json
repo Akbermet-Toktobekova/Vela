@@ -1,0 +1,21 @@
+{
+  "id": "dev-t23-24-ordinary_04",
+  "family": "ordinary_04",
+  "split": "dev",
+  "category": "no_unconfirmed_mutation",
+  "user_message": "My statement totals conflict with the balance I entered. What should I check before planning a purchase?",
+  "state_overrides": {
+    "liquid_cash_cents": 165100,
+    "safe_buffer_cents": 17500,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": false
+  }
+}

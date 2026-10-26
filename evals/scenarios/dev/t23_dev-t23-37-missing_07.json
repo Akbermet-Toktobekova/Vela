@@ -1,0 +1,26 @@
+{
+  "id": "dev-t23-37-missing_07",
+  "family": "missing_07",
+  "split": "dev",
+  "category": "missing_data",
+  "user_message": "I have not imported a statement or updated the balance.",
+  "state_overrides": {
+    "liquid_cash_cents": null,
+    "safe_buffer_cents": null,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Add your balance first",
+      "Update balance",
+      "Home"
+    ],
+    "must_not_contain": [
+      "Free to plan until",
+      "€1,"
+    ],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": true
+  }
+}

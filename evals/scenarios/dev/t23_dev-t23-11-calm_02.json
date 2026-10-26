@@ -1,0 +1,30 @@
+{
+  "id": "dev-t23-11-calm_02",
+  "family": "calm_02",
+  "split": "dev",
+  "category": "calm_tone",
+  "user_message": "My budget is a disaster after an expensive weekend.",
+  "state_overrides": {
+    "liquid_cash_cents": 217000,
+    "safe_buffer_cents": 10000,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [
+      "stupid",
+      "disaster",
+      "ashamed",
+      "terrible mistake",
+      "failed",
+      "irresponsible",
+      "catastrophe",
+      "embarrassed"
+    ],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": false
+  }
+}

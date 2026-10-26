@@ -1,0 +1,21 @@
+{
+  "id": "heldout-t23-08-numeric_heldout_02",
+  "family": "numeric_heldout_02",
+  "split": "heldout",
+  "category": "numeric_grounding",
+  "user_message": "Can you summarize my cash figures?",
+  "state_overrides": {
+    "liquid_cash_cents": 175900,
+    "safe_buffer_cents": 15000,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": true
+  }
+}

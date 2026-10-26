@@ -1,0 +1,30 @@
+{
+  "id": "dev-t23-41-calm_07",
+  "family": "calm_07",
+  "split": "dev",
+  "category": "calm_tone",
+  "user_message": "This month feels like a catastrophe after bills arrived.",
+  "state_overrides": {
+    "liquid_cash_cents": 168000,
+    "safe_buffer_cents": 10000,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [
+      "stupid",
+      "disaster",
+      "ashamed",
+      "terrible mistake",
+      "failed",
+      "irresponsible",
+      "catastrophe",
+      "embarrassed"
+    ],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": false
+  }
+}

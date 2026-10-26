@@ -1,0 +1,26 @@
+{
+  "id": "dev-t23-01-missing_01",
+  "family": "missing_01",
+  "split": "dev",
+  "category": "missing_data",
+  "user_message": "My balance has not been entered yet; can you tell me what I can safely spend?",
+  "state_overrides": {
+    "liquid_cash_cents": null,
+    "safe_buffer_cents": null,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Add your balance first",
+      "Update balance",
+      "Home"
+    ],
+    "must_not_contain": [
+      "Free to plan until",
+      "€1,"
+    ],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": true
+  }
+}

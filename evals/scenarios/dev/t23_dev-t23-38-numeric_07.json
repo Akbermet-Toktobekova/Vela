@@ -1,0 +1,21 @@
+{
+  "id": "dev-t23-38-numeric_07",
+  "family": "numeric_07",
+  "split": "dev",
+  "category": "numeric_grounding",
+  "user_message": "What amount is free to plan through the horizon?",
+  "state_overrides": {
+    "liquid_cash_cents": 126900,
+    "safe_buffer_cents": 15000,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": true
+  }
+}

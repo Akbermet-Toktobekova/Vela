@@ -1,0 +1,30 @@
+{
+  "id": "heldout-t23-05-calm_heldout_01",
+  "family": "calm_heldout_01",
+  "split": "heldout",
+  "category": "calm_tone",
+  "user_message": "I made a terrible mistake with shopping. What now?",
+  "state_overrides": {
+    "liquid_cash_cents": 134800,
+    "safe_buffer_cents": 20000,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [
+      "stupid",
+      "disaster",
+      "ashamed",
+      "terrible mistake",
+      "failed",
+      "irresponsible",
+      "catastrophe",
+      "embarrassed"
+    ],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": false
+  }
+}

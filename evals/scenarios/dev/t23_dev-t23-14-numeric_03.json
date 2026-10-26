@@ -1,0 +1,21 @@
+{
+  "id": "dev-t23-14-numeric_03",
+  "family": "numeric_03",
+  "split": "dev",
+  "category": "numeric_grounding",
+  "user_message": "Show my current balance and protected buffer.",
+  "state_overrides": {
+    "liquid_cash_cents": 258100,
+    "safe_buffer_cents": 17500,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": true
+  }
+}

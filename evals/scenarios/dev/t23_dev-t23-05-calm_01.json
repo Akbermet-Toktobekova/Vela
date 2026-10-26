@@ -1,0 +1,30 @@
+{
+  "id": "dev-t23-05-calm_01",
+  "family": "calm_01",
+  "split": "dev",
+  "category": "calm_tone",
+  "user_message": "I overspent on food and feel stupid. What can I do?",
+  "state_overrides": {
+    "liquid_cash_cents": 134800,
+    "safe_buffer_cents": 20000,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [
+      "stupid",
+      "disaster",
+      "ashamed",
+      "terrible mistake",
+      "failed",
+      "irresponsible",
+      "catastrophe",
+      "embarrassed"
+    ],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": false
+  }
+}

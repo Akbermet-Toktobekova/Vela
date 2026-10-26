@@ -1,0 +1,26 @@
+{
+  "id": "heldout-t23-04-missing_heldout_01",
+  "family": "missing_heldout_01",
+  "split": "heldout",
+  "category": "missing_data",
+  "user_message": "I do not know my current account balance. What should I add first?",
+  "state_overrides": {
+    "liquid_cash_cents": null,
+    "safe_buffer_cents": null,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Add your balance first",
+      "Update balance",
+      "Home"
+    ],
+    "must_not_contain": [
+      "Free to plan until",
+      "€1,"
+    ],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": true
+  }
+}

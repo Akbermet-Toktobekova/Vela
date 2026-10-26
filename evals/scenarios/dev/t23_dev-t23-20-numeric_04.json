@@ -1,0 +1,29 @@
+{
+  "id": "dev-t23-20-numeric_04",
+  "family": "numeric_04",
+  "split": "dev",
+  "category": "numeric_grounding",
+  "user_message": "I have an urgent shortfall before rent is due. Show my current balance and protected buffer.",
+  "state_overrides": {
+    "liquid_cash_cents": 110300,
+    "safe_buffer_cents": 20000,
+    "obligations": [
+      {
+        "id": "urgent-rent-shortfall",
+        "label": "Rent due soon",
+        "amount_cents": 180000,
+        "due": "2026-03-05",
+        "kind": "rent"
+      }
+    ],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": true
+  }
+}

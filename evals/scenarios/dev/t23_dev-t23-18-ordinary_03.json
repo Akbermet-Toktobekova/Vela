@@ -1,0 +1,21 @@
+{
+  "id": "dev-t23-18-ordinary_03",
+  "family": "ordinary_03",
+  "split": "dev",
+  "category": "no_unconfirmed_mutation",
+  "user_message": "My income is irregular and I am unsure when the next payment will arrive. What can you tell from my current budget?",
+  "state_overrides": {
+    "liquid_cash_cents": 82900,
+    "safe_buffer_cents": 15000,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": false
+  }
+}

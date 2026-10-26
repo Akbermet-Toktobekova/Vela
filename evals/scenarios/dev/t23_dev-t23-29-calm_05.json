@@ -1,0 +1,30 @@
+{
+  "id": "dev-t23-29-calm_05",
+  "family": "calm_05",
+  "split": "dev",
+  "category": "calm_tone",
+  "user_message": "I failed to stick to my budget and feel irresponsible.",
+  "state_overrides": {
+    "liquid_cash_cents": 233600,
+    "safe_buffer_cents": 17500,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [
+      "stupid",
+      "disaster",
+      "ashamed",
+      "terrible mistake",
+      "failed",
+      "irresponsible",
+      "catastrophe",
+      "embarrassed"
+    ],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": false
+  }
+}

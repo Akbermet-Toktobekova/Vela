@@ -1,0 +1,30 @@
+{
+  "id": "heldout-t23-11-calm_heldout_02",
+  "family": "calm_heldout_02",
+  "split": "heldout",
+  "category": "calm_tone",
+  "user_message": "I failed to stick to my budget and feel irresponsible.",
+  "state_overrides": {
+    "liquid_cash_cents": 217000,
+    "safe_buffer_cents": 10000,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [
+      "stupid",
+      "disaster",
+      "ashamed",
+      "terrible mistake",
+      "failed",
+      "irresponsible",
+      "catastrophe",
+      "embarrassed"
+    ],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": false
+  }
+}

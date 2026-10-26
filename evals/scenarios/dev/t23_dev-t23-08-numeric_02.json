@@ -1,0 +1,21 @@
+{
+  "id": "dev-t23-08-numeric_02",
+  "family": "numeric_02",
+  "split": "dev",
+  "category": "numeric_grounding",
+  "user_message": "What is the available amount for a plan?",
+  "state_overrides": {
+    "liquid_cash_cents": 175900,
+    "safe_buffer_cents": 15000,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": true
+  }
+}

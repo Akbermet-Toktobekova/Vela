@@ -1,0 +1,21 @@
+{
+  "id": "dev-t23-26-numeric_05",
+  "family": "numeric_05",
+  "split": "dev",
+  "category": "numeric_grounding",
+  "user_message": "Can you summarize my cash figures?",
+  "state_overrides": {
+    "liquid_cash_cents": 192500,
+    "safe_buffer_cents": 10000,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash"
+    ],
+    "must_not_contain": [],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": true
+  }
+}
