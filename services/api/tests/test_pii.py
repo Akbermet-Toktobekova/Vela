@@ -1,8 +1,10 @@
 """Unit tests for PII masking module."""
 import os
+from datetime import date
 from pathlib import Path
 import sys
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 api_root = Path(__file__).resolve().parents[1]
@@ -401,6 +403,97 @@ class TestPIIRegressionsEscalationAttempt3(unittest.TestCase):
             with self.subTest(card=card):
                 self.assertTrue(is_valid_luhn(card))
                 self.assertEqual(mask_pii(card, force=True), "[REDACTED_CARD]")
+
+
+class TestPIIGeminiIntegration(unittest.IsolatedAsyncioTestCase):
+    async def test_chat_sends_only_masked_history_to_mock_gemini(self):
+        from vela import chat as chat_module
+        from vela.domain import State, fixture
+
+        iban = "DE89 3704 0044 0532 0130 00"
+        card = "4532 0150 1234 5671"
+        captured = {}
+
+        async def fake_generate(quotas, route, contents, config, tokens, timeout_ms=0):
+            captured.update(route=route, contents=contents, config=config)
+            return SimpleNamespace(text="I can help with that."), "gemini-test"
+
+        today = date(2026, 10, 26)
+        request = chat_module.ChatRequest(messages=[{
+            "role": "user",
+            "content": f"Check IBAN {iban} and card {card}",
+        }])
+        with patch.dict(os.environ, {"PII_MASKING": "true"}), patch.object(chat_module, "generate", fake_generate):
+            result = await chat_module.chat(request, State(snapshot=fixture(today)), today, object())
+
+        sent = str(captured)
+        self.assertEqual((captured["route"], result["source"]), ("chat", "gemini"))
+        self.assertNotIn(iban, sent)
+        self.assertNotIn(card, sent)
+        self.assertIn("[REDACTED_IBAN]", sent)
+        self.assertIn("[REDACTED_CARD]", sent)
+
+    async def test_categorization_sends_only_masked_descriptions(self):
+        from vela import imports as imports_module
+
+        iban = "DE89 3704 0044 0532 0130 00"
+        card = "4532 0150 1234 5671"
+        transactions = [{
+            "description": f"Transfer {iban}; card {card}",
+            "amount": -1250,
+            "category": "other",
+        }]
+        captured = {}
+
+        async def fake_generate(quotas, route, contents, config, tokens, timeout_ms=0):
+            captured.update(route=route, contents=contents)
+            return SimpleNamespace(text='{"items":[{"i":0,"category":"transfers"}]}'), "gemini-test"
+
+        with patch.dict(os.environ, {"PII_MASKING": "true"}), patch.object(imports_module, "generate", fake_generate):
+            ok, model = await imports_module.ai_categorize(transactions, object())
+
+        self.assertTrue(ok)
+        self.assertEqual(model, "gemini-test")
+        self.assertEqual(transactions[0]["category"], "transfers")
+        self.assertEqual(captured["route"], "categorize")
+        self.assertNotIn(iban, captured["contents"])
+        self.assertNotIn(card, captured["contents"])
+        self.assertIn("[REDACTED_IBAN]", captured["contents"])
+        self.assertIn("[REDACTED_CARD]", captured["contents"])
+
+    async def test_document_text_is_masked_before_mock_gemini(self):
+        from vela import imports as imports_module
+
+        iban = "DE89 3704 0044 0532 0130 00"
+        card = "4532 0150 1234 5671"
+        captured = {}
+
+        async def fake_generate(quotas, route, contents, config, tokens, timeout_ms=0):
+            captured.update(route=route, contents=contents)
+            payload = ('{"currency":"EUR","opening_balance":20.0,"closing_balance":10.0,'
+                       '"transactions":[{"date":"2026-10-01","description":"Spotify",'
+                       '"amount":-10.0,"category":"subscriptions"}]}')
+            return SimpleNamespace(text=payload), "gemini-test"
+
+        statement = f"Account {iban}\nCard {card}\n2026-10-01 Spotify -10.00 EUR"
+        with patch.dict(os.environ, {"PII_MASKING": "true"}), patch.object(imports_module, "generate", fake_generate):
+            rows, meta, model = await imports_module.ai_read(b"", "text/plain", object(), text=statement)
+
+        sent_text = captured["contents"][1]
+        self.assertNotIn(iban, sent_text)
+        self.assertNotIn(card, sent_text)
+        self.assertIn("[REDACTED_IBAN]", sent_text)
+        self.assertIn("[REDACTED_CARD]", sent_text)
+        self.assertEqual((rows[0]["category"], meta["currency"], model),
+                         ("subscriptions", "EUR", "gemini-test"))
+
+    async def test_raw_document_requires_explicit_opt_in(self):
+        from vela import imports as imports_module
+
+        env = {"PII_MASKING": "true", "ENABLE_GEMINI": "true", "GEMINI_API_KEY": "test"}
+        with patch.dict(os.environ, env, clear=False), patch.dict(os.environ, {"ALLOW_RAW_DOCUMENT_AI": ""}):
+            with self.assertRaisesRegex(imports_module.ImportError_, "Raw document AI is disabled"):
+                await imports_module.ai_read(b"%PDF-1.4", "application/pdf", object())
 
 
 if __name__ == "__main__":

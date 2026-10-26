@@ -8,6 +8,8 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from .pii import is_pii_masking_enabled, mask_pii
+
 MODELS = ("gemini-3.1-flash-lite", "gemini-3.5-flash-lite")
 # Routing: chat (frequent, short) prefers 3.1; document reading (rare, long) prefers 3.5.
 # Each falls back to the other model when its own budget or the provider rejects a request.
@@ -90,6 +92,19 @@ def estimate_tokens(*parts) -> int:
     return sum(len(p) if isinstance(p, (bytes, bytearray)) else len(str(p)) for p in parts) // 3 + 256
 
 
+def _mask_text_payload(value):
+    """Mask every plain-text leaf while leaving SDK binary parts untouched."""
+    if isinstance(value, str):
+        return mask_pii(value)
+    if isinstance(value, list):
+        return [_mask_text_payload(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_mask_text_payload(item) for item in value)
+    if isinstance(value, dict):
+        return {key: _mask_text_payload(item) for key, item in value.items()}
+    return value
+
+
 async def generate(quotas: Quotas, route: str, contents, config: dict, tokens: int, timeout_ms: int = 30_000):
     """Runs one generate_content call, trying the preferred model then the other one.
 
@@ -97,6 +112,9 @@ async def generate(quotas: Quotas, route: str, contents, config: dict, tokens: i
     """
     if not enabled():
         raise AIUnavailable("The AI service is turned off. Set ENABLE_GEMINI=true and GEMINI_API_KEY in services/api/.env.")
+    if is_pii_masking_enabled():
+        contents = _mask_text_payload(contents)
+        config = _mask_text_payload(config)
     from google import genai
     from google.genai import types
     preferred = ROUTES[route]

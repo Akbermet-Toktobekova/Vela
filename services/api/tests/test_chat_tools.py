@@ -468,6 +468,45 @@ class TestChatTools(unittest.TestCase):
         self.assertIsNone(cf_empty["income_cents"])
         self.assertIsNone(cf_empty["spending_cents"])
 
+    def test_suffix_currency_hallucination(self):
+        ok, unconfirmed = verify_reply_numbers("Balance: 999 EUR", {"balance_cents": 10000})
+        self.assertFalse(ok)
+        self.assertEqual(unconfirmed, ["999 EUR"])
+
+    def test_multiple_hallucinations(self):
+        ok, unconfirmed = verify_reply_numbers("€999 at 99%", {"balance_cents": 10000, "apr_bps": 1850})
+        self.assertFalse(ok)
+        self.assertEqual(unconfirmed, ["€999", "99%"])
+
+    def test_negative_and_zero_amounts(self):
+        outputs = {"net_cash_flow_cents": -12540, "balance_cents": 0}
+        ok, unconfirmed = verify_reply_numbers("Net flow: -€125.40; balance: €0", outputs)
+        self.assertTrue(ok, unconfirmed)
+
+    def test_state_view_compatibility(self):
+        state_view = StateView(**view(self.state, self.today))
+        spending = get_spending_by_category(state_view)
+        self.assertIsNone(spending["subscriptions_total_cents"])
+        self.assertIsNone(spending["subscriptions_total_eur"])
+        self.assertEqual(spending["source"], "summary")
+
+    def test_regression_review_p1_ambiguous_dot_is_german_thousands(self):
+        ok, unconfirmed = verify_reply_numbers("Balance: €1.234", {"balance_cents": 123400})
+        self.assertTrue(ok, unconfirmed)
+        ok, unconfirmed = verify_reply_numbers("Balance: €1.234", {"balance_cents": 123})
+        self.assertFalse(ok)
+        self.assertEqual(unconfirmed, ["€1.234"])
+        ok, unconfirmed = verify_reply_numbers("Balance: €1.000", {"balance_cents": 100})
+        self.assertFalse(ok)
+        self.assertEqual(unconfirmed, ["€1.000"])
+
+    def test_regression_review_p2_summary_requires_matching_horizon(self):
+        state_view = StateView(**view(self.state, self.today))
+        cash_flow = calculate_cash_flow(state_view, days=1)
+        self.assertFalse(cash_flow["data_available"])
+        self.assertIsNone(cash_flow["income_cents"])
+        self.assertEqual(cash_flow["source"], "summary_unavailable_for_requested_horizon")
+
 
 if __name__ == "__main__":
     unittest.main()

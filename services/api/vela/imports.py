@@ -2,6 +2,7 @@
 import csv
 import hashlib
 import io
+import os
 import re
 import statistics
 from collections import defaultdict
@@ -11,6 +12,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 from .ai import Quotas, generate, estimate_tokens, AIUnavailable, enabled, parse_json
 from .domain import CATEGORIES, Category, Record, Transaction, SignedMoney
+from .pii import is_pii_masking_enabled, mask_pii
 
 MAX_BYTES = 15 * 1024 * 1024
 MAX_ROWS = 3000
@@ -45,6 +47,11 @@ class ImportPreview(Record):
 
 class ImportError_(ValueError):
     pass
+
+
+def raw_document_ai_allowed() -> bool:
+    """Raw documents require explicit consent while PII masking is enabled."""
+    return not is_pii_masking_enabled() or os.getenv("ALLOW_RAW_DOCUMENT_AI", "").strip().lower() == "true"
 
 
 # ---------- value parsing ----------
@@ -401,6 +408,8 @@ async def ai_categorize(txns: list[dict], quotas: Quotas) -> tuple[bool, str | N
         if key not in uniques and len(uniques) < 300:
             uniques[key] = len(uniques)
     payload = "\n".join(f"{i}\t{d}" for d, i in uniques.items())
+    if is_pii_masking_enabled():
+        payload = mask_pii(payload)
     try:
         response, model = await generate(quotas, "categorize",
             f"Categorize each bank transaction description. Lines are index<TAB>description.\n{payload}",
@@ -487,9 +496,12 @@ DOC_PROMPT = ("Extract every transaction from this bank or card statement. Use t
 
 
 async def ai_read(data: bytes, mime: str, quotas: Quotas, text: str | None = None) -> tuple[list[dict], dict, str]:
+    if text is None and enabled() and not raw_document_ai_allowed():
+        raise ImportError_("Raw document AI is disabled while PII masking is enabled.")
     from google.genai import types
-    contents = [DOC_PROMPT, text] if text is not None else [types.Part.from_bytes(data=data, mime_type=mime), DOC_PROMPT]
-    tokens = estimate_tokens(text) if text is not None else max(4000, min(60_000, len(data) // 50))
+    safe_text = mask_pii(text) if text is not None and is_pii_masking_enabled() else text
+    contents = [DOC_PROMPT, safe_text] if safe_text is not None else [types.Part.from_bytes(data=data, mime_type=mime), DOC_PROMPT]
+    tokens = estimate_tokens(safe_text) if safe_text is not None else max(4000, min(60_000, len(data) // 50))
     response, model = await generate(quotas, "document", contents,
         {"response_mime_type": "application/json", "response_schema": _AiStatement, "temperature": 0, "max_output_tokens": 16384},
         tokens + 8000, timeout_ms=90_000)
@@ -558,14 +570,21 @@ async def build_preview(data: bytes, filename: str, content_type: str | None, qu
                     warnings.append("Categories were guessed from keywords.")
         elif kind == "pdf":
             extracted = pdf_text(data)
+            allow_raw = raw_document_ai_allowed()
+            if enabled() and not allow_raw:
+                warnings.append("Raw PDF was not sent to Gemini; locally extracted text was masked before AI processing.")
             try:
                 if len(extracted) >= 80:
                     rows, meta, model = await ai_read(b"", "text/plain", quotas, text=extracted[:250_000])
-                else:
+                elif allow_raw or not enabled():
                     rows, meta, model = await ai_read(data, "application/pdf", quotas)
-                parser = "gemini"
+                else:
+                    rows = parse_pdf_lines(extracted)
+                    for r in rows:
+                        r["category"] = keyword_category(r["description"], r["amount"])
+                parser = "gemini" if model is not None else "local"
             except Exception as pdf_error:
-                if len(extracted) >= 80:
+                if len(extracted) >= 80 and allow_raw:
                     try:
                         rows, meta, model = await ai_read(data, "application/pdf", quotas)
                         parser = "gemini"
@@ -582,6 +601,8 @@ async def build_preview(data: bytes, filename: str, content_type: str | None, qu
                         raise
                     raise ImportError_("No transactions found in this PDF.") from pdf_error
         else:
+            if enabled() and not raw_document_ai_allowed():
+                raise ImportError_("Image import requires ALLOW_RAW_DOCUMENT_AI=true while PII masking is enabled.")
             mime = content_type if (content_type or "").startswith("image/") else "image/jpeg"
             rows, meta, model = await ai_read(data, mime, quotas)
             parser = "gemini"

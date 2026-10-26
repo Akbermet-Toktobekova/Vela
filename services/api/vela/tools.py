@@ -98,8 +98,9 @@ def parse_currency_candidates_to_cents(raw_match: str) -> list[int]:
             elif len(dec_str) == 2:
                 cents = whole * 100 + int(dec_str)
             else:
-                frac3 = int(dec_str[:3].ljust(3, "0"))
-                cents = whole * 100 + (frac3 + 5) // 10
+                # Financial amounts have at most cents precision. Rounding an
+                # unsupported third digit would silently change the claim.
+                return []
         candidates.append(sign * cents)
         return candidates
 
@@ -123,19 +124,14 @@ def parse_currency_candidates_to_cents(raw_match: str) -> list[int]:
             candidates.append(sign * cents)
             return candidates
 
-    # Format with dot only
+    # Format with dot only. A single dot followed by exactly three digits is a
+    # German thousands separator, not a three-digit EUR decimal.
     if "." in clean:
         parts = clean.split(".")
-        if len(parts) == 2 and len(parts[1]) == 3 and len(parts[0]) <= 3:
-            # Ambiguous: could be thousands (1.000) or decimal (1.000)
-            whole_th = int(clean.replace(".", ""))
-            cents_th = whole_th if is_cents_unit else whole_th * 100
-            candidates.append(sign * cents_th)
-
-            whole_dec = int(parts[0]) if parts[0] else 0
-            cents_dec = (whole_dec if is_cents_unit else whole_dec * 100) + int(parts[1][:2])
-            candidates.append(sign * cents_dec)
-            return candidates
+        if len(parts) == 2 and len(parts[1]) == 3 and parts[0].isdigit() and parts[1].isdigit():
+            whole = int(clean.replace(".", ""))
+            cents = whole if is_cents_unit else whole * 100
+            return [sign * cents]
         elif len(parts) == 2:
             whole = int(parts[0]) if parts[0] else 0
             dec_str = parts[1]
@@ -147,8 +143,7 @@ def parse_currency_candidates_to_cents(raw_match: str) -> list[int]:
                 elif len(dec_str) == 2:
                     cents = whole * 100 + int(dec_str)
                 else:
-                    frac3 = int(dec_str[:3].ljust(3, "0"))
-                    cents = whole * 100 + (frac3 + 5) // 10
+                    return []
             candidates.append(sign * cents)
             return candidates
 
@@ -360,11 +355,26 @@ def calculate_cash_flow(state: State | StateView | dict | Any, days: int = 30) -
         spending_cents = _get(summary_obj, "spending", 0)
         net_flow_cents = income_cents - spending_cents
 
+        if not isinstance(p_start, date):
+            p_start = _parse_date(p_start)
+        if not isinstance(p_end, date):
+            p_end = _parse_date(p_end)
+        summary_days = (p_end - p_start).days + 1 if p_start and p_end else None
+        if summary_days != days:
+            return {
+                "days": days, "transaction_count": None, "period_start": None, "period_end": None,
+                "income_cents": None, "income_eur": None, "spending_cents": None, "spending_eur": None,
+                "net_cash_flow_cents": None, "net_cash_flow_eur": None,
+                "min_projected_balance_cents": min_projected_cents,
+                "min_projected_balance_eur": min_projected_eur,
+                "data_available": False, "source": "summary_unavailable_for_requested_horizon",
+            }
+
         return {
-            "days": days,
+            "days": summary_days,
             "transaction_count": tx_count,
-            "period_start": str(p_start) if p_start else None,
-            "period_end": str(p_end) if p_end else None,
+            "period_start": p_start.isoformat() if p_start else None,
+            "period_end": p_end.isoformat() if p_end else None,
             "income_cents": income_cents,
             "income_eur": format_eur(income_cents),
             "spending_cents": spending_cents,
@@ -462,6 +472,10 @@ def simulate_debt_payment(state: State | StateView | dict | Any, extra_payment_c
             "months_saved": p.months_saved,
         }
 
+    def _format_apr(bps: int) -> str:
+        whole, fractional = divmod(bps, 100)
+        return f"{whole}%" if fractional == 0 else f"{whole}.{fractional:02d}%"
+
     debts_summary = [
         {
             "id": d.id,
@@ -469,7 +483,7 @@ def simulate_debt_payment(state: State | StateView | dict | Any, extra_payment_c
             "balance_cents": d.balance_cents,
             "balance_eur": format_eur(d.balance_cents),
             "apr_bps": d.apr_bps,
-            "apr_percent": f"{d.apr_bps // 100}%" if d.apr_bps % 100 == 0 else f"{d.apr_bps / 100:.2f}%",
+            "apr_percent": _format_apr(d.apr_bps),
             "min_payment_cents": d.min_payment_cents,
             "min_payment_eur": format_eur(d.min_payment_cents),
             "due_day": d.due_day,
@@ -572,9 +586,10 @@ def get_spending_by_category(state: State | StateView | dict | Any, limit: int =
             "total_spending_eur": format_eur(total_spending_cents),
             "top_categories": top_categories,
             "subscriptions": [],
-            "subscriptions_total_cents": 0,
-            "subscriptions_total_eur": format_eur(0),
-            "subscriptions_note": "Detailed subscription items require raw transactions",
+            # Summary has no subscription details; zero would fabricate a fact.
+            "subscriptions_total_cents": None,
+            "subscriptions_total_eur": None,
+            "subscriptions_note": "Subscription totals require raw transactions",
             "data_available": True,
             "source": "summary",
         }
