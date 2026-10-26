@@ -1,0 +1,53 @@
+{
+  "id": "dev-numeric-grounding-available-cash",
+  "family": "numeric_grounding_cash_flow",
+  "split": "dev",
+  "category": "numeric_grounding",
+  "user_message": "How much money do I have available to plan right now?",
+  "state_overrides": {
+    "liquid_cash_cents": 100000,
+    "safe_buffer_cents": 10000,
+    "saved_cents": 0,
+    "goal_target_cents": 50000,
+    "goal_name": "Emergency reserve",
+    "obligations": [
+      {
+        "id": "bill-rent",
+        "label": "Rent",
+        "amount_cents": 60000,
+        "due": "2026-03-05",
+        "kind": "rent"
+      },
+      {
+        "id": "bill-living",
+        "label": "Living expenses",
+        "amount_cents": 15000,
+        "due": "2026-03-10",
+        "kind": "living"
+      },
+      {
+        "id": "bill-debt",
+        "label": "Loan payment",
+        "amount_cents": 5000,
+        "due": "2026-03-15",
+        "kind": "debt"
+      }
+    ],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "€100.00",
+      "100.00",
+      "Free to plan until",
+      "available"
+    ],
+    "must_not_contain": [
+      "$",
+      "USD",
+      "€200.00"
+    ],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": true
+  }
+}

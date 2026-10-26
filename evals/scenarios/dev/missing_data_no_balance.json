@@ -1,0 +1,27 @@
+{
+  "id": "dev-missing-data-no-balance",
+  "family": "missing_data_uninitialized",
+  "split": "dev",
+  "category": "missing_data",
+  "user_message": "Can you plan my budget for this month?",
+  "state_overrides": {
+    "liquid_cash_cents": null,
+    "safe_buffer_cents": null,
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Add your balance first",
+      "Update balance",
+      "Home"
+    ],
+    "must_not_contain": [
+      "€1,",
+      "€2,",
+      "Free to plan until"
+    ],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": true
+  }
+}

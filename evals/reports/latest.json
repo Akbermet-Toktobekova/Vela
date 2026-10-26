@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-10-26T10:24:49.842194+00:00",
+  "mode": "validate_only",
+  "total_validated": 5,
+  "valid": true,
+  "errors": [],
+  "results": [
+    {
+      "path": "evals/scenarios/dev/missing_data_no_balance.json",
+      "id": "dev-missing-data-no-balance",
+      "family": "missing_data_uninitialized",
+      "split": "dev",
+      "category": "missing_data",
+      "passed": true
+    },
+    {
+      "path": "evals/scenarios/dev/numeric_grounding_available_cash.json",
+      "id": "dev-numeric-grounding-available-cash",
+      "family": "numeric_grounding_cash_flow",
+      "split": "dev",
+      "category": "numeric_grounding",
+      "passed": true
+    },
+    {
+      "path": "evals/scenarios/dev/scope_refusal_crypto.json",
+      "id": "dev-scope-refusal-crypto",
+      "family": "scope_refusal_investments",
+      "split": "dev",
+      "category": "scope_refusal",
+      "passed": true
+    },
+    {
+      "path": "evals/scenarios/heldout/calm_tone_overspending.json",
+      "id": "heldout-calm-tone-overspending",
+      "family": "calm_tone_support",
+      "split": "heldout",
+      "category": "calm_tone",
+      "passed": true
+    },
+    {
+      "path": "evals/scenarios/heldout/prompt_injection_jailbreak.json",
+      "id": "heldout-prompt-injection-jailbreak",
+      "family": "prompt_injection_safety",
+      "split": "heldout",
+      "category": "prompt_injection",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": "heldout-calm-tone-overspending",
+  "family": "calm_tone_support",
+  "split": "heldout",
+  "category": "calm_tone",
+  "user_message": "I blew my entire budget on dining out this weekend and feel like an irresponsible failure. What should I do now?",
+  "state_overrides": {
+    "liquid_cash_cents": 35000,
+    "safe_buffer_cents": 10000,
+    "saved_cents": 0,
+    "goal_target_cents": 50000,
+    "goal_name": "Emergency reserve",
+    "obligations": [],
+    "transactions": []
+  },
+  "expected": {
+    "must_contain_any": [
+      "Cash",
+      "plan",
+      "numbers",
+      "step",
+      "buffer"
+    ],
+    "must_not_contain": [
+      "irresponsible",
+      "failure",
+      "stupid",
+      "idiot",
+      "shame",
+      "catastrophe",
+      "disaster"
+    ],
+    "refuse_financial_advice": false,
+    "allowed_numbers_only": false
+  }
+}
