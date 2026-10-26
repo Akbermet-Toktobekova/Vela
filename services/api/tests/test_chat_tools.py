@@ -2,14 +2,20 @@
 
 from datetime import date, timedelta
 from pathlib import Path
+import json
+import os
 import sys
+import tempfile
 import unittest
+from unittest.mock import AsyncMock, patch
 
 api_root = Path(__file__).resolve().parents[1]
 if str(api_root) not in sys.path:
     sys.path.insert(0, str(api_root))
 
 from vela.debt import compare_and_simulate
+from vela.ai import AIUnavailable, Quotas, enabled, money
+from vela.chat import ChatMessage, ChatRequest, chat
 from vela.domain import Action, Debt, Obligation, Snapshot, State, StateView, Transaction, capacity, view
 from vela.tools import (
     calculate_cash_flow,
@@ -577,6 +583,110 @@ class TestChatTools(unittest.TestCase):
                      '€1... Next step.', '1 cent.', '**1 cent**'):
             with self.subTest(text=text):
                 self.assertEqual(verify_reply_numbers(text, {'balance_cents': 100, 'other_cents': 1, 'apr_bps': 100}), (True, []))
+
+
+class TestChatFallback(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.today = date(2026, 3, 1)
+        self.state = State(revision=7, snapshot=Snapshot(
+            as_of=self.today, horizon=self.today + timedelta(days=30),
+            cash=100000, protected=10000,
+            obligations=[Obligation(id="rent", label="Rent", amount=60000,
+                                    due=self.today + timedelta(days=5))],
+        ))
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp_dir.cleanup)
+        self.quotas = Quotas(Path(self.temp_dir.name) / "quotas.db")
+
+    async def assert_fallback(self, request, *, disabled):
+        before = self.state.model_dump(mode="python")
+        request_before = request.model_dump(mode="python")
+        env = {"ENABLE_GEMINI": "false" if disabled else "true",
+               "GEMINI_API_KEY": "test-only", "PII_MASKING": "true"}
+        with patch.dict(os.environ, env):
+            if disabled:
+                # Exercise real generate's disabled gate; transport and quota
+                # reservation must never be reached even when a key is set.
+                with patch("vela.ai.enabled", wraps=enabled) as enabled_mock, patch.object(
+                    self.quotas, "reserve", side_effect=AssertionError("disabled Gemini reserved quota")
+                ):
+                    result = await chat(request, self.state, self.today, self.quotas)
+                    enabled_mock.assert_called_once()
+            else:
+                with patch("vela.chat.generate", new=AsyncMock(side_effect=AIUnavailable("Service unavailable"))) as generate_mock:
+                    result = await chat(request, self.state, self.today, self.quotas)
+                    generate_mock.assert_awaited_once()
+        self.assertEqual(self.state.model_dump(mode="python"), before)
+        self.assertEqual(request.model_dump(mode="python"), request_before)
+        self.assertEqual((result["source"], result["model"], result["revision"]), ("local", None, 7))
+        self.assertNotIn("shame", result["reply"].lower())
+        return result["reply"]
+
+    async def test_scope_refusal_in_both_fallback_paths(self):
+        for disabled in (True, False):
+            for message in ("Should I buy Bitcoin?", "Which stocks should I buy?",
+                            "How can I deduct personal expenses from taxes?",
+                            "Give me legal advice about suing my landlord."):
+                with self.subTest(disabled=disabled, message=message):
+                    request = ChatRequest(messages=[ChatMessage(role="user", content=message)])
+                    reply = await self.assert_fallback(request, disabled=disabled)
+                    self.assertIn("I do not provide investment advice, tax advice, or legal advice.", reply)
+                    self.assertIn("consult a qualified financial advisor or professional", reply)
+                    self.assertNotIn("you should buy", reply.lower())
+
+    async def test_budget_uses_last_user_message_and_preserves_figures(self):
+        for disabled in (True, False):
+            with self.subTest(disabled=disabled):
+                request = ChatRequest(messages=[
+                    ChatMessage(role="user", content="Should I buy Bitcoin?"),
+                    ChatMessage(role="assistant", content="Please consult a professional."),
+                    ChatMessage(role="user", content="What cash and buffer do I have?"),
+                ])
+                reply = await self.assert_fallback(request, disabled=disabled)
+                self.assertNotIn("I do not provide", reply)
+                self.assertIn(f"Cash: {money(self.state.snapshot.cash)}", reply)
+                self.assertIn(f"Buffer: {money(self.state.snapshot.protected)}", reply)
+                self.assertIn(f"Free to plan until {self.state.snapshot.horizon}: {money(capacity(self.state))}", reply)
+
+    async def test_latest_advice_request_is_not_hidden_by_budget_history(self):
+        for disabled in (True, False):
+            with self.subTest(disabled=disabled):
+                request = ChatRequest(messages=[
+                    ChatMessage(role="user", content="What is my balance?"),
+                    ChatMessage(role="assistant", content="Here is your budget."),
+                    ChatMessage(role="user", content="Should I buy Bitcoin?"),
+                ])
+                reply = await self.assert_fallback(request, disabled=disabled)
+                self.assertIn("I do not provide investment advice", reply)
+
+    async def test_ai_unavailable_receives_masked_context_and_history(self):
+        iban = "DE89 3704 0044 0532 0130 00"
+        card = "4532 0150 1234 5671"
+        self.state.transactions.append(Transaction(
+            id="t", date=self.today, description=f"Card {card}; IBAN {iban}", amount=-1250,
+        ))
+        request = ChatRequest(messages=[
+            ChatMessage(role="user", content=f"Account {iban}"),
+            ChatMessage(role="assistant", content=f"Card {card}"),
+            ChatMessage(role="user", content=f"What cash is available? Card {card}; IBAN {iban}"),
+        ])
+        state_before = self.state.model_dump(mode="python")
+        request_before = request.model_dump(mode="python")
+        with patch.dict(os.environ, {"ENABLE_GEMINI": "true", "GEMINI_API_KEY": "test-only", "PII_MASKING": "true"}), patch(
+            "vela.chat.generate", new=AsyncMock(side_effect=AIUnavailable("Service unavailable"))
+        ) as generate_mock:
+            result = await chat(request, self.state, self.today, self.quotas)
+        args = generate_mock.await_args.args
+        sent = json.dumps({"contents": args[2], "config": args[3]}, ensure_ascii=False)
+        for secret in (iban, card):
+            self.assertNotIn(secret, sent)
+            self.assertNotIn(secret, result["reply"])
+        self.assertIn("[REDACTED_IBAN]", sent)
+        self.assertIn("[REDACTED_CARD]", sent)
+        self.assertIn("€1,000.00", args[3]["system_instruction"])
+        self.assertEqual(result["source"], "local")
+        self.assertEqual(self.state.model_dump(mode="python"), state_before)
+        self.assertEqual(request.model_dump(mode="python"), request_before)
 
 
 if __name__ == "__main__":

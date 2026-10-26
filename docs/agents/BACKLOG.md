@@ -183,7 +183,7 @@
 - **Verify:** `python evals/run.py --offline`, `python evals/run.py --offline --validate-only`, `python scripts/check.py`.
 
 ### T22b — Исправить отказ в локальном chat fallback и разблокировать T22
-- **Model:** GPT-6.1 Sol · **Status:** rework (fallback работает; отсутствуют обязательные автоматические тесты) · **Depends on:** T21b
+- **Model:** GPT-6.1 Sol · **Status:** review · **Depends on:** T21b
 - **Goal:** Устранить подтверждённый блокер T22 без ослабления сценариев; разорвать цикл T22 → T23 → T24b → T22.
 - **Scope:** `services/api/vela/chat.py`, `services/api/tests/test_chat_tools.py`
 - **Steps:** Передать последнее сообщение пользователя в детерминированный fallback; при запросах инвестиционных, налоговых, юридических и криптовалютных рекомендаций возвращать явный спокойный отказ и направление к квалифицированному специалисту. Сохранить текущие ответы по бюджету, отсутствие мутаций и маскирование T21b. Добавить тесты реального chat-пути при отключённом Gemini и AIUnavailable.
