@@ -508,5 +508,44 @@ class TestChatTools(unittest.TestCase):
         self.assertEqual(cash_flow["source"], "summary_unavailable_for_requested_horizon")
 
 
+    def test_review4_complete_grouped_currency(self):
+        for separator in (' ', '\u00a0', '\u202f', '.', ','):
+            for number, cents in ((f'1{separator}100', 110000),
+                                  (f'1{separator}234{separator}567', 123456700)):
+                for token in (f'€{number}', f'{number} EUR'):
+                    with self.subTest(token=token):
+                        self.assertFalse(verify_reply_numbers(token, {'balance_cents': 100})[0])
+                        self.assertEqual(verify_reply_numbers(token, {'balance_cents': cents}), (True, []))
+
+    def test_review4_fractional_cents_rejected(self):
+        for sign, cents in (('', 1), ('+', 1), ('-', -1), ('−', -1)):
+            for separator in ('.', ','):
+                with self.subTest(sign=sign, separator=separator):
+                    self.assertFalse(verify_reply_numbers(f'{sign}1{separator}5 cents', {'balance_cents': cents})[0])
+            self.assertEqual(verify_reply_numbers(f'{sign}1 cent', {'balance_cents': cents}), (True, []))
+
+    def test_review4_percentage_precision(self):
+        for sign, bps in (('', 1850), ('+', 1850), ('-', -1850), ('−', -1850)):
+            for separator in ('.', ','):
+                with self.subTest(sign=sign, separator=separator):
+                    self.assertFalse(verify_reply_numbers(f'{sign}18{separator}504%', {'apr_bps': bps})[0])
+                    self.assertEqual(verify_reply_numbers(f'{sign}18{separator}50%', {'apr_bps': bps}), (True, []))
+
+    def test_review4_grouping_and_decimal_validation(self):
+        for number in ('1.234.567,89', '1,234,567.89', '1 234 567.89'):
+            for token in (f'€{number}', f'{number} EUR'):
+                with self.subTest(token=token):
+                    self.assertEqual(verify_reply_numbers(token, {'balance_cents': 123456789}), (True, []))
+        for number in ('1,23,456', '1.23.456', '1 23 456', '1,234.567,89', '1.234,567.89'):
+            for token in (f'€{number}', f'{number} EUR'):
+                with self.subTest(token=token):
+                    self.assertFalse(verify_reply_numbers(token, {'balance_cents': 12345600})[0])
+
+    def test_review4_full_numeric_tokens(self):
+        for token in ('€.99', '.99 EUR', 'EUR999.00', '€1e3', '1e3 EUR', '€1.2.3', '1.2.3%', '€--1'):
+            with self.subTest(token=token):
+                self.assertFalse(verify_reply_numbers(token, {'balance_cents': 100, 'apr_bps': 230})[0])
+
+
 if __name__ == "__main__":
     unittest.main()

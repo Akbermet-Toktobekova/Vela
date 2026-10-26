@@ -127,3 +127,11 @@ Git persistence (T22 review): targeted git add and git commit failed with `.git/
 ## T22 Attempt 4 review — 2026-10-26
 
 REWORK: прежние конкретные примеры исправлены, полное сравнение State принято. Один оставшийся P1: €.99 / .99 EUR / EUR999.00 исчезают из проверки, €1e3 обрезается до €1; с allowed={100} numeric grader и grade_scenario возвращают PASS. Детали в reports/T22.md. Backend 170/170, harness 29/29, schema/offline 5/5, drift 0. Следующая задача — доработка T22; остальные статусы не повышались.
+
+## T24a executor — Attempt 4 (2026-10-26)
+
+Current task: T24a (in_progress, Codex GPT-6), parallel to the existing T22 execution. Fix the four numeric-verification review findings; T24b remains pending dependencies.
+
+## T24a executor completion — Attempt 4 (2026-10-26)
+
+Current task: T24a (review, Codex GPT-6). Four numeric-verifier findings fixed; 32/32 tools tests, 180/180 backend tests, git diff --check exit 0. Report: docs/agents/reports/T24a.md. Next action: Оркестратор: `Проверь T24a` в отдельном чате. Existing T22 execution preserved; T24b still awaits dependencies.

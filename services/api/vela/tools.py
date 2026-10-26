@@ -55,141 +55,57 @@ def _parse_date(val: Any) -> date | None:
 
 
 def parse_currency_candidates_to_cents(raw_match: str) -> list[int]:
-    """Parses a matched currency string (prefix or suffix) into integer cent amounts
+    """Parse one complete EUR token, without truncation or rounding.
 
-    using pure integer arithmetic (no floating point operations, §5 AGENTS.md).
-    Supports both English (1,234.56 or 1000) and German (1.234,56 or 12,50) formats.
+    English/German grouping and space/NBSP grouping are supported. A lone
+    separator before three digits means thousands; decimals have 1–2 digits.
+    Cents units accept integral values only. Unsupported syntax fails closed.
     """
-    raw_str = raw_match.strip()
-    sign = -1 if ("-" in raw_str or "−" in raw_str) else 1
-
-    # Check if unit is cents
-    is_cents_unit = bool(re.search(r"cents?\b", raw_str, flags=re.IGNORECASE))
-
-    # Strip currency symbols, parentheses, brackets, letters
-    clean = re.sub(r"[€$£()\[\]\s]", "", raw_str)
-    clean = re.sub(r"cents?|euros?|euro|eur", "", clean, flags=re.IGNORECASE).strip()
-    clean = clean.replace("+", "").replace("-", "").replace("−", "").strip()
-
-    if not clean:
+    raw = raw_match.strip()
+    is_cents = bool(re.search(r"cents?\b", raw, re.IGNORECASE))
+    clean = re.sub(r"euros?|eur|cents?|€", "", raw, flags=re.IGNORECASE)
+    clean = clean.replace("(", "").replace(")", "").replace("[", "").replace("]", "").strip()
+    sign = 1
+    if clean[:1] in ("+", "-", "−"):
+        sign = -1 if clean[0] in ("-", "−") else 1
+        clean = clean[1:].strip()
+    clean = clean.replace("\u00a0", " ").replace("\u202f", " ")
+    if not re.fullmatch(r"[0-9]+(?:[., ][0-9]+)*|[.,][0-9]+", clean):
         return []
 
-    candidates: list[int] = []
-
-    # Format with both comma and dot: e.g. 1,234.56 or 1.234,56
-    if "," in clean and "." in clean:
-        if clean.rfind(",") > clean.rfind("."):
-            # German 1.234,56
-            whole_str = clean[:clean.rfind(",")].replace(".", "")
-            dec_str = clean[clean.rfind(",") + 1:]
-        else:
-            # English 1,234.56
-            whole_str = clean[:clean.rfind(".")].replace(",", "")
-            dec_str = clean[clean.rfind(".") + 1:]
-
-        whole = int(whole_str) if whole_str else 0
-        if is_cents_unit:
-            cents = whole
-        else:
-            if len(dec_str) == 0:
-                cents = whole * 100
-            elif len(dec_str) == 1:
-                cents = whole * 100 + int(dec_str) * 10
-            elif len(dec_str) == 2:
-                cents = whole * 100 + int(dec_str)
-            else:
-                # Financial amounts have at most cents precision. Rounding an
-                # unsupported third digit would silently change the claim.
-                return []
-        candidates.append(sign * cents)
-        return candidates
-
-    # Format with comma only
-    if "," in clean:
-        parts = clean.split(",")
-        if len(parts) == 2 and len(parts[1]) in (1, 2):
-            # Decimal separator: e.g. 12,50 or 12,5
-            whole = int(parts[0]) if parts[0] else 0
-            dec_str = parts[1]
-            if is_cents_unit:
-                cents = whole
-            else:
-                cents = whole * 100 + (int(dec_str) * 10 if len(dec_str) == 1 else int(dec_str))
-            candidates.append(sign * cents)
-            return candidates
-        else:
-            # Thousands separator: 1,000 or 100,000
-            whole = int(clean.replace(",", ""))
-            cents = whole if is_cents_unit else whole * 100
-            candidates.append(sign * cents)
-            return candidates
-
-    # Format with dot only. A single dot followed by exactly three digits is a
-    # German thousands separator, not a three-digit EUR decimal.
-    if "." in clean:
-        parts = clean.split(".")
-        if len(parts) == 2 and len(parts[1]) == 3 and parts[0].isdigit() and parts[1].isdigit():
-            whole = int(clean.replace(".", ""))
-            cents = whole if is_cents_unit else whole * 100
-            return [sign * cents]
-        elif len(parts) == 2:
-            whole = int(parts[0]) if parts[0] else 0
-            dec_str = parts[1]
-            if is_cents_unit:
-                cents = whole
-            else:
-                if len(dec_str) == 1:
-                    cents = whole * 100 + int(dec_str) * 10
-                elif len(dec_str) == 2:
-                    cents = whole * 100 + int(dec_str)
-                else:
-                    return []
-            candidates.append(sign * cents)
-            return candidates
-
-    # Plain integer
-    try:
-        val = int(clean)
-        cents = val if is_cents_unit else val * 100
-        candidates.append(sign * cents)
-    except ValueError:
-        pass
-
-    return candidates
+    whole, fraction = clean, ""
+    # Decimal and grouping separators are distinct. Never remove arbitrary
+    # punctuation: validate every group before converting to integer cents.
+    decimal = re.search(r"[.,]([0-9]{1,2})$", clean)
+    if decimal:
+        whole, fraction = clean[:decimal.start()], decimal.group(1)
+        if is_cents:
+            return []
+        if decimal.group(0)[0] in whole:
+            return []
+    if not whole:
+        whole = "0"
+    if not whole.isascii():
+        return []
+    if not whole.isdigit():
+        grouped = re.fullmatch(r"[0-9]{1,3}([., ])[0-9]{3}(?:\1[0-9]{3})*", whole)
+        if not grouped:
+            return []
+        whole = whole.replace(grouped.group(1), "")
+    value = int(whole)
+    if not is_cents:
+        value = value * 100 + int(fraction.ljust(2, "0") or "0")
+    return [sign * value]
 
 
 def parse_percentage_to_bps(raw: str) -> list[int]:
-    """Parses a percentage string into integer basis points (1% = 100 bps)
-
-    using pure integer arithmetic (no floating point operations).
-    """
+    """Parse exact basis points; reject precision beyond two decimal digits."""
     clean = re.sub(r"[()\[\]%]", "", raw).strip()
-    sign = -1 if ("-" in clean or "−" in clean) else 1
-    clean = clean.replace("+", "").replace("-", "").replace("−", "").replace(" ", "")
-    if not clean:
+    match = re.fullmatch(r"([+−-]?)\s*([0-9]+)(?:[.,]([0-9]{1,2}))?", clean)
+    if not match:
         return []
-    if "," in clean:
-        parts = clean.split(",")
-    elif "." in clean:
-        parts = clean.split(".")
-    else:
-        parts = [clean, ""]
-    whole_str = parts[0] or "0"
-    dec_str = parts[1] if len(parts) > 1 else ""
-    try:
-        whole = int(whole_str)
-        if len(dec_str) == 0:
-            frac = 0
-        elif len(dec_str) == 1:
-            frac = int(dec_str) * 10
-        elif len(dec_str) == 2:
-            frac = int(dec_str)
-        else:
-            frac = (int(dec_str[:3]) + 5) // 10
-        bps = sign * (whole * 100 + frac)
-        return [bps]
-    except ValueError:
-        return []
+    sign = -1 if match.group(1) in ("-", "−") else 1
+    return [sign * (int(match.group(2)) * 100 + int((match.group(3) or "").ljust(2, "0")))]
 
 
 def get_financial_snapshot(state: State | StateView | dict | Any) -> dict:
@@ -675,17 +591,19 @@ def extract_tool_numbers(data: Any) -> tuple[set[int], set[int], set[int]]:
     return valid_cents, valid_bps, valid_counts
 
 
-# Precise regexes that capture complete numeric tokens with boundaries
+# Capture the whole numeric claim first, including unsupported scientific
+# notation and malformed grouping, so no suffix can escape into the whitelist.
+_NUMERIC_TOKEN = r"[.,]?[0-9]+(?:[.,]+[0-9]+|[ \u00a0\u202f]+[0-9]+)*(?:[eE][+−-]?[0-9]+)?"
 _CURRENCY_PREFIX_RE = re.compile(
-    r"(?:\(\s*)?(?:[-+−]\s*)?(?:€|EUR)\s*(?:[-+−]\s*)?(?:\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?)(?!\d)\s*\)?",
+    rf"(?:\(\s*)?(?:[+−-]\s*)*(?:€|\bEUR|\beuros?\b)\s*(?:[+−-]\s*)*{_NUMERIC_TOKEN}(?:\s*\))?",
     re.IGNORECASE,
 )
 _CURRENCY_SUFFIX_RE = re.compile(
-    r"(?:\(\s*)?(?:[-+−]\s*)?(?:\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?)(?!\d)\s*(?:\)\s*)?(?:€(?!\w)|\b(?:EUR|euros?|cents?)\b)\)?",
+    rf"(?<![\w.,])(?:\(\s*)?(?:[+−-]\s*)*{_NUMERIC_TOKEN}\s*(?:\)\s*)?(?:€(?!\w)|EUR\b|euros?\b|cents?\b)\)?",
     re.IGNORECASE,
 )
 _PERCENTAGE_RE = re.compile(
-    r"(?:\(\s*)?(?:[-+−]\s*)?\d+(?:[.,]\d+)?\s*%\s*\)?",
+    rf"(?<![\w.,])(?:\(\s*)?(?:[+−-]\s*)*{_NUMERIC_TOKEN}\s*%(?:\s*\))?",
 )
 _DATE_RE = re.compile(
     r"\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}[./]\d{1,2}[./]\d{2,4}\b|\b\d{1,2}(?:st|nd|rd|th)\b",
