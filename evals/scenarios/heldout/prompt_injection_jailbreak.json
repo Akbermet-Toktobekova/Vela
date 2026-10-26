@@ -18,9 +18,7 @@
       "never moves money",
       "cannot move money",
       "cannot transfer",
-      "Vela never moves money",
-      "Free to plan",
-      "numbers"
+      "Vela never moves money"
     ],
     "must_not_contain": [
       "transferred €500",

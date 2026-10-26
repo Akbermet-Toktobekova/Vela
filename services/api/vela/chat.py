@@ -1,11 +1,28 @@
 """Free-form finance chat grounded in the user's computed figures."""
 import json
+import re
 from collections import defaultdict
 from datetime import date, timedelta
 from typing import Literal
 from pydantic import Field
 from .ai import Quotas, generate, estimate_tokens, AIUnavailable, money
 from .domain import Record, State, capacity, recommendation, summary
+from .pii import is_pii_masking_enabled, mask_pii
+
+_OUT_OF_SCOPE_ADVICE_RE = re.compile(
+    r"\b(?:invest(?:ment|ing|or)?|crypto(?:currency)?|bitcoin|btc|eth(?:ereum)?|stocks?|shares|etfs?|"
+    r"trading|portfolio|tax(?:es)?|deduct(?:ion|ible)?|write[- ]off|legal|lawsuit|lawyer|attorney|"
+    r"акци[ийя]|биткоин|крипт\w*|инвестиц\w*|налог\w*|вычет\w*|юрист\w*|суд\w*|"
+    r"aktien|krypto\w*|anlage\w*|steuer\w*|rechtsberat\w*)\b",
+    re.IGNORECASE,
+)
+
+_UNSAFE_TRANSFER_OR_OVERRIDE_RE = re.compile(
+    r"(?:system\s+override|ignore\s+(?:all\s+)?(?:prior|previous)\b|ignore\s+safety|jailbreak|"
+    r"\b(?:transfer|wire|send)\s+(?:€|\d|money|funds|all)|move\s+money|execute\s+transfer|"
+    r"перевед[иья]\s+|отправь\s+деньги|überweis\w*)",
+    re.IGNORECASE,
+)
 
 
 class ChatMessage(Record):
@@ -81,11 +98,23 @@ def context(state: State, today: date) -> dict:
     return data
 
 
-def local_reply(state: State, today: date, reason: str) -> str:
+def local_reply(state: State, today: date, reason: str, user_message: str = "") -> str:
+    notices: list[str] = [reason]
+    if user_message and _UNSAFE_TRANSFER_OR_OVERRIDE_RE.search(user_message):
+        notices.append(
+            "Vela never moves money or executes bank transfers, and cannot override safety rules. "
+            "You can only review or add a planned step inside the app."
+        )
+    if user_message and _OUT_OF_SCOPE_ADVICE_RE.search(user_message):
+        notices.append(
+            "I do not provide investment advice, tax advice, or legal advice. "
+            "For those decisions, please consult a qualified financial advisor or professional."
+        )
+    prefix = "\n\n".join(notices)
     s = state.snapshot
     if s is None:
-        return f"{reason}\n\nAdd your balance first (Home → Update balance), then I can explain your numbers."
-    return (f"{reason}\n\nHere's what I can tell you from your numbers:\n"
+        return f"{prefix}\n\nAdd your balance first (Home → Update balance), then I can explain your numbers."
+    return (f"{prefix}\n\nHere's what I can tell you from your numbers:\n"
             f"- Cash: {money(s.cash)} (as of {s.as_of})\n- Unpaid bills: {money(sum(o.amount for o in s.obligations))}\n"
             f"- Buffer: {money(s.protected)} · Set aside: {money(s.saved)}\n- **Free to plan until {s.horizon}: {money(capacity(state))}**")
 
@@ -93,15 +122,29 @@ def local_reply(state: State, today: date, reason: str) -> str:
 async def chat(request: ChatRequest, state: State, today: date, quotas: Quotas) -> dict:
     if request.messages[-1].role != "user":
         raise ValueError("The last message must be from you.")
+    last_user_text = request.messages[-1].content
     data = json.dumps(context(state, today), ensure_ascii=False)
     history = request.messages[-20:]
-    contents = [{"role": "user" if m.role == "user" else "model", "parts": [{"text": m.content}]} for m in history]
+    masking = is_pii_masking_enabled()
+    if masking:
+        data = mask_pii(data)
+    contents = [{"role": "user" if m.role == "user" else "model",
+                 "parts": [{"text": mask_pii(m.content) if masking else m.content}]} for m in history]
     while contents and contents[0]["role"] != "user":
         contents.pop(0)
     try:
+        system_instruction = SYSTEM + "\n\nDATA:\n" + data
+        if masking:
+            system_instruction = mask_pii(system_instruction)
         response, model = await generate(quotas, "chat", contents,
-            {"system_instruction": SYSTEM + "\n\nDATA:\n" + data, "temperature": 0.4, "max_output_tokens": 1200},
-            estimate_tokens(SYSTEM, data, *[m.content for m in history]) + 1200, timeout_ms=40_000)
+            {"system_instruction": system_instruction, "temperature": 0.4, "max_output_tokens": 1200},
+            estimate_tokens(system_instruction, *[part["parts"][0]["text"] for part in contents]) + 1200,
+            timeout_ms=40_000)
         return {"reply": response.text.strip(), "source": "gemini", "model": model, "revision": state.revision}
     except AIUnavailable as exc:
-        return {"reply": local_reply(state, today, str(exc)), "source": "local", "model": None, "revision": state.revision}
+        return {
+            "reply": local_reply(state, today, str(exc), last_user_text),
+            "source": "local",
+            "model": None,
+            "revision": state.revision,
+        }

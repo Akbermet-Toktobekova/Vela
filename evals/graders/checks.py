@@ -248,33 +248,26 @@ def extract_money_cents_from_text(text: str) -> list[tuple[str, int]]:
     """
     results: list[tuple[str, int]] = []
 
-    # Patterns matching EUR expressions:
-    # 1. € prefix: [-+]?€\s*[-+]?[0-9...,]+
-    # 2. € / EUR suffix: [-+]?[0-9...,]+\s*(?:€|EUR)
-    pat_prefix = re.compile(
-        r"([-+−]?\s*€\s*[-+−]?[0-9]{1,3}(?:[.,\s][0-9]{3})*(?:[.,][0-9]{2})?|[-+−]?\s*€\s*[-+−]?[0-9]+(?:[.,][0-9]{2})?)",
-        re.IGNORECASE,
+    # Match complete currency-marked amounts before parsing.  A previous regex
+    # could read the first three digits of a four-digit amount (for example,
+    # €1234 as €123), which defeats exact-cent grounding.
+    number = r"(?:\d{1,3}(?:[,.\s]\d{3})+|\d+)(?:[,.]\d{2})?"
+    patterns = (
+        re.compile(rf"(?<!\w)([+-−]?\s*\u20ac\s*[+-−]?{number})(?!\d|[.,]\d)", re.IGNORECASE),
+        re.compile(rf"(?<!\w)([+-−]?{number}\s*(?:\u20ac|EUR))(?!\w)", re.IGNORECASE),
     )
-    pat_suffix = re.compile(
-        r"([-+−]?[0-9]{1,3}(?:[.,\s][0-9]{3})*(?:[.,][0-9]{2})?\s*(?:€|EUR)|[-+−]?[0-9]+(?:[.,][0-9]{2})?\s*(?:€|EUR))",
-        re.IGNORECASE,
-    )
-
     seen_spans: set[tuple[int, int]] = set()
-
-    for pat in (pat_prefix, pat_suffix):
-        for m in pat.finditer(text):
-            span = m.span()
+    for pattern in patterns:
+        for match in pattern.finditer(text):
+            span = match.span()
             if any(s[0] <= span[0] and span[1] <= s[1] for s in seen_spans):
                 continue
             seen_spans.add(span)
-            raw = m.group(0).strip()
+            raw = match.group(0).strip()
             try:
-                cents = parse_eur_cents(raw)
-                results.append((raw, cents))
+                results.append((raw, parse_eur_cents(raw)))
             except ValueError:
                 continue
-
     return results
 
 

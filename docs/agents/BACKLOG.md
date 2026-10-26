@@ -158,7 +158,7 @@
 - **Verify:** `python -m unittest services/api/tests/test_pii.py -v`, `python scripts/check.py`.
 
 ### T21b — Интеграция маскирования PII перед вызовами Gemini
-- **Model:** Astra GPT 6 (или Argon) · **Status:** todo · **Depends on:** T21a · `[OPUS-REVIEW]`
+- **Model:** Astra GPT 6 (или Argon) · **Status:** done · **Depends on:** T21a · `[OPUS-REVIEW]`
 - **Scope:** `services/api/vela/ai.py`, `services/api/vela/imports.py`, `services/api/vela/chat.py`, `services/api/tests/test_pii.py`
 - **Steps:**
   1. Подключить `mask_pii` из `services/api/vela/pii.py` перед **любым** текстовым вызовом Gemini в `ai.py`, `imports.py`, `chat.py` (если `is_pii_masking_enabled()` = `True`).
@@ -168,8 +168,8 @@
 - **Verify:** `python -m unittest services/api/tests/test_pii.py -v`, `python scripts/check.py`.
 
 ### T22 — Каркас evals (harness + схема сценариев + 5 базовых сценариев)
-- **Model:** Argon · **Status:** escalated · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
-- **Scope:** `evals/schema.json` (новый), `evals/run.py` (новый), `evals/graders/__init__.py` (новый), `evals/graders/checks.py` (новый), `evals/scenarios/dev/` (3 файла), `evals/scenarios/heldout/` (2 файла), `evals/README.md` (новый), `services/api/tests/test_evals_harness.py` (новый)
+- **Model:** Argon · **Status:** review · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
+- **Scope:** `evals/schema.json` (новый), `evals/run.py` (новый), `evals/graders/__init__.py` (новый), `evals/graders/checks.py` (новый), `evals/scenarios/dev/` (3 файла), `evals/scenarios/heldout/` (2 файла), `evals/README.md` (новый), `services/api/tests/test_evals_harness.py` (новый), `services/api/vela/chat.py` (детерминированный отказ в `local_reply`)
 - **Steps:**
   1. Создать JSON-схему описания сценария `evals/schema.json` со следующими обязательными полями каждого сценария (`.json`):
      - `id` (str), `family` (str), `split` (`"dev"` | `"heldout"`), `category` (`"numeric_grounding"` | `"scope_refusal"` | `"prompt_injection"` | `"missing_data"` | `"calm_tone"` | `"no_unconfirmed_mutation"`), `user_message` (str), `state_overrides` (dict: `liquid_cash_cents`, `safe_buffer_cents`, `obligations`, `transactions`), `expected` (dict: `must_contain_any`: list[str], `must_not_contain`: list[str], `refuse_financial_advice`: bool, `allowed_numbers_only`: bool).
@@ -182,6 +182,14 @@
 - **Acceptance:** `python evals/run.py --offline` и `python evals/run.py --offline --validate-only` завершаются с кодом 0 (5/5 PASS); отчёт создаётся в `evals/reports/latest.json`.
 - **Verify:** `python evals/run.py --offline`, `python evals/run.py --offline --validate-only`, `python scripts/check.py`.
 
+### T22b — Исправить отказ в локальном chat fallback и разблокировать T22
+- **Model:** Astra GPT 6 (или Argon) · **Status:** review (реализовано вместе с T22) · **Depends on:** T21b
+- **Goal:** Устранить подтверждённый блокер T22 без ослабления сценариев; разорвать цикл T22 → T23 → T24b → T22.
+- **Scope:** `services/api/vela/chat.py`, `services/api/tests/test_chat_tools.py`
+- **Steps:** Передать последнее сообщение пользователя в детерминированный fallback; при запросах инвестиционных, налоговых, юридических и криптовалютных рекомендаций возвращать явный спокойный отказ и направление к квалифицированному специалисту. Сохранить текущие ответы по бюджету, отсутствие мутаций и маскирование T21b. Добавить тесты реального chat-пути при отключённом Gemini и AIUnavailable.
+- **Acceptance:** `dev-scope-refusal-crypto` проходит без правок сценариев/грейдеров; все 5 offline evals PASS; backend зелёный. После этого T22 повторно передать оркестратору на ревью, не принимать автоматически.
+- **Verify:** `python -m unittest services/api/tests/test_chat_tools.py -v`, `python scripts/check.py`, `python evals/run.py --offline --validate-only`, `python evals/run.py --offline`.
+
 ### T23 — Написать 60 сценариев evals
 - **Model:** Flash · **Status:** todo · **Depends on:** T22
 - **Scope:** `evals/scenarios/dev/*.json`, `evals/scenarios/heldout/*.json`
@@ -190,7 +198,7 @@
 - **Verify:** `python evals/run.py --offline --validate-only`, `python evals/run.py --offline`.
 
 ### T24a — Автономный модуль инструментов чата и верификации чисел (`tools.py` + тесты)
-- **Model:** Argon · **Status:** escalated · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
+- **Model:** Argon · **Status:** rework · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
 - **Scope:** `services/api/vela/tools.py` (новый), `services/api/tests/test_chat_tools.py` (новый)
 - **Steps:**
   1. Создать `services/api/vela/tools.py` с 4 чистыми детерминированными функциями-инструментами, работающими поверх `State` / `StateView` и `debt.py`:

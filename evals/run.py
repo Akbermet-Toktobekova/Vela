@@ -13,6 +13,7 @@ import argparse
 import asyncio
 import json
 import os
+import re
 import sys
 import time
 from datetime import date, datetime, timezone
@@ -35,9 +36,9 @@ from vela.chat import ChatMessage, ChatRequest, chat
 from vela.domain import Obligation, Snapshot, State, Transaction, capacity
 
 
-# Pydantic schema model matching evals/schema.json (zero extra dependencies)
+# Pydantic schema model strictly matching evals/schema.json (zero extra dependencies)
 class ObligationOverride(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", strict=True)
     id: str = Field(min_length=1)
     label: str = Field(min_length=1)
     amount_cents: int = Field(gt=0)
@@ -46,7 +47,7 @@ class ObligationOverride(BaseModel):
 
 
 class TransactionOverride(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", strict=True)
     id: str = Field(min_length=1)
     date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
     description: str = Field(min_length=1)
@@ -55,26 +56,26 @@ class TransactionOverride(BaseModel):
 
 
 class StateOverrides(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    liquid_cash_cents: int | None = Field(default=None, ge=0)
-    safe_buffer_cents: int | None = Field(default=None, ge=0)
+    model_config = ConfigDict(extra="forbid", strict=True)
+    liquid_cash_cents: int | None = Field(..., ge=0)
+    safe_buffer_cents: int | None = Field(..., ge=0)
     saved_cents: int = Field(default=0, ge=0)
     goal_target_cents: int = Field(default=50000, gt=0)
-    goal_name: str = "Emergency reserve"
-    obligations: list[ObligationOverride] = Field(default_factory=list)
-    transactions: list[TransactionOverride] = Field(default_factory=list)
+    goal_name: str = Field(default="Emergency reserve", min_length=1)
+    obligations: list[ObligationOverride] = Field(...)
+    transactions: list[TransactionOverride] = Field(...)
 
 
 class Expected(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    must_contain_any: list[str] = Field(default_factory=list)
-    must_not_contain: list[str] = Field(default_factory=list)
-    refuse_financial_advice: bool = False
-    allowed_numbers_only: bool = False
+    model_config = ConfigDict(extra="forbid", strict=True)
+    must_contain_any: list[str] = Field(...)
+    must_not_contain: list[str] = Field(...)
+    refuse_financial_advice: bool = Field(...)
+    allowed_numbers_only: bool = Field(...)
 
 
 class ScenarioModel(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", strict=True)
     id: str = Field(min_length=1)
     family: str = Field(min_length=1)
     split: Literal["dev", "heldout"]
@@ -96,6 +97,47 @@ def load_schema(schema_path: Path) -> dict[str, Any]:
         return json.load(f)
 
 
+def _validate_json_schema(instance: Any, schema: dict[str, Any], path: str = "$") -> list[str]:
+    """Validate the Draft-07 keywords used by the checked-in scenario schema."""
+    errors: list[str] = []
+    declared_type = schema.get("type")
+    if declared_type is not None:
+        types = declared_type if isinstance(declared_type, list) else [declared_type]
+        matches = {
+            "object": isinstance(instance, dict), "array": isinstance(instance, list),
+            "string": isinstance(instance, str),
+            "integer": isinstance(instance, int) and not isinstance(instance, bool),
+            "boolean": isinstance(instance, bool), "null": instance is None,
+        }
+        if not any(matches.get(value, False) for value in types):
+            return [f"{path}: expected type {types}, got {type(instance).__name__}"]
+    if "enum" in schema and instance not in schema["enum"]:
+        errors.append(f"{path}: expected one of {schema['enum']}, got {instance!r}")
+    if isinstance(instance, str):
+        if len(instance) < schema.get("minLength", 0):
+            errors.append(f"{path}: string is shorter than minLength")
+        if "pattern" in schema and re.fullmatch(schema["pattern"], instance) is None:
+            errors.append(f"{path}: does not match pattern {schema['pattern']!r}")
+    if isinstance(instance, int) and not isinstance(instance, bool) and "minimum" in schema and instance < schema["minimum"]:
+        errors.append(f"{path}: must be >= {schema['minimum']}")
+    if isinstance(instance, list) and "items" in schema:
+        for index, value in enumerate(instance):
+            errors.extend(_validate_json_schema(value, schema["items"], f"{path}[{index}]"))
+    if isinstance(instance, dict):
+        properties = schema.get("properties", {})
+        for required in schema.get("required", []):
+            if required not in instance:
+                errors.append(f"{path}: missing required property {required!r}")
+        if schema.get("additionalProperties") is False:
+            for key in instance:
+                if key not in properties:
+                    errors.append(f"{path}: unexpected property {key!r}")
+        for key, value in instance.items():
+            if key in properties:
+                errors.extend(_validate_json_schema(value, properties[key], f"{path}.{key}"))
+    return errors
+
+
 def find_scenario_files(scenarios_dir: Path, split: str = "all") -> list[Path]:
     scenario_files: list[Path] = []
     splits = ["dev", "heldout"] if split == "all" else [split]
@@ -107,6 +149,16 @@ def find_scenario_files(scenarios_dir: Path, split: str = "all") -> list[Path]:
                 scenario_files.append(p)
 
     return scenario_files
+
+
+def _display_path(path: Path, base_dir: Path) -> str:
+    try:
+        return str(path.relative_to(REPO_ROOT)).replace("\\", "/")
+    except ValueError:
+        try:
+            return str(path.relative_to(base_dir)).replace("\\", "/")
+        except ValueError:
+            return str(path).replace("\\", "/")
 
 
 def validate_scenarios(
@@ -130,7 +182,7 @@ def validate_scenarios(
     errors: list[str] = []
 
     for path in files:
-        rel_path = str(path.relative_to(REPO_ROOT)).replace("\\", "/")
+        rel_path = _display_path(path, scenarios_dir)
         try:
             with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -140,7 +192,14 @@ def validate_scenarios(
             results.append({"path": rel_path, "passed": False, "error": err})
             continue
 
-        # Schema validation via ScenarioModel (Pydantic)
+        schema_errors = _validate_json_schema(data, raw_schema)
+        if schema_errors:
+            err = f"Schema validation failed for {rel_path}: {'; '.join(schema_errors)}"
+            errors.append(err)
+            results.append({"path": rel_path, "passed": False, "error": err})
+            continue
+
+        # Pydantic additionally proves this scenario can be safely converted to State.
         try:
             ScenarioModel.model_validate(data)
         except Exception as exc:
@@ -262,15 +321,27 @@ def build_state_from_overrides(overrides: dict[str, Any], today: date) -> tuple[
     return state, allowed_figures
 
 
-async def call_app_chat(user_message: str, state: State, today: date) -> str:
-    """Call the real application chat entrypoint (chat) with disabled external API."""
-    quotas_path = REPO_ROOT / ".local" / "evals_quotas.json"
+async def call_app_chat(user_message: str, state: State, today: date, offline: bool = True) -> str:
+    """Call the real application chat entrypoint (`chat`) with external API disabled when `offline=True`."""
+    quotas_path = REPO_ROOT / ".local" / "evals_quotas.db"
     os.makedirs(quotas_path.parent, exist_ok=True)
     quotas = Quotas(quotas_path)
 
     req = ChatRequest(messages=[ChatMessage(role="user", content=user_message)])
-    res = await chat(req, state, today, quotas)
-    return res["reply"]
+    if not offline:
+        res = await chat(req, state, today, quotas)
+        return res["reply"]
+
+    previous = os.environ.get("ENABLE_GEMINI")
+    os.environ["ENABLE_GEMINI"] = "false"
+    try:
+        res = await chat(req, state, today, quotas)
+        return res["reply"]
+    finally:
+        if previous is None:
+            os.environ.pop("ENABLE_GEMINI", None)
+        else:
+            os.environ["ENABLE_GEMINI"] = previous
 
 
 def run_evals(
@@ -297,7 +368,7 @@ def run_evals(
         state_before = state.model_copy(deep=True)
 
         # Call real application chat path (never passing gold standard expected answers)
-        reply = asyncio.run(call_app_chat(scenario["user_message"], state, today))
+        reply = asyncio.run(call_app_chat(scenario["user_message"], state, today, offline=offline))
 
         # Independent deep copy after application call
         state_after = state.model_copy(deep=True)
@@ -311,7 +382,7 @@ def run_evals(
             allowed_figures=allowed_figures,
         )
 
-        grading["file"] = str(file_path.relative_to(REPO_ROOT)).replace("\\", "/")
+        grading["file"] = _display_path(file_path, scenarios_dir)
         grading["reply"] = reply
         eval_results.append(grading)
 
