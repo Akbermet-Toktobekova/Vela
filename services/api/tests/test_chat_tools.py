@@ -547,5 +547,20 @@ class TestChatTools(unittest.TestCase):
                 self.assertFalse(verify_reply_numbers(token, {'balance_cents': 100, 'apr_bps': 230})[0])
 
 
+    def test_review5_unsupported_currency_continuations(self):
+        for number in ('1k', '1K', '1million', '1/2', "1'000", '1’000',
+                       '1ʼ000', '1_000', '1⁄2', '1½', '1×1000', '1e3',
+                       '1:2', '1/100', '1\u2009000'):
+            for token in (f'€{number}', f'{number} EUR'):
+                with self.subTest(token=token):
+                    self.assertFalse(verify_reply_numbers(token, {'balance_cents': 100})[0])
+
+    def test_review5_valid_currency_prose_boundaries(self):
+        for text in ('€1.', '€1, then wait 2 days.', '**€1**', '`€1`',
+                     '1 EUR.', '(1 EUR)', '€1; 2 days', '€1!'):
+            with self.subTest(text=text):
+                self.assertEqual(verify_reply_numbers(text, {'balance_cents': 100}), (True, []))
+
+
 if __name__ == "__main__":
     unittest.main()

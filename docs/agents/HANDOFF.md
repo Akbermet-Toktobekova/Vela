@@ -143,3 +143,11 @@ Current task: T24a (review, Codex GPT-6). Four numeric-verifier findings fixed; 
 ## Review T22 / T24a — 2026-10-26
 
 T22 attempt 5 ACCEPT; T23 dependency unblocked. Non-blocking Markdown false rejection documented in report. T24a attempt 4 REWORK: all four earlier defects fixed, but €1k / €1/2 / €1’000 still approved by balance_cents=100. Needs complete-token rejection instead of prefix approval. Backend 183/183; harness+tools 69/69; schema/offline 5/5; drift 0. T22b remains rework and is next by backlog order. Phase 2 not complete; release gates unchanged. No source edits in this review.
+
+## T24a redo — Attempt 5, 2026-10-26
+
+Current task: T24a (in_progress, Codex GPT-6). Address independent review of partial-token approval; keep T22 accepted and unchanged.
+
+## T24a redo completed — Attempt 5, 2026-10-26
+
+Current task: T24a (review, Codex GPT-6). Closed remaining P1 from Review Attempt 4: unsupported continuations are captured and rejected as complete claims. Tools 34/34; backend 185/185; diff check exit 0. Next action: Оркестратор: `Проверь T24a` в отдельном чате. T22 status and implementation preserved; T24b still awaits dependencies.
