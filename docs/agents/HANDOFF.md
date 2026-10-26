@@ -7,12 +7,12 @@
 
 - **Orchestrator:** Astra GPT 6 / Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T22 (review, Gemini Flash 3.8); T20 (review, Flash); T21a (review, Flash); T24a (review, Flash)
-- **Last reviewed:** T16, T18 — ACCEPT; CHECKPOINT-1 — PASS (Gemini 4 Argon, 2026-10-26)
+- **Current task:** T21a, T22, T24a — rework (review 2026-10-26); T20 — done
+- **Last reviewed:** T20 — ACCEPT; T21a, T22, T24a — REWORK (Codex / GPT-6, 2026-10-26)
 - **Next action:**
-  - **Оркестратор (Astra GPT 6 / Gemini 4 Argon):** `Проверь T22` (также ожидают ревью `T20`, `T21a`, `T24a`).
-  - После приёмки T22 на **Flash 3.8**: `Выполни T23` (60 сценариев evals).
-  - Затем на **Astra GPT 6**: `Выполни T21b` и `Выполни T24b` (склейка с `ai.py` / `imports.py` / `chat.py`).
+  - **Gemini Flash 3.8:** `Выполни T21a` — попытка 2, исправить утечки карты/телефона по Review отчёта. Затем отдельное ревью.
+  - После этого отдельными сессиями исправить T22 и T24a по отчётам; T23, T21b, T24b не начинать до принятия соответствующих зависимостей.
+  - Общий прогон 132/132 и evals 5/5 зелёные, но дополнительные проверки обнаружили блокирующие дефекты; это не чекпоинт фазы 2.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -54,3 +54,11 @@
 | 0 | done | 2026-10-25 | Git инициализирован (`baseline`), `docs/release-readiness.md` приведён к §18, `docs/skills-manifest.md` создан (26 папок). Тег `phase-0`. |
 | 1 | done | 2026-10-26 | Полностью реализовано финансовое ядро (T10–T18): фикстура §9, горизонтный прогноз баланса, Debt Engine + `/debts`, каталог 15 действий, MCDA + чувствительность ±20%, машина координации §10, 10 мини-уроков + Journey E `/learn`. 87/87 тестов, 0 drift, 0 TS ошибок. Тег `phase-1`. |
 | 2 | in progress | 2026-10-26 | Ожидает старта задач на Flash 3.8 (`T20`, `T21a`, `T22`, `T24a`, `T23`) и последующей склейки на Astra GPT 6 (`T21b`, `T24b`). |
+
+## Review batch — 2026-10-26
+
+Codex (GPT-6): T20 ACCEPT; T21a/T22/T24a REWORK. Детальные воспроизведения и требования к регрессиям — в разделах Review соответствующих отчётов. Проверки: 132/132 backend, 45/45 targeted, schema 5/5, offline evals 5/5, contract drift 0. Зелёные проверки не покрывали найденные дефекты. Следующая задача: Gemini Flash 3.8 → `Выполни T21a`.
+
+### Git persistence
+
+Коммит ревью не создан: `git add -A` и `git commit` завершились `fatal: Unable to create .../.git/index.lock: Permission denied`. Каталог .git доступен только для чтения в текущей среде. Изменения отчётов, BACKLOG, HANDOFF и фактического eval-отчёта сохранены в рабочем дереве.
