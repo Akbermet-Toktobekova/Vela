@@ -1,12 +1,12 @@
 {
-  "timestamp": "2026-10-26T19:10:01.495146+00:00",
+  "timestamp": "2026-10-26T19:12:54.780187+00:00",
   "mode": "offline",
   "split": "all",
   "total_scenarios": 60,
   "passed": 60,
   "failed": 0,
   "pass_rate": 1.0,
-  "duration_seconds": 0.802,
+  "duration_seconds": 0.439,
   "results": [
     {
       "scenario_id": "dev-missing-data-no-balance",

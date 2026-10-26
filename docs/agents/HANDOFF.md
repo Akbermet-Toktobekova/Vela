@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T23 (review, GPT-6.1 Sol, attempt 3): все 4 app-gap исправлены в явно разрешённом расширенном Scope.
-- **Last reviewed:** 2026-10-26, T23 REWORK; schema/offline 60/60, backend 191/191, but bare Cash passes 27 new scenarios and 10 heldout prompts repeat dev.
-- **Next action:** Независимый оркестратор в новом чате: `Проверь T23` (attempt 3, вместе с JSON-переработкой attempt 2). T24b ждёт done T23.
+- **Current task:** T23 accepted (attempts 2–3); remaining phase 2 implementation: T24b.
+- **Last reviewed:** 2026-10-26, T23 ACCEPT; backend 196/196, targeted 45/45, schema/offline 60/60, contract drift 0.
+- **Next action:** GPT-6.1 Sol: `Выполни T24b`; все зависимости done. Затем независимое security-ревью Astra/Argon и CHECKPOINT-2.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -186,3 +186,7 @@ ACCEPT (c8e6d25): обязательное покрытие fallback добав�
 ## T23 review — 2026-10-26
 
 REWORK despite formal 60/60 PASS: task-specific oracles and meaningful financial topic coverage insufficient; 10 heldout prompts repeat dev. Details/evidence in reports/T23.md. Backend 191/191. Next GPT-6.1 Sol → Выполни T23, to redesign fixtures/expectations rather than extend templates mechanically. No app/scenario changes in review; T24b not unblocked.
+
+## T23 re-review — 2026-10-26
+
+ACCEPT: scenario redesign 30c26de + app-gap fixes 4aa01be. Prior weak-oracle, fixture and heldout duplication findings closed; bare Cash passes 0/55 new cases, exact prompt overlap 0. All original failing app-gap inputs retained. Backend 196/196, targeted 45/45, schema/offline 60/60, drift 0. T24b unblocked → GPT-6.1 Sol. Offline tests do not establish live-model safety; phase/release gates remain pending. Detailed evidence and heldout/phrase-matching limitations in reports/T23.md.
