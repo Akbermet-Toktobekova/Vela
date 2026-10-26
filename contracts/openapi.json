@@ -213,6 +213,196 @@
         "title": "Breakdown",
         "type": "object"
       },
+      "CandidateAction": {
+        "additionalProperties": false,
+        "properties": {
+          "action_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Action Id",
+            "type": "string"
+          },
+          "amount_cents": {
+            "default": 0,
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "Amount Cents",
+            "type": "integer"
+          },
+          "calculation_evidence": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Calculation Evidence",
+            "type": "object"
+          },
+          "candidate_id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Candidate Id",
+            "type": "string"
+          },
+          "catalog_number": {
+            "maximum": 15.0,
+            "minimum": 1.0,
+            "title": "Catalog Number",
+            "type": "integer"
+          },
+          "category": {
+            "enum": [
+              "cash_flow",
+              "debt",
+              "reserve",
+              "goals",
+              "spending",
+              "baseline",
+              "clarification",
+              "shortfall"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "clarify_field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clarify Field"
+          },
+          "cta_label": {
+            "title": "Cta Label",
+            "type": "string"
+          },
+          "disclaimer": {
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "executes_external_transfer": {
+            "const": false,
+            "default": false,
+            "title": "Executes External Transfer",
+            "type": "boolean"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "lesson_id": {
+            "title": "Lesson Id",
+            "type": "string"
+          },
+          "moves_money": {
+            "const": false,
+            "default": false,
+            "title": "Moves Money",
+            "type": "boolean"
+          },
+          "mutates_account_balance": {
+            "const": false,
+            "default": false,
+            "title": "Mutates Account Balance",
+            "type": "boolean"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "related_lesson_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Related Lesson Ids",
+            "type": "array"
+          },
+          "reserves_cash": {
+            "default": false,
+            "title": "Reserves Cash",
+            "type": "boolean"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "target_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Label"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "urgency_class": {
+            "enum": [
+              "shortfall",
+              "due_obligation",
+              "ordinary"
+            ],
+            "title": "Urgency Class",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate_id",
+          "action_id",
+          "catalog_number",
+          "title",
+          "category",
+          "urgency_class",
+          "amount_cents",
+          "moves_money",
+          "reserves_cash",
+          "mutates_account_balance",
+          "executes_external_transfer",
+          "target_id",
+          "target_label",
+          "clarify_field",
+          "lesson_id",
+          "related_lesson_ids",
+          "headline",
+          "summary",
+          "cta_label",
+          "disclaimer",
+          "policy_version",
+          "calculation_evidence"
+        ],
+        "title": "CandidateAction",
+        "type": "object"
+      },
       "CategoryTotal": {
         "additionalProperties": false,
         "properties": {
@@ -372,6 +562,76 @@
           "obligation"
         ],
         "title": "CostCommand",
+        "type": "object"
+      },
+      "CriterionUtilities": {
+        "additionalProperties": false,
+        "description": "Anchored utility values in basis points [0..10_000], or None if unknown.\nNever converts unknown (`None`) to `0`.",
+        "properties": {
+          "cE_bp": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ce Bp"
+          },
+          "vF_bp": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vf Bp"
+          },
+          "vG_bp": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vg Bp"
+          },
+          "vM_bp": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vm Bp"
+          },
+          "vR_bp": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vr Bp"
+          }
+        },
+        "required": [
+          "vR_bp",
+          "vF_bp",
+          "vG_bp",
+          "vM_bp",
+          "cE_bp"
+        ],
+        "title": "CriterionUtilities",
         "type": "object"
       },
       "Debt-Input": {
@@ -753,6 +1013,173 @@
           "comparison"
         ],
         "title": "DebtsView",
+        "type": "object"
+      },
+      "DecisionEvaluateCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "policy": {
+            "default": "fifth-of-available-v1",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Policy",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 0.0,
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision"
+        ],
+        "title": "DecisionEvaluateCommand",
+        "type": "object"
+      },
+      "DecisionEvaluationSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "active_urgency_class": {
+            "enum": [
+              "shortfall",
+              "due_obligation",
+              "ordinary"
+            ],
+            "title": "Active Urgency Class",
+            "type": "string"
+          },
+          "catalogue_version": {
+            "title": "Catalogue Version",
+            "type": "string"
+          },
+          "evaluated_on": {
+            "format": "date",
+            "title": "Evaluated On",
+            "type": "string"
+          },
+          "evaluation_id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Evaluation Id",
+            "type": "string"
+          },
+          "inputs_summary": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Inputs Summary",
+            "type": "object"
+          },
+          "provisional_weights": {
+            "title": "Provisional Weights",
+            "type": "boolean"
+          },
+          "ranked_candidates": {
+            "items": {
+              "$ref": "#/components/schemas/ScoredCandidate"
+            },
+            "title": "Ranked Candidates",
+            "type": "array"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "runner_up_action_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runner Up Action Id"
+          },
+          "runner_up_candidate_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runner Up Candidate Id"
+          },
+          "scoring_version": {
+            "title": "Scoring Version",
+            "type": "string"
+          },
+          "selected_action_id": {
+            "title": "Selected Action Id",
+            "type": "string"
+          },
+          "selected_amount_cents": {
+            "default": 0,
+            "maximum": 1000000000.0,
+            "minimum": 0.0,
+            "title": "Selected Amount Cents",
+            "type": "integer"
+          },
+          "selected_candidate_id": {
+            "title": "Selected Candidate Id",
+            "type": "string"
+          },
+          "selected_headline": {
+            "title": "Selected Headline",
+            "type": "string"
+          },
+          "selected_summary": {
+            "title": "Selected Summary",
+            "type": "string"
+          },
+          "sensitivity": {
+            "$ref": "#/components/schemas/SensitivityReport"
+          },
+          "state_revision": {
+            "title": "State Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "evaluation_id",
+          "evaluated_on",
+          "state_revision",
+          "catalogue_version",
+          "scoring_version",
+          "provisional_weights",
+          "active_urgency_class",
+          "reason_codes",
+          "inputs_summary",
+          "selected_candidate_id",
+          "selected_action_id",
+          "selected_headline",
+          "selected_summary",
+          "selected_amount_cents",
+          "runner_up_candidate_id",
+          "runner_up_action_id",
+          "sensitivity",
+          "ranked_candidates"
+        ],
+        "title": "DecisionEvaluationSnapshot",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -1353,6 +1780,157 @@
           "kind"
         ],
         "title": "Recurring",
+        "type": "object"
+      },
+      "ScoredCandidate": {
+        "additionalProperties": false,
+        "properties": {
+          "active_urgency_tier": {
+            "enum": [
+              "shortfall",
+              "due_obligation",
+              "ordinary"
+            ],
+            "title": "Active Urgency Tier",
+            "type": "string"
+          },
+          "candidate": {
+            "$ref": "#/components/schemas/CandidateAction"
+          },
+          "hard_constraint_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Hard Constraint Reasons",
+            "type": "array"
+          },
+          "has_unknown_criterion": {
+            "default": false,
+            "title": "Has Unknown Criterion",
+            "type": "boolean"
+          },
+          "passed_hard_constraints": {
+            "title": "Passed Hard Constraints",
+            "type": "boolean"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          },
+          "utilities": {
+            "$ref": "#/components/schemas/CriterionUtilities"
+          },
+          "weighted_score_bp": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weighted Score Bp"
+          }
+        },
+        "required": [
+          "candidate",
+          "passed_hard_constraints",
+          "hard_constraint_reasons",
+          "active_urgency_tier",
+          "utilities",
+          "has_unknown_criterion",
+          "weighted_score_bp",
+          "rank"
+        ],
+        "title": "ScoredCandidate",
+        "type": "object"
+      },
+      "SensitivityReport": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_runner_up_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Runner Up Id"
+          },
+          "baseline_winner_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Winner Id"
+          },
+          "fallback_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Reason"
+          },
+          "fallback_triggered": {
+            "default": false,
+            "title": "Fallback Triggered",
+            "type": "boolean"
+          },
+          "flipped_under_trials": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Flipped Under Trials",
+            "type": "array"
+          },
+          "perturbation_ratio_bp": {
+            "title": "Perturbation Ratio Bp",
+            "type": "integer"
+          },
+          "score_margin_bp": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Margin Bp"
+          },
+          "stable": {
+            "title": "Stable",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "stable",
+          "perturbation_ratio_bp",
+          "baseline_winner_id",
+          "baseline_runner_up_id",
+          "score_margin_bp",
+          "flipped_under_trials",
+          "fallback_triggered",
+          "fallback_reason"
+        ],
+        "title": "SensitivityReport",
         "type": "object"
       },
       "Snapshot-Input": {
@@ -2701,6 +3279,131 @@
           }
         },
         "summary": "Delete Debt"
+      }
+    },
+    "/v1/decision": {
+      "get": {
+        "operationId": "get_decision_v1_decision_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "policy",
+            "required": false,
+            "schema": {
+              "default": "fifth-of-available-v1",
+              "maxLength": 60,
+              "minLength": 1,
+              "title": "Policy",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionEvaluationSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Decision"
+      }
+    },
+    "/v1/decision/evaluate": {
+      "post": {
+        "operationId": "record_decision_evaluation_v1_decision_evaluate_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionEvaluateCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionEvaluationSnapshot"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Decision Evaluation"
       }
     },
     "/v1/defer": {

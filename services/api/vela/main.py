@@ -12,6 +12,7 @@ from pydantic import Field
 from .domain import (Record, Snapshot, PositiveMoney, Money, Obligation, Debt, StateView, PreviewView, Transaction,
                      fixture, view, accept, complete, eligibility, merge_transactions)
 from .debt import DebtSimulationView, compare_and_simulate
+from .decision import DecisionEvaluationSnapshot, evaluate_decision
 from .store import Store, Conflict
 from .ai import Quotas, MODELS, ROUTES, enabled
 from .imports import ImportPreview, ImportError_, build_preview, MAX_BYTES
@@ -59,6 +60,10 @@ class DebtsView(Record):
     revision: int
     debts: list[Debt]
     comparison: DebtSimulationView
+
+
+class DecisionEvaluateCommand(Command):
+    policy: str = Field(default="fifth-of-available-v1", min_length=1, max_length=60)
 
 
 class ConfirmCommand(Command):
@@ -300,6 +305,41 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
             recurring_extra_cents=body.recurring_extra_cents,
             one_off_extra_cents=body.one_off_extra_cents,
             target_debt_id=body.target_debt_id,
+        )
+
+    # ---------- decision engine ----------
+
+    @app.get("/v1/decision", response_model=DecisionEvaluationSnapshot)
+    def get_decision(
+        policy: Annotated[str, Query(min_length=1, max_length=60)] = "fifth-of-available-v1",
+        who=Depends(owner),
+    ):
+        s = store.read(who)
+        return evaluate_decision(s, clock(), policy=policy)
+
+    @app.post("/v1/decision/evaluate", response_model=DecisionEvaluationSnapshot)
+    def record_decision_evaluation(
+        body: DecisionEvaluateCommand,
+        who=Depends(owner),
+        key=Depends(idempotency),
+    ):
+        snap_holder: dict[str, DecisionEvaluationSnapshot] = {}
+
+        def apply(s):
+            snap = evaluate_decision(s, clock(), policy=body.policy)
+            snap_holder["snapshot"] = snap
+            s.history.append({"event": "decision_snapshot", "revision": s.revision + 1, "snapshot": snap.model_dump(mode="json")})
+
+        def render(s):
+            return snap_holder["snapshot"].model_dump(mode="json")
+
+        return store.mutate(
+            who,
+            key,
+            body.revision,
+            {"kind": "evaluate_decision", **body.model_dump(mode="json")},
+            apply,
+            render,
         )
 
     # ---------- statements ----------

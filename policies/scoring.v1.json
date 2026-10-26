@@ -1,0 +1,34 @@
+{
+  "version": "scoring-v1",
+  "schema_version": 1,
+  "provisional": true,
+  "domain_review_status": "pending_human_review",
+  "description": "Provisional MCDA scoring policy for ordinary-planning candidate actions (§10). Urgency classes (shortfall > due_obligation > ordinary) and hard horizon affordability constraints are enforced strictly prior to and outside weighted scoring.",
+  "scale_max_bp": 10000,
+  "weights_bp": {
+    "R": 3000,
+    "F": 2500,
+    "G": 2500,
+    "M": 1000,
+    "E": 1000
+  },
+  "anchors": {
+    "resilience_target_cents": 100000,
+    "financial_benefit_horizon_days": 365,
+    "financial_benefit_anchor_cents": 15000,
+    "goal_progress_step_anchor_cents": 20000,
+    "reserve_goal_overlap_discount_bp": 5000,
+    "imminent_obligation_window_days": 5,
+    "imminent_obligation_tight_capacity_ratio_bp": 2500
+  },
+  "sensitivity": {
+    "perturbation_ratio_bp": 2000,
+    "min_top_margin_bp": 150,
+    "unstable_fallback_action": "clarify_or_preserve_plan"
+  },
+  "urgency_precedence": [
+    "shortfall",
+    "due_obligation",
+    "ordinary"
+  ]
+}

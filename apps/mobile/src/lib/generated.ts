@@ -42,6 +42,31 @@ export type Breakdown = {
   "planned": number;
 };
 
+export type CandidateAction = {
+  "candidate_id": string;
+  "action_id": string;
+  "catalog_number": number;
+  "title": string;
+  "category": "cash_flow" | "debt" | "reserve" | "goals" | "spending" | "baseline" | "clarification" | "shortfall";
+  "urgency_class": "shortfall" | "due_obligation" | "ordinary";
+  "amount_cents": number;
+  "moves_money": false;
+  "reserves_cash": boolean;
+  "mutates_account_balance": false;
+  "executes_external_transfer": false;
+  "target_id": string | null;
+  "target_label": string | null;
+  "clarify_field": string | null;
+  "lesson_id": string;
+  "related_lesson_ids": (string)[];
+  "headline": string;
+  "summary": string;
+  "cta_label": string;
+  "disclaimer": string;
+  "policy_version": string;
+  "calculation_evidence": Record<string, unknown>;
+};
+
 export type CategoryTotal = {
   "category": string;
   "amount": number;
@@ -75,6 +100,14 @@ export type ConfirmCommand = {
 export type CostCommand = {
   "revision": number;
   "obligation": Obligation_Input;
+};
+
+export type CriterionUtilities = {
+  "vR_bp": number | null;
+  "vF_bp": number | null;
+  "vG_bp": number | null;
+  "vM_bp": number | null;
+  "cE_bp": number | null;
 };
 
 export type Debt_Input = {
@@ -137,6 +170,32 @@ export type DebtsView = {
   "revision": number;
   "debts": (Debt_Output)[];
   "comparison": DebtSimulationView;
+};
+
+export type DecisionEvaluateCommand = {
+  "revision": number;
+  "policy"?: string;
+};
+
+export type DecisionEvaluationSnapshot = {
+  "evaluation_id": string;
+  "evaluated_on": string;
+  "state_revision": number;
+  "catalogue_version": string;
+  "scoring_version": string;
+  "provisional_weights": boolean;
+  "active_urgency_class": "shortfall" | "due_obligation" | "ordinary";
+  "reason_codes": (string)[];
+  "inputs_summary": Record<string, unknown>;
+  "selected_candidate_id": string;
+  "selected_action_id": string;
+  "selected_headline": string;
+  "selected_summary": string;
+  "selected_amount_cents": number;
+  "runner_up_candidate_id": string | null;
+  "runner_up_action_id": string | null;
+  "sensitivity": SensitivityReport;
+  "ranked_candidates": (ScoredCandidate)[];
 };
 
 export type HTTPValidationError = {
@@ -233,6 +292,28 @@ export type Recurring = {
   "next_due": string;
   "occurrences": number;
   "kind": "living" | "rent" | "debt" | "other";
+};
+
+export type ScoredCandidate = {
+  "candidate": CandidateAction;
+  "passed_hard_constraints": boolean;
+  "hard_constraint_reasons": (string)[];
+  "active_urgency_tier": "shortfall" | "due_obligation" | "ordinary";
+  "utilities": CriterionUtilities;
+  "has_unknown_criterion": boolean;
+  "weighted_score_bp": number | null;
+  "rank": number | null;
+};
+
+export type SensitivityReport = {
+  "stable": boolean;
+  "perturbation_ratio_bp": number;
+  "baseline_winner_id": string | null;
+  "baseline_runner_up_id": string | null;
+  "score_margin_bp": number | null;
+  "flipped_under_trials": (string)[];
+  "fallback_triggered": boolean;
+  "fallback_reason": string | null;
 };
 
 export type Snapshot_Input = {

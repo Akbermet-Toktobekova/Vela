@@ -7,16 +7,16 @@
 
 - **Orchestrator:** Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
 - **Current phase:** 1 — Финансовое ядро (Приоритет 1)
-- **Current task:** — (T13 и T14 приняты)
+- **Current task:** T15 (review, Gemini 4 Argon)
 - **Last reviewed:** T13, T14 — ACCEPT (Gemini 4 Argon, 2026-10-26)
-- **Next action:** **Gemini 4 Argon** → `Выполни T15` (MCDA-ранжирование, классы срочности, чувствительность `±20%`, `DecisionEvaluationSnapshot`; вопрос D1 про `provisional: true` демо-веса подтверждается пользователем) и/или `Выполни T18` (Journey E: API уроков + экран обучения `learn.tsx` + прогресс — все зависимости `T17, T14` уже `done`).
+- **Next action:** **Оркестратор** (Opus или Argon **в новом чате** по правилу `[OPUS-REVIEW]`) → `Проверь T15`. Также доступна `Выполни T18` (Journey E: API уроков + экран обучения).
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`)
 
 ## Открытые вопросы пользователю
 
 | ID | Вопрос | Нужен к задаче | Ответ |
 |---|---|---|---|
-| D1 | Веса MCDA: ок использовать провизорные демо-веса с пометкой `provisional`? | T15 | — |
+| D1 | Веса MCDA: ок использовать провизорные демо-веса с пометкой `provisional`? | T15 | Да (`provisional: true`) |
 | D2 | БД/авторизация: (A) локальный Postgres в Docker, (B) Supabase cloud, (C) пока SQLite + Alembic | T30 | — |
 | D3 | Есть ли Android-эмулятор / iOS-симулятор / устройство для Maestro? | T42 | — |
 | D4 | Кто проверит финансовый контент уроков (человек)? | T17/T18 | — |
