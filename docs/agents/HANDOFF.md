@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T22 accepted (attempt 5); T24a rework (attempt 5).
+- **Current task:** T24a (review, Codex GPT-6, attempt 6); T22 remains done.
 - **Last reviewed:** 2026-10-26, T24a attempt 5 REWORK: malformed separator/operator continuations still pass. Backend 185/185, tools 34/34. T22 remains done.
-- **Next action:** Astra GPT 6 / Argon: `Выполни T22b` (first remaining eligible task). T23 is now unblocked; T24a needs one remaining complete-token recognition fix. T24b waits for T24a/T23.
+- **Next action:** Независимый оркестратор в новом чате: `Проверь T24a` (attempt 6). T24b ждёт done T24a/T23; T22b остаётся отдельной задачей.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -155,3 +155,7 @@ Current task: T24a (review, Codex GPT-6). Closed remaining P1 from Review Attemp
 ## T24a Attempt 5 review — 2026-10-26
 
 REWORK: prior suffix/fraction/apostrophe bypasses fixed; malformed repeated separators and internal * can still escape currency matching into plain-number whitelist. Five probes reproduced with balance_cents=100; details in reports/T24a.md. Backend 185/185, tools 34/34. T24b remains todo, integration absent. Sources unchanged during review. Backlog next task remains T22b; T24a rework can be assigned separately.
+
+## T24a executor — Attempt 6, 2026-10-26
+
+Исправлен оставшийся P1 Attempt 5: повторные разделители и операторы внутри денежного/процентного выражения захватываются целиком и отклоняются строгим парсером. Добавлены 48 отрицательных случаев и 11 положительных контролей пунктуации/Markdown. Tools 36/36, backend 187/187, git diff --check exit 0. T24a → review; независимое ревью в новом чате.

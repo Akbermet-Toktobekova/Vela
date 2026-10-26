@@ -562,5 +562,22 @@ class TestChatTools(unittest.TestCase):
                 self.assertEqual(verify_reply_numbers(text, {'balance_cents': 100}), (True, []))
 
 
+    def test_review6_malformed_separators_and_operators(self):
+        for continuation in ('..', ',,', '.,', ',.', '...', '*', '**', '***', '.*', '*.', '_', '__'):
+            number = f'1{continuation}2'
+            for token in (f'€{number}', f'{number} EUR', f'{number} cents', f'{number}%'):
+                with self.subTest(token=token):
+                    ok, unconfirmed = verify_reply_numbers(token, {'balance_cents': 100, 'apr_bps': 100})
+                    self.assertFalse(ok)
+                    self.assertTrue(unconfirmed)
+
+    def test_review6_markdown_and_punctuation_controls(self):
+        for text in ('**€1**.', '**1 EUR**.', '`1 EUR`', '**1%**.',
+                     '€1, then €1.', '(€1)', '€1; 2 days', '€1: next step',
+                     '€1... Next step.', '1 cent.', '**1 cent**'):
+            with self.subTest(text=text):
+                self.assertEqual(verify_reply_numbers(text, {'balance_cents': 100, 'other_cents': 1, 'apr_bps': 100}), (True, []))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -596,8 +596,10 @@ def extract_tool_numbers(data: Any) -> tuple[set[int], set[int], set[int]]:
 # Lexical capture deliberately exceeds the supported numeric grammar. Adjacent
 # letters, fractions, Unicode grouping and operators must reach the strict
 # parser together with the number, never fall through as approved prefixes.
-# Sentence punctuation and Markdown delimiters remain outside the claim.
-_NUMERIC_TOKEN = r"[.,]?[0-9]+(?:[^\s€%()\[\]{}*`_:;!?.,]|[.,_:](?=\w)|[^\S\r\n]+(?=[0-9]))*"
+# Sentence punctuation and Markdown delimiters remain outside the claim only
+# when they terminate it. Runs followed by a numeric/word continuation are
+# part of the claim, including malformed separators and Markdown-like operators.
+_NUMERIC_TOKEN = r"[.,]?[0-9]+(?:[^\s€%()\[\]{}*`_:;!?.,]|[.,_:*`]+(?=\w)|[^\S\r\n]+(?=[0-9]))*"
 _CURRENCY_PREFIX_RE = re.compile(
     rf"(?:\(\s*)?(?:[+−-]\s*)*(?:€|\bEUR|\beuros?\b)\s*(?:[+−-]\s*)*{_NUMERIC_TOKEN}(?:\s*\))?",
     re.IGNORECASE,
