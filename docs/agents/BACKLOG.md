@@ -104,7 +104,7 @@
 - **Verify:** `python -m pytest services/api/tests/test_decision.py -v`, `python scripts/check.py`, `python scripts/generate-contracts.py`.
 
 ### T16 — Машина состояний координации
-- **Model:** Argon · **Status:** review · **Depends on:** T15 · `[OPUS-REVIEW]`
+- **Model:** Argon · **Status:** done · **Depends on:** T15 · `[OPUS-REVIEW]`
 - **Goal:** Спецификация §10 «Coordination and waiting system» + PROGRESS: cooldown 14 дней для `dismissed`, пересчёт при падении кэша > 20% или просрочке шага > 7 дней.
 - **Scope:** `services/api/vela/coordination.py` (новый), `services/api/vela/store.py`, `services/api/tests/test_coordination.py`
 - **Acceptance:** тесты: медленный ответ, отсутствующий специалист, двойное завершение, новый доход во время обработки, «крэш» между расчётом и публикацией, устаревшая ревизия отклоняется, уникальный ключ публикации.
@@ -119,7 +119,7 @@
 - **Verify:** `python -c "import json;print(len(json.load(open('content/lessons/index.json',encoding='utf-8'))))"`.
 
 ### T18 — Journey E: API уроков + экран обучения + прогресс
-- **Model:** Argon · **Status:** review · **Depends on:** T17, T14
+- **Model:** Argon · **Status:** done · **Depends on:** T17, T14
 - **Scope:** `services/api/vela/lessons.py` (новый), `services/api/vela/main.py`, `services/api/tests/test_lessons.py`, `apps/mobile/src/app/learn.tsx` (новый) + `learn/[id].tsx`, `apps/mobile/src/lib/api.ts`, контракты
 - **Acceptance:** `GET /v1/lessons`, `GET /v1/lessons/{id}`, `POST /v1/lessons/{id}/progress` (идемпотентно); урок предлагается контекстно рядом с рекомендацией (`related_actions`); прогресс сохраняется и удаляется при `DELETE /v1/data`.
 - **Verify:** `python scripts/check.py`, `npm run typecheck`, `python scripts/generate-contracts.py`.

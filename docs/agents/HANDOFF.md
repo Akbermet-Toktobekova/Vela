@@ -6,11 +6,13 @@
 ## Сейчас
 
 - **Orchestrator:** Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
-- **Current phase:** 1 — Финансовое ядро (Приоритет 1)
-- **Current task:** T16 (review, Gemini 4 Argon); T18 (review, Gemini 4 Argon)
-- **Last reviewed:** T15 — ACCEPT (Gemini 4 Argon, 2026-10-26)
-- **Next action:** **Оркестратор** (в новом чате с чистым контекстом) → `Проверь T16`, `Проверь T18`, и при принятии обеих задач → `Чекпоинт фазы 1`.
-- **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`)
+- **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
+- **Current task:** T20 (todo, Flash); T21 (todo, Argon); T22 (todo, Argon)
+- **Last reviewed:** T16, T18 — ACCEPT; CHECKPOINT-1 — PASS (Gemini 4 Argon, 2026-10-26)
+- **Next action:**
+  - **Gemini Flash 3.8** → `Выполни T20` (Защита CSV от формульных инъекций `services/api/vela/csv_safe.py` + `services/api/tests/test_csv_safe.py`, `[PARALLEL-OK]`)
+  - **Gemini 4 Argon** → `Выполни T21` (Маскирование PII перед Gemini `services/api/vela/pii.py` + тесты) и `Выполни T22` (Каркас evals `evals/` + 5 примерных сценариев)
+- **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
 
@@ -21,9 +23,10 @@
 | D3 | Есть ли Android-эмулятор / iOS-симулятор / устройство для Maestro? | T42 | — |
 | D4 | Кто проверит финансовый контент уроков (человек)? | T17/T18 | — |
 
-## Последние проверенные показатели (baseline 2026-10-25, из PROGRESS.md)
+## Последние проверенные показатели (CHECKPOINT-1, 2026-10-26)
 
-- `python scripts/check.py` → 74/74
+- `python scripts/check.py` → 87/87
+- `python scripts/generate-contracts.py --check` → 0 drift
 - `npm run typecheck` → 0 ошибок
 - `npx expo-doctor` → 20/20
 
@@ -40,10 +43,12 @@
 | 2026-10-26 | Gemini 4 Argon | Review T12: ACCEPT (52/52 тестов, Debt Engine + 500 рандомизированных инвариантов + 0 drift) |
 | 2026-10-26 | Gemini 4 Argon | Review T13, T14: ACCEPT (65/65 тестов, экран `/debts` + каталог 15 действий §9) |
 | 2026-10-26 | Gemini 4 Argon | Review T15: ACCEPT (74/74 тестов, MCDA + классы срочности + чувствительность ±20% + DecisionEvaluationSnapshot) |
+| 2026-10-26 | Gemini 4 Argon | Review T16, T18: ACCEPT (87/87 тестов, координация §10 + Journey E мини-уроки); CHECKPOINT-1 закрыт (тег `phase-1`) |
 
 ## Phase log
 
 | Фаза | Статус | Дата | Итог |
 |---|---|---|---|
 | 0 | done | 2026-10-25 | Git инициализирован (`baseline`), `docs/release-readiness.md` приведён к §18, `docs/skills-manifest.md` создан (26 папок). Тег `phase-0`. |
-| 1 | in progress | 2026-10-26 | T10, T17, T11, T12, T13, T14, T15 приняты; остались T16 и T18 (Argon) до закрытия Фазы 1 |
+| 1 | done | 2026-10-26 | Полностью реализовано финансовое ядро (T10–T18): фикстура §9, горизонтный прогноз баланса, Debt Engine + `/debts`, каталог 15 действий, MCDA + чувствительность ±20%, машина координации §10, 10 мини-уроков + Journey E `/learn`. 87/87 тестов, 0 drift, 0 TS ошибок. Тег `phase-1`. |
+| 2 | in progress | 2026-10-26 | Ожидает старта T20 (Flash), T21 и T22 (Argon). |
