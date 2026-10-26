@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T22 (review, Codex GPT-6 heavy executor, attempt 4)
-- **Last reviewed:** 2026-10-26, fresh T22/T24 review: REWORK confirmed for T22/T24a; T24b todo. Backend 166/166, targeted 52/52, schema/offline 5/5, drift 0.
-- **Next action:** Оркестратор Astra GPT 6 / Argon в новом чате: `Проверь T22` (attempt 4). T23 ждёт done T22. Остальные задачи не принимались.
+- **Current task:** T22 attempt 4 reviewed: rework, one remaining monetary-token recognition finding.
+- **Last reviewed:** 2026-10-26, T22 attempt 4: REWORK; mutation finding closed, monetary recognition partially fixed. Backend 170/170, harness 29/29, schema/offline 5/5, drift 0.
+- **Next action:** Astra GPT 6 / Argon: `Выполни T22` — закрыть оставшееся замечание распознавания полного денежного выражения из Review Attempt 4. Затем отдельное ревью. T23 ждёт done T22.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -123,3 +123,7 @@ Git persistence (T22 review): targeted git add and git commit failed with `.git/
 ## T22 executor — Attempt 4 (2026-10-26)
 
 Оба блокера исправлены: строгий парсинг полных денежных токенов с отказом на ошибочном формате; сравнение полного State. Harness 29/29, backend 170/170, schema/offline 5/5, contract drift 0. T22 → review. Подробности в reports/T22.md. Предшествующие изменения сохранены отдельно в 213f534.
+
+## T22 Attempt 4 review — 2026-10-26
+
+REWORK: прежние конкретные примеры исправлены, полное сравнение State принято. Один оставшийся P1: €.99 / .99 EUR / EUR999.00 исчезают из проверки, €1e3 обрезается до €1; с allowed={100} numeric grader и grade_scenario возвращают PASS. Детали в reports/T22.md. Backend 170/170, harness 29/29, schema/offline 5/5, drift 0. Следующая задача — доработка T22; остальные статусы не повышались.
