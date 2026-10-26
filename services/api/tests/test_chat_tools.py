@@ -688,6 +688,72 @@ class TestChatFallback(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.state.model_dump(mode="python"), state_before)
         self.assertEqual(request.model_dump(mode="python"), request_before)
 
+    async def test_indirect_legal_questions_refused_in_both_fallbacks(self):
+        for disabled in (True, False):
+            for message in (
+                "Should I sue my landlord over this bill?",
+                "Would taking my employer to court be my best move after a pay dispute?",
+                "Can I bring the collector to court?",
+                "How should I go about suing the contractor?",
+            ):
+                with self.subTest(disabled=disabled, message=message):
+                    reply = await self.assert_fallback(ChatRequest(messages=[
+                        ChatMessage(role="user", content=message)
+                    ]), disabled=disabled)
+                    self.assertIn("I do not provide investment advice, tax advice, or legal advice.", reply)
+                    self.assertIn("consult a qualified", reply)
+
+    async def test_missing_debt_details_requested_without_invented_terms(self):
+        for disabled in (True, False):
+            for debts in ([], [Debt(id="loan", balance_cents=50000, terms_known=False)]):
+                self.state.debts = debts
+                with self.subTest(disabled=disabled, debts=bool(debts)):
+                    reply = await self.assert_fallback(ChatRequest(messages=[ChatMessage(
+                        role="user", content="What information is missing for a loan repayment schedule?"
+                    )]), disabled=disabled)
+                    self.assertIn("add your loan balance, APR and minimum payment", reply)
+                    self.assertNotIn("18.5%", reply)
+                    self.assertIn("Cash: €1,000.00", reply)
+
+    async def test_missing_subscription_transactions_requested(self):
+        for disabled in (True, False):
+            for transactions in ([], [Transaction(id="food", date=self.today,
+                                                  description="Groceries", amount=-1500, category="groceries")]):
+                self.state.transactions = transactions
+                with self.subTest(disabled=disabled, other_transactions=bool(transactions)):
+                    reply = await self.assert_fallback(ChatRequest(messages=[ChatMessage(
+                        role="user", content="Which subscription data do I need to add before identifying renewals?"
+                    )]), disabled=disabled)
+                    self.assertIn("add subscription transactions", reply)
+                    self.assertIn("Upload statement", reply)
+                    self.assertNotIn("Netflix", reply)
+
+    async def test_known_details_and_ordinary_context_avoid_false_notices(self):
+        self.state.debts = [Debt(id="loan", balance_cents=50000, apr_bps=1500,
+                                 min_payment_cents=2500, terms_known=True)]
+        self.state.transactions = [Transaction(id="music", date=self.today,
+                                              description="Music", amount=-1099, category="subscriptions")]
+        for disabled in (True, False):
+            for message in ("Show my loan and subscription budget.",
+                            "Sue paid rent; can I afford a tennis court booking?",
+                            "What is my available cash?"):
+                with self.subTest(disabled=disabled, message=message):
+                    reply = await self.assert_fallback(ChatRequest(messages=[
+                        ChatMessage(role="user", content=message)
+                    ]), disabled=disabled)
+                    self.assertNotIn("add your loan balance", reply)
+                    self.assertNotIn("add subscription transactions", reply)
+                    self.assertNotIn("I do not provide", reply)
+
+    async def test_missing_notices_preserve_balance_first_guidance(self):
+        self.state.snapshot = None
+        for disabled in (True, False):
+            reply = await self.assert_fallback(ChatRequest(messages=[ChatMessage(
+                role="user", content="My balance, loan details and subscription transactions are missing."
+            )]), disabled=disabled)
+            self.assertIn("Add your balance first", reply)
+            self.assertNotIn("Cash: €", reply)
+
 
 if __name__ == "__main__":
     unittest.main()

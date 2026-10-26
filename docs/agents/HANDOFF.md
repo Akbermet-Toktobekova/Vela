@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T23 (blocked, GPT-6.1 Sol, attempt 2): JSON rework готов; 4 app-gap сценария остаются FAIL.
+- **Current task:** T23 (review, GPT-6.1 Sol, attempt 3): все 4 app-gap исправлены в явно разрешённом расширенном Scope.
 - **Last reviewed:** 2026-10-26, T23 REWORK; schema/offline 60/60, backend 191/191, but bare Cash passes 27 new scenarios and 10 heldout prompts repeat dev.
-- **Next action:** Оркестратор: оформить app-fix для chat.py + fallback-тестов по четырём FAIL из reports/T23.md (или получить разрешение расширить Scope). Затем повторить Verify T23 и провести независимое ревью. T24b ждёт done T23.
+- **Next action:** Независимый оркестратор в новом чате: `Проверь T23` (attempt 3, вместе с JSON-переработкой attempt 2). T24b ждёт done T23.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю

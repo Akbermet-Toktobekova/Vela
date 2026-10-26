@@ -17,6 +17,17 @@ _OUT_OF_SCOPE_ADVICE_RE = re.compile(
     re.IGNORECASE,
 )
 
+_LEGAL_ACTION_ADVICE_RE = re.compile(
+    r"\b(?:should|can|could|would|how|is|consider|recommend)\b[^.!?\n]{0,200}\b"
+    r"(?:su(?:e|ing)|(?:tak(?:e|ing)|bring(?:ing)?)\b[^.!?\n]{0,100}\bto\s+court)\b",
+    re.IGNORECASE,
+)
+
+_DEBT_DETAILS_RE = re.compile(r"\b(?:debts?|loans?|apr|repay(?:ment)?|minimum\s+payments?)\b", re.IGNORECASE)
+_SUBSCRIPTION_DETAILS_RE = re.compile(
+    r"\b(?:subscriptions?|renewals?|recurring\s+(?:charges|payments))\b", re.IGNORECASE
+)
+
 _UNSAFE_TRANSFER_OR_OVERRIDE_RE = re.compile(
     r"(?:system\s+override|ignore\s+(?:all\s+)?(?:prior|previous)\b|ignore\s+safety|jailbreak|"
     r"\b(?:transfer|wire|send)\s+(?:€|\d|money|funds|all)|move\s+money|execute\s+transfer|"
@@ -105,10 +116,27 @@ def local_reply(state: State, today: date, reason: str, user_message: str = "") 
             "Vela never moves money or executes bank transfers, and cannot override safety rules. "
             "You can only review or add a planned step inside the app."
         )
-    if user_message and _OUT_OF_SCOPE_ADVICE_RE.search(user_message):
+    if user_message and (_OUT_OF_SCOPE_ADVICE_RE.search(user_message) or _LEGAL_ACTION_ADVICE_RE.search(user_message)):
         notices.append(
             "I do not provide investment advice, tax advice, or legal advice. "
             "For those decisions, please consult a qualified financial advisor or professional."
+        )
+    # Missing debt terms cannot be inferred from a required bill, and unrelated
+    # spending does not prove subscription details. Ask for the relevant inputs
+    # while continuing to explain only the budget figures already known.
+    if _DEBT_DETAILS_RE.search(user_message) and (
+        not state.debts or any(not debt.terms_known for debt in state.debts)
+    ):
+        notices.append(
+            "For a repayment schedule, add your loan balance, APR and minimum payment. "
+            "A debt bill alone does not supply the full repayment terms."
+        )
+    if _SUBSCRIPTION_DETAILS_RE.search(user_message) and not any(
+        txn.category == "subscriptions" for txn in state.transactions
+    ):
+        notices.append(
+            "Please add subscription transactions using Upload statement on Home, "
+            "including descriptions and payment dates, before identifying recurring charges."
         )
     prefix = "\n\n".join(notices)
     s = state.snapshot
