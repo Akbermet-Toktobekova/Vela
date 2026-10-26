@@ -363,5 +363,45 @@ class TestPIIRegressionsReviewAttempt2(unittest.TestCase):
         self.assertEqual(mask_pii(a5, force=True), a5)
 
 
+class TestPIIRegressionsEscalationAttempt3(unittest.TestCase):
+    """Regressions found after the second Flash attempt."""
+
+    def test_cards_adjacent_to_amount_preserve_amount(self):
+        cases = {
+            "Card: 4532 0150 1234 5671 1200.50 EUR":
+                "Card: [REDACTED_CARD] 1200.50 EUR",
+            "Card: 4532015012345671 1200.50 EUR":
+                "Card: [REDACTED_CARD] 1200.50 EUR",
+            "Card: 4000 0000 0000 0000 006 75.00 EUR":
+                "Card: [REDACTED_CARD] 75.00 EUR",
+        }
+        for raw, expected in cases.items():
+            with self.subTest(raw=raw):
+                self.assertEqual(mask_pii(raw, force=True), expected)
+
+    def test_00_phone_upper_digit_boundary(self):
+        raw = "Phone: 00441234567890123"
+        self.assertEqual(mask_pii(raw, force=True), "Phone: [REDACTED_PHONE]")
+
+    def test_invalid_card_next_to_amount_is_not_masked(self):
+        raw = "Card: 4532 0150 1234 5670 1200.50 EUR"
+        self.assertEqual(mask_pii(raw, force=True), raw)
+
+    def test_grouped_card_lengths_13_through_19(self):
+        cards = (
+            "4000 0000 0000 6",
+            "4000 0000 0000 02",
+            "4000 0000 0000 006",
+            "4000 0000 0000 0002",
+            "4000 0000 0000 00006",
+            "4000 0000 0000 000002",
+            "4000 0000 0000 0000 006",
+        )
+        for card in cards:
+            with self.subTest(card=card):
+                self.assertTrue(is_valid_luhn(card))
+                self.assertEqual(mask_pii(card, force=True), "[REDACTED_CARD]")
+
+
 if __name__ == "__main__":
     unittest.main()

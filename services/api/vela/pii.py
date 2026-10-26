@@ -100,10 +100,21 @@ IBAN_RE = re.compile(
     r"\b[A-Za-z]{2}\d{2}[A-Za-z0-9]{11,30}\b"
 )
 
-# Card numbers: 13-19 digits, in groups of 4 (with space/hyphen), Amex (4-6-5), Diners (4-6-4),
-# 5 groups (4-4-4-4-3 up to 19 digits), or continuous.
-CARD_RE = re.compile(
-    r"(?<![\d+])(?:\d{13,19}|\d{4}[ -]\d{4,6}[ -]\d{4,5}|(?:\d{2,6}[ -]){3,5}\d{1,6})(?![ -]?\d)"
+# Card numbers are matched by explicit layouts. A broad "digits and spaces"
+# expression can consume the amount in `PAN 1200.50 EUR` and make a valid PAN
+# fail Luhn validation. Longest layouts run first so shorter patterns cannot
+# partially redact a valid 19-digit PAN.
+CARD_PATTERNS = (
+    re.compile(r"(?<![\d+])(?:\d{4}[ -]){4}\d{3}(?!\d)"),  # 4-4-4-4-3
+    re.compile(r"(?<![\d+])\d{4}[ -]\d{6}[ -]\d{5}(?!\d)"),  # Amex 4-6-5
+    re.compile(r"(?<![\d+])\d{4}[ -]\d{6}[ -]\d{4}(?!\d)"),  # Diners 4-6-4
+    re.compile(r"(?<![\d+])(?:\d{4}[ -]){3}\d{6}(?!\d)"),  # 4-4-4-6
+    re.compile(r"(?<![\d+])(?:\d{4}[ -]){3}\d{5}(?!\d)"),  # 4-4-4-5
+    re.compile(r"(?<![\d+])(?:\d{4}[ -]){3}\d{4}(?!\d)"),  # 4-4-4-4
+    re.compile(r"(?<![\d+])(?:\d{4}[ -]){3}\d{3}(?!\d)"),  # 4-4-4-3
+    re.compile(r"(?<![\d+])(?:\d{4}[ -]){3}\d{2}(?!\d)"),  # 4-4-4-2
+    re.compile(r"(?<![\d+])(?:\d{4}[ -]){3}\d(?!\d)"),  # 4-4-4-1
+    re.compile(r"(?<![\d+])\d{13,19}(?!\d)"),  # continuous
 )
 
 # Email address
@@ -191,7 +202,8 @@ def mask_pii(text: str, *, force: bool = False) -> str:
             return "[REDACTED_CARD]"
         return raw
 
-    text = CARD_RE.sub(_repl_card, text)
+    for pattern in CARD_PATTERNS:
+        text = pattern.sub(_repl_card, text)
 
     # 4. Email addresses
     text = EMAIL_RE.sub("[REDACTED_EMAIL]", text)
@@ -201,6 +213,8 @@ def mask_pii(text: str, *, force: bool = False) -> str:
         def _repl_phone(m: re.Match, cur_text: str = text) -> str:
             cand = m.group(0)
             digits = [c for c in cand if c.isdigit()]
+            if cand.startswith("00"):
+                digits = digits[2:]
             if not (9 <= len(digits) <= 15):
                 return cand
             trailing = cur_text[m.end() : m.end() + 15].strip()

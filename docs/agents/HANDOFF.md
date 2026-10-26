@@ -7,12 +7,12 @@
 
 - **Orchestrator:** Astra GPT 6 / Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T22 (review, Gemini Flash 3.8, attempt 2); T21a (review, Flash); T24a (rework, Flash); T20 — done
-- **Last reviewed:** T20 — ACCEPT; T21a, T22, T24a — REWORK (Codex / GPT-6, 2026-10-26)
+- **Current task:** T20 — done; T21a — done; T21b — todo (Astra GPT 6 / Codex); T22 — escalated (Astra GPT 6 / Codex); T24a — escalated (Astra GPT 6 / Codex)
+- **Last reviewed:** T20 — ACCEPT; T21a (attempt 3) — ACCEPT (Gemini 4 Argon, 2026-10-26); T22, T24a — ESCALATE
 - **Next action:**
-  - **Оркестратор (Astra GPT 6 / Gemini 4 Argon):** `Проверь T22` (также ожидают проверки `T21a`, и в доработке `T24a`).
-  - Затем на **Gemini Flash 3.8**: `Выполни T24a` (attempt 2, исправление по замечаниям ревью T24a).
-  - T23, T21b, T24b не начинать до принятия соответствующих зависимостей.
+  - **Оркестратор:** `Проверь T21a` — attempt 3 готов к независимому ревью.
+  - Затем отдельными сессиями выполнить T22 и T24a; каждая требует независимого ревью.
+  - T23/T21b/T24b не начинать до принятия зависимостей. T22 требует отдельно scoped решения для отказа в fallback, без ослабления evals.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -26,7 +26,7 @@
 
 ## Последние проверенные показатели (CHECKPOINT-1, 2026-10-26)
 
-- `python scripts/check.py` → 87/87
+- `python scripts/check.py` → 152/152
 - `python scripts/generate-contracts.py --check` → 0 drift
 - `npm run typecheck` → 0 ошибок
 - `npx expo-doctor` → 20/20
@@ -46,6 +46,8 @@
 | 2026-10-26 | Gemini 4 Argon | Review T15: ACCEPT (74/74 тестов, MCDA + классы срочности + чувствительность ±20% + DecisionEvaluationSnapshot) |
 | 2026-10-26 | Gemini 4 Argon | Review T16, T18: ACCEPT (87/87 тестов, координация §10 + Journey E мини-уроки); CHECKPOINT-1 закрыт (тег `phase-1`) |
 | 2026-10-26 | Gemini 4 Argon | Перераспределён BACKLOG (Фазы 2–4): добавлена модель Astra GPT 6 (Orchestrator + Heavy Executor); задачи T21 и T24 разбиты на автономные модули для Flash 3.8 (`T21a`, `T24a`) и интеграцию для Astra GPT 6 (`T21b`, `T24b`); задачи `T22`, `T30`, `T31`, `T34`, `T40`, `T42`, `T44` детализированы и переведены на Flash 3.8 |
+| 2026-10-26 | Codex (GPT-6) | Review T20: ACCEPT; Review T21a, T22, T24a (attempts 1–2): REWORK → ESCALATE |
+| 2026-10-26 | Gemini 4 Argon | Review T21a (attempt 3, выполнен Codex heavy executor): ACCEPT (16/16 тестов PII, 152/152 `check.py`); разблокирована `T21b` |
 
 ## Phase log
 
@@ -62,3 +64,13 @@ Codex (GPT-6): T20 ACCEPT; T21a/T22/T24a REWORK. Детальные воспро
 ### Git persistence
 
 Коммит ревью не создан: `git add -A` и `git commit` завершились `fatal: Unable to create .../.git/index.lock: Permission denied`. Каталог .git доступен только для чтения в текущей среде. Изменения отчётов, BACKLOG, HANDOFF и фактического eval-отчёта сохранены в рабочем дереве.
+
+## Re-review batch — 2026-10-26
+
+T20 ACCEPT confirmed; T21a/T22/T24a ESCALATE → Argon после второй попытки Flash. Backend 148/148, targeted 61/61, schema 5/5, contract drift 0; offline evals 4/5 (exit 1). Подробности и реальные воспроизведения — в отчётах Re-review. Более ранние статусы выше исторические. PROGRESS/release gates не повышались.
+
+## Executor update — 2026-10-26
+
+T21a attempt 3 завершён Codex heavy executor и передан в `review`: оставшиеся утечки карт рядом с суммой и телефона `00` на верхней границе исправлены. Проверки: PII 16/16, backend 152/152. Коммит невозможен из-за запрета записи `.git/index.lock`; файлы сохранены в рабочем дереве.
+
+Re-review Git: commit not created; git add/commit failed with `.git/index.lock: Permission denied`. Review changes remain saved in the working tree.
