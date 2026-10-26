@@ -8,7 +8,7 @@ Provides 4 pure deterministic tools for grounding AI chat responses in verified 
 
 Also provides `verify_reply_numbers(reply_text, tool_outputs) -> tuple[bool, list[str]]`
 to detect hallucinated monetary figures or ungrounded percentages in generated replies.
-All financial arithmetic uses integer EUR cents (`int`, never `float`).
+All financial arithmetic uses integer EUR cents and basis points (`int`, never `float`).
 """
 
 from collections import defaultdict
@@ -28,6 +28,14 @@ ALLOWED_PLAIN_CONSTANTS: frozenset[int] = frozenset({
     60, 90, 93, 100, 180, 365,
 })
 
+# Free-text keys in tool outputs that must NEVER be parsed for numbers or financial calculations
+IGNORED_TEXT_KEYS: frozenset[str] = frozenset({
+    "description", "label", "id", "kind", "goal_name", "message", "category",
+    "status", "strategy", "as_of", "horizon", "period_start", "period_end",
+    "source", "rounding_rule", "note", "subscriptions_note", "nickname",
+    "currency", "name", "clarify_field", "policy", "mode",
+})
+
 
 def _get(obj: Any, key: str, default: Any = None) -> Any:
     """Safe getter supporting both dictionary and attribute-based objects."""
@@ -44,6 +52,149 @@ def _parse_date(val: Any) -> date | None:
     if isinstance(val, str):
         return date.fromisoformat(val)
     return None
+
+
+def parse_currency_candidates_to_cents(raw_match: str) -> list[int]:
+    """Parses a matched currency string (prefix or suffix) into integer cent amounts
+
+    using pure integer arithmetic (no floating point operations, §5 AGENTS.md).
+    Supports both English (1,234.56 or 1000) and German (1.234,56 or 12,50) formats.
+    """
+    raw_str = raw_match.strip()
+    sign = -1 if ("-" in raw_str or "−" in raw_str) else 1
+
+    # Check if unit is cents
+    is_cents_unit = bool(re.search(r"cents?\b", raw_str, flags=re.IGNORECASE))
+
+    # Strip currency symbols, parentheses, brackets, letters
+    clean = re.sub(r"[€$£()\[\]\s]", "", raw_str)
+    clean = re.sub(r"cents?|euros?|euro|eur", "", clean, flags=re.IGNORECASE).strip()
+    clean = clean.replace("+", "").replace("-", "").replace("−", "").strip()
+
+    if not clean:
+        return []
+
+    candidates: list[int] = []
+
+    # Format with both comma and dot: e.g. 1,234.56 or 1.234,56
+    if "," in clean and "." in clean:
+        if clean.rfind(",") > clean.rfind("."):
+            # German 1.234,56
+            whole_str = clean[:clean.rfind(",")].replace(".", "")
+            dec_str = clean[clean.rfind(",") + 1:]
+        else:
+            # English 1,234.56
+            whole_str = clean[:clean.rfind(".")].replace(",", "")
+            dec_str = clean[clean.rfind(".") + 1:]
+
+        whole = int(whole_str) if whole_str else 0
+        if is_cents_unit:
+            cents = whole
+        else:
+            if len(dec_str) == 0:
+                cents = whole * 100
+            elif len(dec_str) == 1:
+                cents = whole * 100 + int(dec_str) * 10
+            elif len(dec_str) == 2:
+                cents = whole * 100 + int(dec_str)
+            else:
+                frac3 = int(dec_str[:3].ljust(3, "0"))
+                cents = whole * 100 + (frac3 + 5) // 10
+        candidates.append(sign * cents)
+        return candidates
+
+    # Format with comma only
+    if "," in clean:
+        parts = clean.split(",")
+        if len(parts) == 2 and len(parts[1]) in (1, 2):
+            # Decimal separator: e.g. 12,50 or 12,5
+            whole = int(parts[0]) if parts[0] else 0
+            dec_str = parts[1]
+            if is_cents_unit:
+                cents = whole
+            else:
+                cents = whole * 100 + (int(dec_str) * 10 if len(dec_str) == 1 else int(dec_str))
+            candidates.append(sign * cents)
+            return candidates
+        else:
+            # Thousands separator: 1,000 or 100,000
+            whole = int(clean.replace(",", ""))
+            cents = whole if is_cents_unit else whole * 100
+            candidates.append(sign * cents)
+            return candidates
+
+    # Format with dot only
+    if "." in clean:
+        parts = clean.split(".")
+        if len(parts) == 2 and len(parts[1]) == 3 and len(parts[0]) <= 3:
+            # Ambiguous: could be thousands (1.000) or decimal (1.000)
+            whole_th = int(clean.replace(".", ""))
+            cents_th = whole_th if is_cents_unit else whole_th * 100
+            candidates.append(sign * cents_th)
+
+            whole_dec = int(parts[0]) if parts[0] else 0
+            cents_dec = (whole_dec if is_cents_unit else whole_dec * 100) + int(parts[1][:2])
+            candidates.append(sign * cents_dec)
+            return candidates
+        elif len(parts) == 2:
+            whole = int(parts[0]) if parts[0] else 0
+            dec_str = parts[1]
+            if is_cents_unit:
+                cents = whole
+            else:
+                if len(dec_str) == 1:
+                    cents = whole * 100 + int(dec_str) * 10
+                elif len(dec_str) == 2:
+                    cents = whole * 100 + int(dec_str)
+                else:
+                    frac3 = int(dec_str[:3].ljust(3, "0"))
+                    cents = whole * 100 + (frac3 + 5) // 10
+            candidates.append(sign * cents)
+            return candidates
+
+    # Plain integer
+    try:
+        val = int(clean)
+        cents = val if is_cents_unit else val * 100
+        candidates.append(sign * cents)
+    except ValueError:
+        pass
+
+    return candidates
+
+
+def parse_percentage_to_bps(raw: str) -> list[int]:
+    """Parses a percentage string into integer basis points (1% = 100 bps)
+
+    using pure integer arithmetic (no floating point operations).
+    """
+    clean = re.sub(r"[()\[\]%]", "", raw).strip()
+    sign = -1 if ("-" in clean or "−" in clean) else 1
+    clean = clean.replace("+", "").replace("-", "").replace("−", "").replace(" ", "")
+    if not clean:
+        return []
+    if "," in clean:
+        parts = clean.split(",")
+    elif "." in clean:
+        parts = clean.split(".")
+    else:
+        parts = [clean, ""]
+    whole_str = parts[0] or "0"
+    dec_str = parts[1] if len(parts) > 1 else ""
+    try:
+        whole = int(whole_str)
+        if len(dec_str) == 0:
+            frac = 0
+        elif len(dec_str) == 1:
+            frac = int(dec_str) * 10
+        elif len(dec_str) == 2:
+            frac = int(dec_str)
+        else:
+            frac = (int(dec_str[:3]) + 5) // 10
+        bps = sign * (whole * 100 + frac)
+        return [bps]
+    except ValueError:
+        return []
 
 
 def get_financial_snapshot(state: State | StateView | dict | Any) -> dict:
@@ -163,49 +314,85 @@ def calculate_cash_flow(state: State | StateView | dict | Any, days: int = 30) -
     """Computes verified income, spending, net cash flow, and minimum projected balance
 
     over the specified window (default 30 days) in integer EUR cents and formatted EUR.
+    Supports State (via raw transactions) and StateView/dict (via precomputed summary).
+    Never fabricates confirmed zero cash flow when underlying data is absent.
     """
     raw_txns = _get(state, "transactions", [])
+    summary_obj = _get(state, "summary", None)
+
     min_projected_cents = capacity(state) if isinstance(state, State) and state.snapshot is not None else _get(state, "available", 0)
     min_projected_eur = format_eur(min_projected_cents)
 
-    if not raw_txns:
+    # 1. Use raw transactions if available
+    if raw_txns:
+        txns = [t if isinstance(t, Transaction) else Transaction(**t) for t in raw_txns]
+        end = max(t.date for t in txns)
+        start = end - timedelta(days=max(1, days) - 1)
+        recent = [t for t in txns if t.date >= start]
+
+        income_cents = sum(t.amount for t in recent if t.amount > 0 and t.category != "transfers")
+        spending_cents = sum(-t.amount for t in recent if t.amount < 0 and t.category != "transfers")
+        net_flow_cents = income_cents - spending_cents
+
         return {
             "days": days,
-            "transaction_count": 0,
-            "period_start": None,
-            "period_end": None,
-            "income_cents": 0,
-            "income_eur": format_eur(0),
-            "spending_cents": 0,
-            "spending_eur": format_eur(0),
-            "net_cash_flow_cents": 0,
-            "net_cash_flow_eur": format_eur(0),
+            "transaction_count": len(recent),
+            "period_start": start.isoformat(),
+            "period_end": end.isoformat(),
+            "income_cents": income_cents,
+            "income_eur": format_eur(income_cents),
+            "spending_cents": spending_cents,
+            "spending_eur": format_eur(spending_cents),
+            "net_cash_flow_cents": net_flow_cents,
+            "net_cash_flow_eur": format_eur(net_flow_cents),
             "min_projected_balance_cents": min_projected_cents,
             "min_projected_balance_eur": min_projected_eur,
+            "data_available": True,
+            "source": "transactions",
         }
 
-    txns = [t if isinstance(t, Transaction) else Transaction(**t) for t in raw_txns]
-    end = max(t.date for t in txns)
-    start = end - timedelta(days=max(1, days) - 1)
-    recent = [t for t in txns if t.date >= start]
+    # 2. Use verified summary if available (StateView or view dict without raw transactions)
+    if summary_obj is not None:
+        tx_count = _get(summary_obj, "transaction_count", 0)
+        p_start = _get(summary_obj, "period_start")
+        p_end = _get(summary_obj, "period_end")
+        income_cents = _get(summary_obj, "income", 0)
+        spending_cents = _get(summary_obj, "spending", 0)
+        net_flow_cents = income_cents - spending_cents
 
-    income_cents = sum(t.amount for t in recent if t.amount > 0 and t.category != "transfers")
-    spending_cents = sum(-t.amount for t in recent if t.amount < 0 and t.category != "transfers")
-    net_flow_cents = income_cents - spending_cents
+        return {
+            "days": days,
+            "transaction_count": tx_count,
+            "period_start": str(p_start) if p_start else None,
+            "period_end": str(p_end) if p_end else None,
+            "income_cents": income_cents,
+            "income_eur": format_eur(income_cents),
+            "spending_cents": spending_cents,
+            "spending_eur": format_eur(spending_cents),
+            "net_cash_flow_cents": net_flow_cents,
+            "net_cash_flow_eur": format_eur(net_flow_cents),
+            "min_projected_balance_cents": min_projected_cents,
+            "min_projected_balance_eur": min_projected_eur,
+            "data_available": tx_count > 0,
+            "source": "summary",
+        }
 
+    # 3. No transactions or summary present
     return {
         "days": days,
-        "transaction_count": len(recent),
-        "period_start": start.isoformat(),
-        "period_end": end.isoformat(),
-        "income_cents": income_cents,
-        "income_eur": format_eur(income_cents),
-        "spending_cents": spending_cents,
-        "spending_eur": format_eur(spending_cents),
-        "net_cash_flow_cents": net_flow_cents,
-        "net_cash_flow_eur": format_eur(net_flow_cents),
+        "transaction_count": 0,
+        "period_start": None,
+        "period_end": None,
+        "income_cents": None,
+        "income_eur": None,
+        "spending_cents": None,
+        "spending_eur": None,
+        "net_cash_flow_cents": None,
+        "net_cash_flow_eur": None,
         "min_projected_balance_cents": min_projected_cents,
         "min_projected_balance_eur": min_projected_eur,
+        "data_available": False,
+        "source": "none",
     }
 
 
@@ -282,7 +469,7 @@ def simulate_debt_payment(state: State | StateView | dict | Any, extra_payment_c
             "balance_cents": d.balance_cents,
             "balance_eur": format_eur(d.balance_cents),
             "apr_bps": d.apr_bps,
-            "apr_percent": f"{d.apr_bps / 100:.2f}%" if d.apr_bps % 100 != 0 else f"{d.apr_bps // 100}%",
+            "apr_percent": f"{d.apr_bps // 100}%" if d.apr_bps % 100 == 0 else f"{d.apr_bps / 100:.2f}%",
             "min_payment_cents": d.min_payment_cents,
             "min_payment_eur": format_eur(d.min_payment_cents),
             "due_day": d.due_day,
@@ -312,59 +499,98 @@ def get_spending_by_category(state: State | StateView | dict | Any, limit: int =
     """Computes top spending categories and recurring subscription charges over
 
     the last 30 days of data in integer EUR cents and formatted EUR.
+    Supports State (via raw transactions) and StateView/dict (via precomputed summary).
     """
     raw_txns = _get(state, "transactions", [])
-    if not raw_txns:
+    summary_obj = _get(state, "summary", None)
+
+    # 1. Use raw transactions if available
+    if raw_txns:
+        txns = [t if isinstance(t, Transaction) else Transaction(**t) for t in raw_txns]
+        end = max(t.date for t in txns)
+        start = end - timedelta(days=29)
+        recent = [t for t in txns if t.date >= start and t.category != "transfers" and t.amount < 0]
+
+        by_cat: dict[str, int] = defaultdict(int)
+        for t in recent:
+            by_cat[t.category] += -t.amount
+
+        top = sorted(by_cat.items(), key=lambda kv: -kv[1])[:limit]
+        top_categories = [
+            {"category": c, "amount_cents": a, "amount_eur": format_eur(a)}
+            for c, a in top
+        ]
+
+        subs = [t for t in recent if t.category == "subscriptions"]
+        subs_total_cents = sum(-t.amount for t in subs)
+        subscriptions = [
+            {
+                "id": t.id,
+                "description": t.description,
+                "amount_cents": -t.amount,
+                "amount_eur": format_eur(-t.amount),
+                "date": t.date.isoformat(),
+            }
+            for t in sorted(subs, key=lambda t: (t.date, t.id), reverse=True)
+        ]
+
+        total_spending_cents = sum(-t.amount for t in recent)
+
         return {
-            "period_start": None,
-            "period_end": None,
-            "total_spending_cents": 0,
-            "total_spending_eur": format_eur(0),
-            "top_categories": [],
+            "period_start": start.isoformat(),
+            "period_end": end.isoformat(),
+            "total_spending_cents": total_spending_cents,
+            "total_spending_eur": format_eur(total_spending_cents),
+            "top_categories": top_categories,
+            "subscriptions": subscriptions,
+            "subscriptions_total_cents": subs_total_cents,
+            "subscriptions_total_eur": format_eur(subs_total_cents),
+            "data_available": True,
+            "source": "transactions",
+        }
+
+    # 2. Use summary if available
+    if summary_obj is not None:
+        raw_cats = _get(summary_obj, "top_categories", [])
+        total_spending_cents = _get(summary_obj, "spending", 0)
+        p_start = _get(summary_obj, "period_start")
+        p_end = _get(summary_obj, "period_end")
+
+        top_categories = [
+            {
+                "category": _get(c, "category"),
+                "amount_cents": _get(c, "amount"),
+                "amount_eur": format_eur(_get(c, "amount")),
+            }
+            for c in raw_cats[:limit]
+        ]
+
+        return {
+            "period_start": str(p_start) if p_start else None,
+            "period_end": str(p_end) if p_end else None,
+            "total_spending_cents": total_spending_cents,
+            "total_spending_eur": format_eur(total_spending_cents),
+            "top_categories": top_categories,
             "subscriptions": [],
             "subscriptions_total_cents": 0,
             "subscriptions_total_eur": format_eur(0),
+            "subscriptions_note": "Detailed subscription items require raw transactions",
+            "data_available": True,
+            "source": "summary",
         }
 
-    txns = [t if isinstance(t, Transaction) else Transaction(**t) for t in raw_txns]
-    end = max(t.date for t in txns)
-    start = end - timedelta(days=29)
-    recent = [t for t in txns if t.date >= start and t.category != "transfers" and t.amount < 0]
-
-    by_cat: dict[str, int] = defaultdict(int)
-    for t in recent:
-        by_cat[t.category] += -t.amount
-
-    top = sorted(by_cat.items(), key=lambda kv: -kv[1])[:limit]
-    top_categories = [
-        {"category": c, "amount_cents": a, "amount_eur": format_eur(a)}
-        for c, a in top
-    ]
-
-    subs = [t for t in recent if t.category == "subscriptions"]
-    subs_total_cents = sum(-t.amount for t in subs)
-    subscriptions = [
-        {
-            "id": t.id,
-            "description": t.description,
-            "amount_cents": -t.amount,
-            "amount_eur": format_eur(-t.amount),
-            "date": t.date.isoformat(),
-        }
-        for t in sorted(subs, key=lambda t: (t.date, t.id), reverse=True)
-    ]
-
-    total_spending_cents = sum(-t.amount for t in recent)
-
+    # 3. No data
     return {
-        "period_start": start.isoformat(),
-        "period_end": end.isoformat(),
-        "total_spending_cents": total_spending_cents,
-        "total_spending_eur": format_eur(total_spending_cents),
-        "top_categories": top_categories,
-        "subscriptions": subscriptions,
-        "subscriptions_total_cents": subs_total_cents,
-        "subscriptions_total_eur": format_eur(subs_total_cents),
+        "period_start": None,
+        "period_end": None,
+        "total_spending_cents": None,
+        "total_spending_eur": None,
+        "top_categories": [],
+        "subscriptions": [],
+        "subscriptions_total_cents": None,
+        "subscriptions_total_eur": None,
+        "data_available": False,
+        "source": "none",
     }
 
 
@@ -378,158 +604,73 @@ def collect_all_tool_outputs(state: State | StateView | dict | Any) -> dict:
     }
 
 
-def extract_tool_numbers(data: Any) -> tuple[set[int], set[float], set[int]]:
-    """Traverses nested tool outputs and extracts sets of:
+def extract_tool_numbers(data: Any) -> tuple[set[int], set[int], set[int]]:
+    """Traverses nested tool outputs and extracts verified numbers:
 
     1. `valid_cents`: all monetary figures expressed in integer EUR cents.
-    2. `valid_percents`: all percentages (e.g. APRs from bps, discount rates).
-    3. `valid_counts_or_wholes`: non-monetary integers (days, months, counts, whole EUR).
+    2. `valid_bps`: all interest rates / percentages expressed in integer basis points (18.5% = 1850 bps).
+    3. `valid_counts`: non-monetary integers (days, months, counts, whole EUR amounts).
+
+    Ignores arbitrary free-text fields (merchant names, descriptions) to prevent malicious injection.
     """
-    valid_cents: set[int] = {0}
-    valid_percents: set[float] = {0.0, 100.0}
+    valid_cents: set[int] = set()
+    valid_bps: set[int] = set()
     valid_counts: set[int] = set()
 
     def _walk(obj: Any, key_name: str = ""):
+        k = key_name.lower()
+        if k in IGNORED_TEXT_KEYS:
+            return
+
         if isinstance(obj, dict):
-            for k, v in obj.items():
-                _walk(v, str(k))
+            for sub_k, v in obj.items():
+                _walk(v, str(sub_k))
         elif isinstance(obj, (list, tuple, set)):
             for item in obj:
                 _walk(item, key_name)
-        elif isinstance(obj, (int, float)) and not isinstance(obj, bool):
+        elif isinstance(obj, int) and not isinstance(obj, bool):
             val = obj
-            k = key_name.lower()
-            if "cent" in k or k in ("cash", "saved", "protected", "amount", "spending", "income"):
-                c = int(round(val))
-                valid_cents.add(c)
-                valid_cents.add(abs(c))
-                if c % 100 == 0:
-                    valid_counts.add(c // 100)
-                    valid_counts.add(abs(c // 100))
+            if "cent" in k or k in ("cash", "saved", "protected", "amount", "spending", "income", "capacity", "available"):
+                valid_cents.add(val)
+                if val % 100 == 0:
+                    valid_counts.add(val // 100)
             elif "bps" in k:
-                pct = round(val / 100.0, 2)
-                valid_percents.add(pct)
-                valid_counts.add(int(round(val)))
+                valid_bps.add(val)
             elif any(sub in k for sub in ("day", "month", "count", "revision", "limit")):
-                valid_counts.add(int(round(val)))
+                valid_counts.add(val)
             else:
-                if isinstance(val, int):
-                    valid_counts.add(val)
-                    valid_cents.add(val)
-                    valid_cents.add(abs(val))
-                    if val % 100 == 0:
-                        valid_counts.add(val // 100)
-                        valid_counts.add(abs(val // 100))
-                else:
-                    valid_percents.add(round(val, 2))
+                valid_counts.add(val)
+                valid_cents.add(val)
+                if val % 100 == 0:
+                    valid_counts.add(val // 100)
         elif isinstance(obj, str):
-            s = obj.strip()
-            # Extract EUR string like "€1,200.50" or "€1,000" or "-€50"
-            m_eur = re.search(r"[€EUR]\s*([+-]?[\d,]+(?:\.\d+)?)", s)
-            if m_eur:
-                num_str = m_eur.group(1).replace(",", "")
-                try:
-                    c = int(round(float(num_str) * 100))
+            # Only extract numbers from explicitly typed EUR and percentage fields
+            if k.endswith("_eur"):
+                candidates = parse_currency_candidates_to_cents(obj)
+                for c in candidates:
                     valid_cents.add(c)
-                    valid_cents.add(abs(c))
                     if c % 100 == 0:
                         valid_counts.add(c // 100)
-                        valid_counts.add(abs(c // 100))
-                except ValueError:
-                    pass
-            # Extract percentage string like "18.5%" or "6%"
-            m_pct = re.search(r"([+-]?\d+(?:[.,]\d+)?)\s*%", s)
-            if m_pct:
-                try:
-                    pct = float(m_pct.group(1).replace(",", "."))
-                    valid_percents.add(round(pct, 2))
-                except ValueError:
-                    pass
+            elif k.endswith("_percent"):
+                candidates = parse_percentage_to_bps(obj)
+                for b in candidates:
+                    valid_bps.add(b)
 
     _walk(data)
-    return valid_cents, valid_percents, valid_counts
+    return valid_cents, valid_bps, valid_counts
 
 
-def _parse_currency_candidates_to_cents(raw_match: str) -> list[int]:
-    """Parses a matched currency string (prefix or suffix) into potential candidate cent amounts."""
-    clean = re.sub(r"[€$£\s]", "", raw_match).strip()
-    is_cents_unit = bool(re.search(r"cents?\b", clean, flags=re.IGNORECASE))
-    clean = re.sub(r"cents?|euros?|euro|eur", "", clean, flags=re.IGNORECASE).strip()
-
-    sign = -1 if ("-" in raw_match or "−" in raw_match) else 1
-    clean = clean.replace("+", "").replace("-", "").replace("−", "").strip()
-
-    if not clean:
-        return []
-
-    candidates: list[int] = []
-
-    # Format with both comma and dot: e.g. 1,234.56 or 1.234,56
-    if "," in clean and "." in clean:
-        if clean.rfind(",") > clean.rfind("."):
-            num = float(clean.replace(".", "").replace(",", "."))
-        else:
-            num = float(clean.replace(",", ""))
-        cents = int(round(num * 100)) if not is_cents_unit else int(round(num))
-        candidates.append(sign * cents)
-        return candidates
-
-    # Format with comma only
-    if "," in clean:
-        parts = clean.split(",")
-        if len(parts) == 2 and len(parts[1]) in (1, 2):
-            # Decimal separator: 12,50
-            num = float(clean.replace(",", "."))
-            cents = int(round(num * 100)) if not is_cents_unit else int(round(num))
-            candidates.append(sign * cents)
-        else:
-            # Thousands separator: 1,000
-            num = float(clean.replace(",", ""))
-            cents = int(round(num * 100)) if not is_cents_unit else int(round(num))
-            candidates.append(sign * cents)
-        return candidates
-
-    # Format with dot only
-    if "." in clean:
-        parts = clean.split(".")
-        if len(parts) == 2 and len(parts[1]) == 3 and len(parts[0]) <= 3:
-            # Could be thousand separator (1.000) or decimal (1.000)
-            num_th = float(clean.replace(".", ""))
-            cents_th = int(round(num_th * 100)) if not is_cents_unit else int(round(num_th))
-            candidates.append(sign * cents_th)
-
-            num_dec = float(clean)
-            cents_dec = int(round(num_dec * 100)) if not is_cents_unit else int(round(num_dec))
-            candidates.append(sign * cents_dec)
-            return candidates
-        else:
-            num = float(clean)
-            cents = int(round(num * 100)) if not is_cents_unit else int(round(num))
-            candidates.append(sign * cents)
-            return candidates
-
-    # Plain integer
-    try:
-        val = int(clean)
-        cents = val if is_cents_unit else val * 100
-        candidates.append(sign * cents)
-    except ValueError:
-        pass
-
-    return candidates
-
-
-# Regex patterns for currency amounts and percentages
+# Precise regexes that capture complete numeric tokens with boundaries
 _CURRENCY_PREFIX_RE = re.compile(
-    r"(?:€|EUR)\s*[-+−]?\s*(?:\d{1,3}(?:[.,]\d{3})*|\d+)(?:[.,]\d+)?",
+    r"(?:\(\s*)?(?:[-+−]\s*)?(?:€|EUR)\s*(?:[-+−]\s*)?(?:\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?)(?!\d)\s*\)?",
     re.IGNORECASE,
 )
 _CURRENCY_SUFFIX_RE = re.compile(
-    r"[-+−]?\s*(?:\d{1,3}(?:[.,]\d{3})*|\d+)(?:[.,]\d+)?\s*(?:€|EUR|euros?|cents?)\b",
+    r"(?:\(\s*)?(?:[-+−]\s*)?(?:\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?)(?!\d)\s*(?:\)\s*)?(?:€(?!\w)|\b(?:EUR|euros?|cents?)\b)\)?",
     re.IGNORECASE,
 )
 _PERCENTAGE_RE = re.compile(
-    r"[-+−]?\s*\d+(?:[.,]\d+)?\s*%",
+    r"(?:\(\s*)?(?:[-+−]\s*)?\d+(?:[.,]\d+)?\s*%\s*\)?",
 )
 _DATE_RE = re.compile(
     r"\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}[./]\d{1,2}[./]\d{2,4}\b|\b\d{1,2}(?:st|nd|rd|th)\b",
@@ -552,80 +693,87 @@ def verify_reply_numbers(reply_text: str, tool_outputs: dict) -> tuple[bool, lis
     if not reply_text:
         return True, []
 
-    valid_cents, valid_percents, valid_counts = extract_tool_numbers(tool_outputs)
+    valid_cents, valid_bps, valid_counts = extract_tool_numbers(tool_outputs)
     unconfirmed: list[str] = []
 
     working_text = reply_text
 
-    # 1. Mask known date expressions (e.g. 2026-03-01, 15.03.2026) so date components aren't flagged as money
-    def _mask_date(match: re.Match) -> str:
-        return " " * len(match.group(0))
-
-    working_text = _DATE_RE.sub(_mask_date, working_text)
-
-    # 2. Mask markdown bullet points like "^1. " or "\n 2. " or "(1)"
-    working_text = re.sub(r"(?m)^\s*\d+\.\s+", lambda m: " " * len(m.group(0)), working_text)
-    working_text = re.sub(r"\(\d+\)", lambda m: " " * len(m.group(0)), working_text)
-    working_text = re.sub(r"§\s*\d+", lambda m: " " * len(m.group(0)), working_text)
-
-    # 3. Check explicit currency figures (prefix: €1000, suffix: 1000 € / 1000 EUR / 50 cents)
+    # 1. Check explicit currency figures FIRST (prefix: €1234, suffix: 100 €, (999) EUR)
     def _check_and_mask_currency(match: re.Match) -> str:
-        raw = match.group(0)
-        candidates = _parse_currency_candidates_to_cents(raw)
+        raw = match.group(0).strip()
+        candidates = parse_currency_candidates_to_cents(raw)
         confirmed = False
         for c in candidates:
-            if c in valid_cents or abs(c) in valid_cents:
+            if c in valid_cents:
                 confirmed = True
                 break
         if not confirmed:
-            unconfirmed.append(raw.strip())
-        return " " * len(raw)
+            unconfirmed.append(raw)
+        return " " * len(match.group(0))
 
     working_text = _CURRENCY_PREFIX_RE.sub(_check_and_mask_currency, working_text)
     working_text = _CURRENCY_SUFFIX_RE.sub(_check_and_mask_currency, working_text)
 
-    # 4. Check explicit percentage figures (e.g. 18.5%, 6%)
+    # 2. Check explicit percentage figures (e.g. 18.5%, 6%)
     def _check_and_mask_percentage(match: re.Match) -> str:
-        raw = match.group(0)
-        clean = raw.replace("%", "").replace(",", ".").replace("+", "").replace("−", "-").strip()
-        try:
-            pct = float(clean)
-            if any(abs(pct - vp) < 0.05 for vp in valid_percents):
-                return " " * len(raw)
-        except ValueError:
-            pass
-        unconfirmed.append(raw.strip())
-        return " " * len(raw)
+        raw = match.group(0).strip()
+        bps_candidates = parse_percentage_to_bps(raw)
+        confirmed = False
+        for b in bps_candidates:
+            if b in valid_bps:
+                confirmed = True
+                break
+        if not confirmed:
+            unconfirmed.append(raw)
+        return " " * len(match.group(0))
 
     working_text = _PERCENTAGE_RE.sub(_check_and_mask_percentage, working_text)
 
+    # 3. Mask known date expressions (e.g. 2026-03-01, 15.03.2026) so dates aren't flagged as money
+    def _mask_text(match: re.Match) -> str:
+        return " " * len(match.group(0))
+
+    working_text = _DATE_RE.sub(_mask_text, working_text)
+
+    # 4. Mask list bullet points at start of line and section markers
+    working_text = re.sub(r"(?m)^\s*\d+\.\s+", _mask_text, working_text)
+    working_text = re.sub(r"(?m)^\s*\(\d+\)\s+", _mask_text, working_text)
+    working_text = re.sub(r"§\s*\d+", _mask_text, working_text)
+
     # 5. Check remaining standalone plain numbers
     for m in _PLAIN_NUMBER_RE.finditer(working_text):
-        raw = m.group(0)
-        clean = raw.replace(",", ".")
+        raw = m.group(0).strip()
+
+        # Handle decimal/thousands separators in plain number
+        if "," in raw or "." in raw:
+            candidates = parse_currency_candidates_to_cents(raw)
+            if any(c in valid_cents for c in candidates):
+                continue
+            bps_candidates = parse_percentage_to_bps(raw)
+            if any(b in valid_bps for b in bps_candidates):
+                continue
+            unconfirmed.append(raw)
+            continue
+
         try:
-            val_float = float(clean)
+            val_int = int(raw)
         except ValueError:
             continue
 
-        val_int = int(round(val_float)) if abs(val_float - round(val_float)) < 1e-6 else None
-
         # Check whitelist of plain constants (counts, durations like 14, 30, 93) or year (2020..2035)
-        if val_int is not None and (val_int in ALLOWED_PLAIN_CONSTANTS or 2020 <= val_int <= 2035):
+        if val_int in ALLOWED_PLAIN_CONSTANTS or 2020 <= val_int <= 2035:
             continue
 
         # Check if matches valid non-monetary count/month/day/revision from tool_outputs
-        if val_int is not None and (val_int in valid_counts or abs(val_int) in valid_counts):
+        if val_int in valid_counts:
             continue
 
-        # Check if represents a whole EUR figure present in cents (e.g. "1000" for 1000 EUR -> 100,000 cents)
-        if val_int is not None:
-            cents_from_eur = val_int * 100
-            if cents_from_eur in valid_cents or abs(cents_from_eur) in valid_cents:
-                continue
+        # Check if matches whole EUR figure present in cents (e.g. "1000" for 1000 EUR -> 100,000 cents)
+        if (val_int * 100) in valid_cents:
+            continue
 
-        # Check if matches any valid percentage value (e.g. 18.5 without %)
-        if any(abs(val_float - vp) < 0.05 for vp in valid_percents):
+        # Check if matches valid percentage without % sign (e.g. "18" for 1800 bps)
+        if (val_int * 100) in valid_bps:
             continue
 
         # If it reached here, the number is not confirmed

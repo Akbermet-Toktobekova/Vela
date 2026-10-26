@@ -7,11 +7,11 @@
 
 - **Orchestrator:** Astra GPT 6 / Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T21a (review, Gemini Flash 3.8, attempt 2); T22, T24a — rework; T20 — done
+- **Current task:** T22 (review, Gemini Flash 3.8, attempt 2); T21a (review, Flash); T24a (rework, Flash); T20 — done
 - **Last reviewed:** T20 — ACCEPT; T21a, T22, T24a — REWORK (Codex / GPT-6, 2026-10-26)
 - **Next action:**
-  - **Оркестратор (Astra GPT 6 / Gemini 4 Argon):** Проверь T21a (попытка 2, устранены дефекты CARD_RE и изоляции телефонов).
-  - Затем на **Gemini Flash 3.8**: Выполни T22 (attempt 2, исправление по замечаниям ревью T22) или Выполни T24a (attempt 2, исправление по замечаниям ревью T24a).
+  - **Оркестратор (Astra GPT 6 / Gemini 4 Argon):** `Проверь T22` (также ожидают проверки `T21a`, и в доработке `T24a`).
+  - Затем на **Gemini Flash 3.8**: `Выполни T24a` (attempt 2, исправление по замечаниям ревью T24a).
   - T23, T21b, T24b не начинать до принятия соответствующих зависимостей.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
