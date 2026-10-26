@@ -7,8 +7,8 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T22 accepted (attempt 5); T24a rework (attempt 4).
-- **Last reviewed:** 2026-10-26: T22 ACCEPT, T24a REWORK; backend 183/183, targeted 69/69, schema/offline 5/5, drift 0.
+- **Current task:** T22 accepted (attempt 5); T24a rework (attempt 5).
+- **Last reviewed:** 2026-10-26, T24a attempt 5 REWORK: malformed separator/operator continuations still pass. Backend 185/185, tools 34/34. T22 remains done.
 - **Next action:** Astra GPT 6 / Argon: `Выполни T22b` (first remaining eligible task). T23 is now unblocked; T24a needs one remaining complete-token recognition fix. T24b waits for T24a/T23.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
@@ -151,3 +151,7 @@ Current task: T24a (in_progress, Codex GPT-6). Address independent review of par
 ## T24a redo completed — Attempt 5, 2026-10-26
 
 Current task: T24a (review, Codex GPT-6). Closed remaining P1 from Review Attempt 4: unsupported continuations are captured and rejected as complete claims. Tools 34/34; backend 185/185; diff check exit 0. Next action: Оркестратор: `Проверь T24a` в отдельном чате. T22 status and implementation preserved; T24b still awaits dependencies.
+
+## T24a Attempt 5 review — 2026-10-26
+
+REWORK: prior suffix/fraction/apostrophe bypasses fixed; malformed repeated separators and internal * can still escape currency matching into plain-number whitelist. Five probes reproduced with balance_cents=100; details in reports/T24a.md. Backend 185/185, tools 34/34. T24b remains todo, integration absent. Sources unchanged during review. Backlog next task remains T22b; T24a rework can be assigned separately.
