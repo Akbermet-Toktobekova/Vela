@@ -7,14 +7,14 @@
 
 - **Orchestrator:** Astra GPT 6 / Gemini 4 Argon (inherited from Claude Opus 5.5 on 2026-10-25)
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T20 (todo, Flash); T21a (todo, Flash); T22 (todo, Flash); T24a (todo, Flash)
+- **Current task:** T20 (review, Gemini Flash 3.8); T21a (todo, Flash); T22 (todo, Flash); T24a (todo, Flash)
 - **Last reviewed:** T16, T18 — ACCEPT; CHECKPOINT-1 — PASS (Gemini 4 Argon, 2026-10-26)
 - **Next action:**
-  - **Gemini Flash 3.8** (все 4 задачи независимы `[PARALLEL-OK]`, выполнять по одной за сессию):
-    1. `Выполни T20` — Защита CSV от формульных инъекций (`csv_safe.py` + `test_csv_safe.py`)
-    2. `Выполни T21a` — Автономный модуль маскирования PII (`pii.py` + `test_pii.py` на ≥20 строках DE/EN/RU)
-    3. `Выполни T22` — Каркас evals (`evals/schema.json`, `evals/run.py`, грейдеры и 5 сценариев)
-    4. `Выполни T24a` — Автономный модуль инструментов чата и проверки чисел (`tools.py` + `test_chat_tools.py`)
+  - **Оркестратор (Astra GPT 6 / Gemini 4 Argon):** `Проверь T20`
+  - **Или Gemini Flash 3.8** (следующие параллельные задачи `[PARALLEL-OK]`, по одной за сессию):
+    1. `Выполни T21a` — Автономный модуль маскирования PII (`pii.py` + `test_pii.py` на ≥20 строках DE/EN/RU)
+    2. `Выполни T22` — Каркас evals (`evals/schema.json`, `evals/run.py`, грейдеры и 5 сценариев)
+    3. `Выполни T24a` — Автономный модуль инструментов чата и проверки чисел (`tools.py` + `test_chat_tools.py`)
   - Затем на **Flash 3.8**: `Выполни T23` (60 сценариев evals).
   - Затем на **Astra GPT 6**: `Выполни T21b` и `Выполни T24b` (склейка с `ai.py` / `imports.py` / `chat.py`).
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
