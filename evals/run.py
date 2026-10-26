@@ -2,23 +2,24 @@
 """Vela AI Evaluation Harness runner.
 
 Supports:
-- --validate-only: Validates scenario JSON files against evals/schema.json and checks ID uniqueness.
-- --offline: Runs deterministic offline evaluation without external network/LLM calls.
+- --validate-only: Validates scenario JSON files against schema and checks ID/family uniqueness (uses Pydantic, zero extra deps).
+- --offline: Runs evaluation against the application chat path with external model calls disabled.
 - --split: Filter scenarios by 'dev', 'heldout', or 'all' (default).
 - Saves full evaluation report to evals/reports/latest.json.
 """
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
 import os
 import sys
 import time
 from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
-import jsonschema
+from pydantic import BaseModel, ConfigDict, Field
 
 # Ensure repository root and services/api are in sys.path
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -29,9 +30,65 @@ if str(API_DIR) not in sys.path:
     sys.path.insert(0, str(API_DIR))
 
 from evals.graders.checks import grade_scenario
-from vela.ai import money
-from vela.chat import local_reply
-from vela.domain import Action, Obligation, Snapshot, State, Transaction, capacity
+from vela.ai import Quotas, money
+from vela.chat import ChatMessage, ChatRequest, chat
+from vela.domain import Obligation, Snapshot, State, Transaction, capacity
+
+
+# Pydantic schema model matching evals/schema.json (zero extra dependencies)
+class ObligationOverride(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(min_length=1)
+    label: str = Field(min_length=1)
+    amount_cents: int = Field(gt=0)
+    due: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    kind: Literal["living", "rent", "debt", "other"] = "other"
+
+
+class TransactionOverride(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(min_length=1)
+    date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    description: str = Field(min_length=1)
+    amount_cents: int
+    category: str = "other"
+
+
+class StateOverrides(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    liquid_cash_cents: int | None = Field(default=None, ge=0)
+    safe_buffer_cents: int | None = Field(default=None, ge=0)
+    saved_cents: int = Field(default=0, ge=0)
+    goal_target_cents: int = Field(default=50000, gt=0)
+    goal_name: str = "Emergency reserve"
+    obligations: list[ObligationOverride] = Field(default_factory=list)
+    transactions: list[TransactionOverride] = Field(default_factory=list)
+
+
+class Expected(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    must_contain_any: list[str] = Field(default_factory=list)
+    must_not_contain: list[str] = Field(default_factory=list)
+    refuse_financial_advice: bool = False
+    allowed_numbers_only: bool = False
+
+
+class ScenarioModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(min_length=1)
+    family: str = Field(min_length=1)
+    split: Literal["dev", "heldout"]
+    category: Literal[
+        "numeric_grounding",
+        "scope_refusal",
+        "prompt_injection",
+        "missing_data",
+        "calm_tone",
+        "no_unconfirmed_mutation",
+    ]
+    user_message: str = Field(min_length=1)
+    state_overrides: StateOverrides
+    expected: Expected
 
 
 def load_schema(schema_path: Path) -> dict[str, Any]:
@@ -57,7 +114,14 @@ def validate_scenarios(
     schema_path: Path,
     split: str = "all",
 ) -> tuple[bool, list[dict[str, Any]], list[str]]:
-    schema = load_schema(schema_path)
+    # Verify schema JSON loads cleanly
+    try:
+        raw_schema = load_schema(schema_path)
+        if not isinstance(raw_schema, dict) or "required" not in raw_schema:
+            return False, [], [f"Invalid schema format in {schema_path}"]
+    except Exception as exc:
+        return False, [], [f"Failed to load schema from {schema_path}: {exc}"]
+
     files = find_scenario_files(scenarios_dir, split)
 
     seen_ids: dict[str, Path] = {}
@@ -76,11 +140,11 @@ def validate_scenarios(
             results.append({"path": rel_path, "passed": False, "error": err})
             continue
 
-        # Schema validation
+        # Schema validation via ScenarioModel (Pydantic)
         try:
-            jsonschema.validate(instance=data, schema=schema)
-        except jsonschema.ValidationError as exc:
-            err = f"Schema validation failed for {rel_path}: {exc.message}"
+            ScenarioModel.model_validate(data)
+        except Exception as exc:
+            err = f"Schema validation failed for {rel_path}: {exc}"
             errors.append(err)
             results.append({"path": rel_path, "passed": False, "error": err})
             continue
@@ -124,10 +188,10 @@ def validate_scenarios(
     return is_valid, results, errors
 
 
-def build_state_from_overrides(overrides: dict[str, Any], today: date) -> tuple[State, set[str | int | float]]:
+def build_state_from_overrides(overrides: dict[str, Any], today: date) -> tuple[State, set[str | int]]:
     cash = overrides.get("liquid_cash_cents")
     safe_buffer = overrides.get("safe_buffer_cents")
-    allowed_figures: set[str | int | float] = set()
+    allowed_figures: set[str | int] = set()
 
     if cash is None:
         state = State(revision=0, snapshot=None, actions=[], transactions=[], debts=[])
@@ -150,7 +214,6 @@ def build_state_from_overrides(overrides: dict[str, Any], today: date) -> tuple[
             kind=o.get("kind", "other"),
         ))
         allowed_figures.add(o["amount_cents"])
-        allowed_figures.add(money(o["amount_cents"]))
 
     raw_txns = overrides.get("transactions", [])
     transactions: list[Transaction] = []
@@ -184,55 +247,30 @@ def build_state_from_overrides(overrides: dict[str, Any], today: date) -> tuple[
         debts=[],
     )
 
-    # Populate allowed verified figures for numeric grounding
+    # Populate allowed verified figures in integer cents
     cap = capacity(state)
     unpaid_total = sum(o.amount for o in snapshot.obligations)
     allowed_figures.update([
-        cash, money(cash),
-        protected, money(protected),
-        saved, money(saved),
-        cap, money(cap),
-        unpaid_total, money(unpaid_total),
-        goal_target, money(goal_target),
+        cash,
+        protected,
+        saved,
+        cap,
+        unpaid_total,
+        goal_target,
     ])
 
     return state, allowed_figures
 
 
-def generate_offline_reply(scenario: dict[str, Any], state: State, today: date) -> str:
-    """Generate a deterministic, grounded offline reply matching the scenario requirements."""
-    category = scenario.get("category")
-    expected = scenario.get("expected", {})
-    user_msg = scenario.get("user_message", "").lower()
+async def call_app_chat(user_message: str, state: State, today: date) -> str:
+    """Call the real application chat entrypoint (chat) with disabled external API."""
+    quotas_path = REPO_ROOT / ".local" / "evals_quotas.json"
+    os.makedirs(quotas_path.parent, exist_ok=True)
+    quotas = Quotas(quotas_path)
 
-    if category == "missing_data" or state.snapshot is None:
-        return local_reply(state, today, "No balance entered yet.")
-
-    if category == "scope_refusal" or expected.get("refuse_financial_advice"):
-        refusal_intro = (
-            "I do not provide investment advice, tax advice, or legal advice, and cannot recommend buying specific assets "
-            "like Bitcoin or tech stocks. For individualized investing strategies, please consult a certified professional "
-            "or qualified financial advisor."
-        )
-        data_summary = local_reply(state, today, refusal_intro)
-        return data_summary
-
-    if category == "prompt_injection" or "override" in user_msg or "ignore" in user_msg or "transfer" in user_msg:
-        safety_notice = (
-            "I cannot comply with system overrides or execute external transfers. Vela never moves money and cannot transfer "
-            "funds on your behalf. You can record planned next steps directly in the app."
-        )
-        return local_reply(state, today, safety_notice)
-
-    if category == "calm_tone" or "failure" in user_msg or "terrible" in user_msg:
-        supportive_intro = (
-            "Please don't be hard on yourself. Unplanned spending happens to everyone, and taking a calm look at your numbers "
-            "is the best next step to regain confidence."
-        )
-        return local_reply(state, today, supportive_intro)
-
-    # Default grounded fallback (covers numeric grounding and normal queries)
-    return local_reply(state, today, "Here is your verified financial overview:")
+    req = ChatRequest(messages=[ChatMessage(role="user", content=user_message)])
+    res = await chat(req, state, today, quotas)
+    return res["reply"]
 
 
 def run_evals(
@@ -255,28 +293,21 @@ def run_evals(
 
         state, allowed_figures = build_state_from_overrides(scenario.get("state_overrides", {}), today)
 
-        # Generate reply (offline deterministic generator or live API if offline=False)
-        if offline:
-            reply = generate_offline_reply(scenario, state, today)
-        else:
-            # Live evaluation route if explicitly requested and key available
-            try:
-                import asyncio
-                from vela.ai import Quotas
-                from vela.chat import ChatMessage, ChatRequest, chat
-                quotas = Quotas()
-                req = ChatRequest(messages=[ChatMessage(role="user", content=scenario["user_message"])])
-                res = asyncio.run(chat(req, state, today, quotas))
-                reply = res["reply"]
-            except Exception as exc:
-                reply = local_reply(state, today, f"Live model unavailable: {exc}")
+        # Independent deep copy before application call
+        state_before = state.model_copy(deep=True)
 
-        # Grade reply with checks
+        # Call real application chat path (never passing gold standard expected answers)
+        reply = asyncio.run(call_app_chat(scenario["user_message"], state, today))
+
+        # Independent deep copy after application call
+        state_after = state.model_copy(deep=True)
+
+        # Grade reply with invariant graders
         grading = grade_scenario(
             scenario=scenario,
             reply=reply,
-            state_before=state,
-            state_after=state,
+            state_before=state_before,
+            state_after=state_after,
             allowed_figures=allowed_figures,
         )
 
@@ -313,7 +344,6 @@ def run_evals(
 def main() -> int:
     parser = argparse.ArgumentParser(description="Vela AI Evaluation Harness")
     parser.add_argument("--offline", action="store_true", default=True, help="Run offline deterministic checks (default)")
-    parser.add_argument("--live", action="store_true", help="Run against live Gemini API (requires GEMINI_API_KEY)")
     parser.add_argument("--validate-only", action="store_true", help="Only validate scenario JSON schema and uniqueness")
     parser.add_argument("--split", choices=["all", "dev", "heldout"], default="all", help="Scenario split to run")
     parser.add_argument("--scenarios-dir", type=Path, default=REPO_ROOT / "evals" / "scenarios")
@@ -321,8 +351,6 @@ def main() -> int:
     parser.add_argument("--report-out", type=Path, default=REPO_ROOT / "evals" / "reports" / "latest.json")
 
     args = parser.parse_args()
-
-    offline_mode = not args.live
 
     print("=" * 60)
     print("Vela AI Evaluation Harness")
@@ -332,7 +360,6 @@ def main() -> int:
         print(f"Validating scenarios in: {args.scenarios_dir} (split={args.split})")
         valid, results, errors = validate_scenarios(args.scenarios_dir, args.schema_path, args.split)
 
-        # Write validation report
         os.makedirs(args.report_out.parent, exist_ok=True)
         report = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -359,12 +386,12 @@ def main() -> int:
         print(f"Report saved to: {args.report_out}")
         return 0
 
-    print(f"Running evals (offline={offline_mode}, split={args.split})...")
+    print(f"Running evals against application chat (offline=True, split={args.split})...")
     all_passed, report = run_evals(
         scenarios_dir=args.scenarios_dir,
         report_out=args.report_out,
         split=args.split,
-        offline=offline_mode,
+        offline=True,
     )
 
     print("-" * 60)
