@@ -7,12 +7,12 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T21b — done (ACCEPT); T22 (включая T22b) — review (5/5 offline evals PASS, 25/25 harness tests OK, 166/166 backend tests OK); T24a — rework.
-- **Last reviewed:** 2026-10-26, Codex: T21b ACCEPT; T24a attempt 3 REWORK; backend 164/164, targeted 47/47, contract drift 0.
+- **Current task:** Phase 2 review complete: T22/T24a rework confirmed; T22b rework (missing automated fallback tests); T23/T24b todo.
+- **Last reviewed:** 2026-10-26, fresh T22/T24 review: REWORK confirmed for T22/T24a; T24b todo. Backend 166/166, targeted 52/52, schema/offline 5/5, drift 0.
 - **Next action:**
-  - Astra GPT 6 / Argon: `Выполни T24a` (четыре конкретных замечания в отчёте).
-  - Затем `Выполни T22b`: отдельный scoped fallback fix, устраняющий цикл зависимостей T22 → T23 → T24b.
-  - Оркестратор: `Проверь T22` (5/5 offline evals PASS, все замечания Re-review закрыты).
+  - Astra GPT 6 / Argon: `Выполни T22` — исправить два блокирующих замечания ревью Attempt 3.
+  - Затем отдельное ревью T22; T23 ждёт done T22. T22b требует добавления автоматических fallback-тестов.
+  - T24a остаётся rework; T24b ждёт done T24a, T23, T21b.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -80,3 +80,35 @@ Re-review Git: commit not created; git add/commit failed with `.git/index.lock: 
 Проверены все задачи со статусом review: T21b → done, T24a → rework. Четыре воспроизводимых дефекта numeric verifier записаны в T24a. Backend 164/164, PII/tools 47/47, contract drift 0, schema 5/5. Offline evals 4/5: блокер T22 сохраняется. T22b выделена в BACKLOG с отдельным Scope chat.py + test_chat_tools.py, без ослабления evals. PROGRESS и release-readiness не пересчитывались: это ревью задач, не чекпоинт фазы.
 
 Git persistence: review files saved in working tree. Targeted git add and git commit both failed: fatal: Unable to create .git/index.lock: Permission denied. No commit created; unrelated executor changes were not staged. git diff --check exited 0.
+
+## T22 re-review — 2026-10-26
+
+T22 Attempt 3 → rework. CLI 5/5 и 25/25 harness зелёные, backend 166/166, drift 0. Независимые негативные пробы показали ложный PASS на нераспознанных денежный суммах и изменении due обязательства без revision. Замечания и реальные результаты сохранены в reports/T22.md; T23 не запускать до приёмки T22. T22b этим решением не принята. Код приложения при ревью не менялся.
+
+Git persistence (T22 review): targeted git add and git commit failed with `.git/index.lock: Permission denied`. No commit created; review documentation remains saved in the working tree.
+
+## Remaining phase 2 review — 2026-10-26
+
+Проверка текущего дерева, без исправлений исходников.
+
+- Backend: scripts/check.py, 166 tests in 7.989s, OK, exit 0.
+- Schema: evals/run.py --offline --validate-only, 5/5 PASS, exit 0.
+- Offline: evals/run.py --offline, 5/5 PASS in 0.034s, exit 0.
+- Contracts: scripts/generate-contracts.py --check, Contract check passed., exit 0.
+- Обычный exec не запустился из-за helper_sandbox_lock_failed; проверки выполнены через Node child_process и C:/Python314/python.exe с добавлением существующего C:/Users/sanat/AppData/Roaming/Python/Python314/site-packages в sys.path. Первоначальный запуск без этого пути дал ModuleNotFoundError: pydantic; зависимости не устанавливались.
+
+| Task | Verdict | Evidence / remaining work |
+|---|---|---|
+| T22 | REWORK confirmed | check_numeric_grounding с {10000}: EUR 999.00 и €999.9 проходят; изменение due обязательства на 100 дней не замечается. Исправить два замечания последнего ревью. |
+| T22b | REWORK: tests missing | 8 независимых fallback-проб прошли: crypto/tax/legal/budget при выключенном Gemini и mock AIUnavailable; source=local, state неизменен. В test_chat_tools.py нет тестов chat/fallback/AIUnavailable/ENABLE_GEMINI, обязательных по задаче. Добавить регрессии и отдельный отчёт. |
+| T23 | Not implemented (todo) | 3 dev + 2 heldout JSON, всего 5; нужно >=60 уникальных family. |
+| T24a | REWORK confirmed | €1 100 подтверждается 100 центами; 1.5 cents подтверждается 1 центом; 18.504% подтверждается 1850 bps; корректное €1.234.567 отклоняется при 123456700 центах. Все четыре прежних замечания воспроизведены. |
+| T24b | Not implemented (todo) | В chat.py отсутствуют collect_all_tool_outputs и verify_reply_numbers; нет отклонения/повтора небезопасного ответа и 20-секундного общего лимита. |
+
+Фаза 2 не закрыта. Порядок: исправить T22 и T24a, добавить тесты T22b; затем T23 и T24b. Зелёные 5 сценариев не подтверждают безопасность грейдеров и интеграции. Релизные гейты не повышались.
+
+## Fresh T22/T24 review — 2026-10-26
+
+Повторное независимое ревью текущего дерева: T22 REWORK (2 прежних блокера), T24a REWORK (4 прежних дефекта); все негативные примеры снова воспроизведены. T24b не реализована, остаётся todo. Подробности и фактический вывод проверок добавлены в reports/T22.md и reports/T24a.md. Backend 166/166, tools+harness 52/52, schema/offline 5/5, drift 0. Следующая команда для Astra GPT 6 / Argon: `Выполни T22`, затем отдельное ревью; далее T24a. T22b сохраняет прежний rework из-за отсутствия обязательных fallback-тестов. Фаза 2 не закрыта; релизные гейты не повышались.
+
+Коммит этого ревью включает только документы ревью и eval-отчёт. Незакоммиченные изменения исполнителей в исходниках сохранены отдельно в рабочем дереве.

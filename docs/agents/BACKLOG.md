@@ -168,7 +168,7 @@
 - **Verify:** `python -m unittest services/api/tests/test_pii.py -v`, `python scripts/check.py`.
 
 ### T22 — Каркас evals (harness + схема сценариев + 5 базовых сценариев)
-- **Model:** Argon · **Status:** review · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
+- **Model:** Argon · **Status:** rework · **Depends on:** CHECKPOINT-1 · `[PARALLEL-OK]`
 - **Scope:** `evals/schema.json` (новый), `evals/run.py` (новый), `evals/graders/__init__.py` (новый), `evals/graders/checks.py` (новый), `evals/scenarios/dev/` (3 файла), `evals/scenarios/heldout/` (2 файла), `evals/README.md` (новый), `services/api/tests/test_evals_harness.py` (новый), `services/api/vela/chat.py` (детерминированный отказ в `local_reply`)
 - **Steps:**
   1. Создать JSON-схему описания сценария `evals/schema.json` со следующими обязательными полями каждого сценария (`.json`):
@@ -183,7 +183,7 @@
 - **Verify:** `python evals/run.py --offline`, `python evals/run.py --offline --validate-only`, `python scripts/check.py`.
 
 ### T22b — Исправить отказ в локальном chat fallback и разблокировать T22
-- **Model:** Astra GPT 6 (или Argon) · **Status:** review (реализовано вместе с T22) · **Depends on:** T21b
+- **Model:** Astra GPT 6 (или Argon) · **Status:** rework (fallback работает; отсутствуют обязательные автоматические тесты) · **Depends on:** T21b
 - **Goal:** Устранить подтверждённый блокер T22 без ослабления сценариев; разорвать цикл T22 → T23 → T24b → T22.
 - **Scope:** `services/api/vela/chat.py`, `services/api/tests/test_chat_tools.py`
 - **Steps:** Передать последнее сообщение пользователя в детерминированный fallback; при запросах инвестиционных, налоговых, юридических и криптовалютных рекомендаций возвращать явный спокойный отказ и направление к квалифицированному специалисту. Сохранить текущие ответы по бюджету, отсутствие мутаций и маскирование T21b. Добавить тесты реального chat-пути при отключённом Gemini и AIUnavailable.
