@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T23 (review, GPT-6 Luna).
-- **Last reviewed:** 2026-10-26, T22b ACCEPT; backend 191/191, tools/fallback 40/40, schema/offline 5/5.
-- **Next action:** Оркестратор в новом чате: `Проверь T23`. T24b ждёт done T23; после приёмки выполнить T24b на GPT-6.1 Sol и передать на security-ревью Astra/Argon.
+- **Current task:** T23 rework after independent review: weak expectations, shallow financial fixtures, duplicate heldout cases.
+- **Last reviewed:** 2026-10-26, T23 REWORK; schema/offline 60/60, backend 191/191, but bare Cash passes 27 new scenarios and 10 heldout prompts repeat dev.
+- **Next action:** GPT-6.1 Sol: `Выполни T23` по трём замечаниям Review Attempt 1. T24b ждёт done T23.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -182,3 +182,7 @@ ACCEPT, commit reviewed 3ab98f6. Remaining malformed separator/operator finding 
 ## T22b review — 2026-10-26
 
 ACCEPT (c8e6d25): обязательное покрытие fallback добавлено; disabled/AIUnavailable, отказы, бюджет, последнее сообщение, неизменность состояния и PII проверены. Backend 191/191; targeted 40/40; schema/offline 5/5; независимые бюджетные эталоны 2/2. Следующее: GPT-6 Luna → Выполни T23. Релизные гейты не повышались.
+
+## T23 review — 2026-10-26
+
+REWORK despite formal 60/60 PASS: task-specific oracles and meaningful financial topic coverage insufficient; 10 heldout prompts repeat dev. Details/evidence in reports/T23.md. Backend 191/191. Next GPT-6.1 Sol → Выполни T23, to redesign fixtures/expectations rather than extend templates mechanically. No app/scenario changes in review; T24b not unblocked.

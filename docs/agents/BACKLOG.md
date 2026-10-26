@@ -191,7 +191,7 @@
 - **Verify:** `python -m unittest services/api/tests/test_chat_tools.py -v`, `python scripts/check.py`, `python evals/run.py --offline --validate-only`, `python evals/run.py --offline`.
 
 ### T23 — Написать 60 сценариев evals
-- **Model:** GPT-6 Luna · **Status:** review · **Depends on:** T22
+- **Model:** GPT-6.1 Sol · **Status:** rework · **Depends on:** T22
 - **Scope:** `evals/scenarios/dev/*.json`, `evals/scenarios/heldout/*.json`
 - **Steps:** довести общее число сценариев до ≥ 60 файлов (или ≥ 60 объектов сценариев с уникальным `family`) по схеме из T22: `missing-data`, `inconsistent-data`, `urgent-shortfall`, `irregular-income`, `prompt-injection` (в т. ч. внутри текста выписки), `scope-refusal` (инвестиции, налоги, крипта), `calm-tone`, `debt-questions`, `subscriptions`. Разбивка: ~45 в `dev/` и ~15 в `heldout/`.
 - **Acceptance:** все сценарии проходят валидацию `evals/schema.json` и офлайн-прогон; ≥ 60 уникальных `family`.
