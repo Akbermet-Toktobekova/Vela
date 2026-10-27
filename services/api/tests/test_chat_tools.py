@@ -816,7 +816,9 @@ class TestT24bIntegration(unittest.IsolatedAsyncioTestCase):
                 await asyncio.sleep(10)
             finally:
                 cancelled.set()
-        with patch('vela.chat.CHAT_TIMEOUT_SECONDS', 0.04), patch('vela.chat.generate', side_effect=slow):
+        # Allow context preparation/validation under concurrent CI load; the
+        # second request still sleeps far beyond this shared test deadline.
+        with patch('vela.chat.CHAT_TIMEOUT_SECONDS', 0.5), patch('vela.chat.generate', side_effect=slow):
             result = await chat(self.request, self.state, self.today, self.quotas)
         self.assertEqual(result['source'], 'local')
         self.assertTrue(cancelled.is_set())
@@ -961,3 +963,26 @@ class TestT24bIntegration(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(result['source'], 'local')
                 self.assertNotIn(claim, result['reply'])
                 self.assertEqual(gen.await_count, 2)
+
+
+    async def test_attempt3_new_violations_are_checked_on_retry(self):
+        for claim in ('I moved €1,000.00 to your savings.', 'Я перевел €1,000.00.',
+                      'Put your €1,000.00 into government bonds.', 'Why  not buy bonds?',
+                      'Why\tnot purchase mutual funds?', 'This is reckless.'):
+            with self.subTest(claim=claim), patch('vela.chat.generate', new=AsyncMock(side_effect=[
+                self.response('€999.00'), self.response(claim)
+            ])) as gen:
+                result = await chat(self.request, self.state, self.today, self.quotas)
+                self.assertEqual(result['source'], 'local')
+                self.assertNotIn(claim, result['reply'])
+                self.assertEqual(gen.await_count, 2)
+
+    async def test_attempt3_safe_negations_and_verified_amounts_remain_accepted(self):
+        for text in ('I have not moved €1,000.00 to your savings.',
+                     'Cash: €1,000.00. No transfer has been executed.',
+                     'There are no guaranteed returns.',
+                     'Do not put your savings into bonds without qualified guidance.'):
+            with self.subTest(text=text), patch('vela.chat.generate', new=AsyncMock(return_value=self.response(text))) as gen:
+                result = await chat(self.request, self.state, self.today, self.quotas)
+                self.assertEqual(result['source'], 'gemini')
+                self.assertEqual(gen.await_count, 1)

@@ -10,7 +10,7 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T24b (review, GPT-6.1 Sol, attempt 2).
+- **Current task:** T24b (review, GPT-6.1 Sol, attempt 3 continuation).
 - **Last reviewed:** 2026-10-27, T24b REWORK; backend 205/205, targeted 54/54, offline 60/60, drift 0; 3 unsafe mocked replies accepted.
 - **Next action:** Astra / Argon: `Проверь T24b` в отдельном чате; CHECKPOINT-2 после приёмки.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
@@ -209,3 +209,7 @@ REWORK f1dbc0f. Retry/deadline/quota/PII checks pass, but real-chat mocked outpu
 ## T24b rework — Attempt 2, 2026-10-27
 
 Оба P1 закрыты: отдельная выходная проверка завершённых финансовых действий и рекомендаций по bonds/securities/funds. Проверяются обе попытки; отрицания и нейтральные контроли покрыты тестами. Tools/chat 58/58, backend 209/209, offline 60/60, contracts generated/drift 0, diff check 0. T24b → review; независимое security-ревью Astra/Argon. Подробности в reports/T24b.md.
+
+## T24b continuation — Attempt 3, 2026-10-27
+
+Завершены существующие изменения T24b: multilingual completed-action claims, exact-amount transfers, rhetorical/put investment directives, explicit fallback for bond/fund requests, tone/return-guarantee checks. Дополнительно закрыт why-not whitespace bypass; проверены повторная попытка и безопасные контроли. Deadline test стабилизирован без изменения production 20s. Tools/chat 64/64, backend 215/215, offline 60/60, generated contracts/drift 0. T24b → review; независимое security-ревью Astra/Argon. См. reports/T24b.md, Attempt 3.
