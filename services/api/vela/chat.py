@@ -41,6 +41,57 @@ _UNSAFE_TRANSFER_OR_OVERRIDE_RE = re.compile(
 )
 
 
+# Output assertions differ from input requests: a completed-action claim can
+# contain neither a command nor a monetary figure. Inspect every model reply.
+_COMPLETED_FINANCIAL_ACTION_RE = re.compile(
+    r"\b(?:transferred|wired|remitted)\b|"
+    r"\b(?:sent|moved|paid|executed|processed|completed)\b[^.!?\n]{0,80}"
+    r"\b(?:money|funds|payment|bill|rent|debt|transfer)\b|"
+    r"\b(?:transfer|payment|funds|money|bill)\b[^.!?\n]{0,80}"
+    r"\b(?:executed|completed|complete|sent|processed|paid|successful|successfully)\b",
+    re.IGNORECASE,
+)
+_INVESTMENT_ASSET_RE = re.compile(
+    r"\b(?:bonds?|securities|mutual\s+funds?|index\s+funds?|treasur(?:y|ies)|"
+    r"stocks?|shares|etfs?|crypto\w*|bitcoin|annuities|options|futures)\b", re.IGNORECASE,
+)
+_INVESTMENT_DIRECTIVE_RE = re.compile(
+    r"\b(?:buy|buying|purchase|purchasing|sell|selling|recommend\w*|consider|"
+    r"allocate|allocating|invest\w*|should|must)\b", re.IGNORECASE,
+)
+_NEGATED_FINANCIAL_VERB_RE = re.compile(
+    r"\b(?:cannot|can['’]t|do\s+not|don['’]t|did\s+not|didn['’]t|"
+    r"(?:have|has|was|were|is|are)\s+not|never|not)\s+"
+    r"(?:(?:been|be|already|actually|ever)\s+)*"
+    r"(?:transferred|transfer|wired|wire|sent|send|moved|move|paid|pay|executed|execute|"
+    r"completed|complete|processed|process|recommend(?:\s+(?:buying|purchasing|selling))?|"
+    r"buy|purchase|sell|invest)\b",
+    re.IGNORECASE,
+)
+_NO_COMPLETED_ACTION_RE = re.compile(
+    r"\bno\s+(?:transfer|payment|funds|money|bill)\s+"
+    r"(?:(?:has|have|was|were|is|are|been)\s+)*"
+    r"(?:transferred|wired|sent|moved|paid|executed|completed|processed)\b",
+    re.IGNORECASE,
+)
+
+
+def _unsafe_model_output(reply: str) -> bool:
+    """Reject affirmative action claims/advice; negation applies to its verb only.
+
+    Do not exempt a whole sentence because it includes a disclaimer. Separate
+    clauses still get inspected, including text following 'but' or 'however'.
+    """
+    for clause in re.split(r"[.!?\n;]|\b(?:but|however|yet)\b", reply, flags=re.IGNORECASE):
+        affirmative = _NO_COMPLETED_ACTION_RE.sub("", clause)
+        affirmative = _NEGATED_FINANCIAL_VERB_RE.sub("", affirmative)
+        if _COMPLETED_FINANCIAL_ACTION_RE.search(affirmative):
+            return True
+        if _INVESTMENT_ASSET_RE.search(affirmative) and _INVESTMENT_DIRECTIVE_RE.search(affirmative):
+            return True
+    return False
+
+
 class ChatMessage(Record):
     role: Literal["user", "assistant"]
     content: str = Field(min_length=1, max_length=4000)
@@ -205,7 +256,7 @@ async def chat(request: ChatRequest, state: State, today: date, quotas: Quotas) 
                     for pattern in (_OUT_OF_SCOPE_ADVICE_RE, _LEGAL_ACTION_ADVICE_RE,
                                     _UNSAFE_TRANSFER_OR_OVERRIDE_RE)
                 )
-                if reply and not restricted and verify_reply_numbers(reply, tool_outputs)[0]:
+                if reply and not restricted and not _unsafe_model_output(reply) and verify_reply_numbers(reply, tool_outputs)[0]:
                     return {"reply": reply, "source": "gemini", "model": model, "revision": state.revision}
         raise AIUnavailable("I could not verify the AI answer. Here are the verified budget figures.")
     except TimeoutError:

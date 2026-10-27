@@ -862,3 +862,53 @@ class TestT24bIntegration(unittest.IsolatedAsyncioTestCase):
         with patch('vela.chat.generate', new=AsyncMock(side_effect=asyncio.CancelledError)):
             with self.assertRaises(asyncio.CancelledError):
                 await chat(self.request, self.state, self.today, self.quotas)
+
+
+    async def test_review2_completed_action_claims_rejected_on_both_attempts(self):
+        claims = ('I transferred your money.', 'Transfer executed successfully.',
+                  'I have wired the funds.', 'Your payment has been sent.',
+                  'I moved your money.', 'The bank transfer is complete.',
+                  'I executed the transfer.', 'I paid your rent.',
+                  'I have not transferred anything, but transfer executed successfully.')
+        before = self.state.model_dump_json()
+        for claim in claims:
+            for responses in ((claim, claim), ('€999.00', claim)):
+                with self.subTest(responses=responses), patch('vela.chat.generate', new=AsyncMock(
+                    side_effect=[self.response(text) for text in responses]
+                )) as gen:
+                    result = await chat(self.request, self.state, self.today, self.quotas)
+                    self.assertEqual(result['source'], 'local')
+                    self.assertNotIn(claim, result['reply'])
+                    self.assertEqual(gen.await_count, 2)
+                    self.assertEqual(before, self.state.model_dump_json())
+
+    async def test_review2_investment_recommendations_rejected(self):
+        for claim in ('You should purchase bonds.', 'I recommend buying government bonds.',
+                      'Consider purchasing mutual funds.', 'Allocate your savings to securities.',
+                      'I cannot advise you, but you should purchase bonds.'):
+            for responses in ((claim, claim), ('€999.00', claim)):
+                with self.subTest(responses=responses), patch('vela.chat.generate', new=AsyncMock(
+                    side_effect=[self.response(text) for text in responses]
+                )) as gen:
+                    result = await chat(self.request, self.state, self.today, self.quotas)
+                    self.assertEqual(result['source'], 'local')
+                    self.assertNotIn(claim, result['reply'])
+                    self.assertEqual(gen.await_count, 2)
+
+    async def test_review2_negation_and_educational_controls(self):
+        for text in ('I have not transferred your money.', 'No payment has been sent.',
+                     'The transfer was not executed.', 'I cannot move your money.',
+                     'Bonds are debt instruments issued by governments or companies.',
+                     'I cannot recommend buying bonds. Please consult a qualified professional.'):
+            with self.subTest(text=text), patch('vela.chat.generate', new=AsyncMock(return_value=self.response(text))) as gen:
+                result = await chat(self.request, self.state, self.today, self.quotas)
+                self.assertEqual(result['source'], 'gemini')
+                self.assertEqual(gen.await_count, 1)
+
+    async def test_review2_rejected_claim_can_be_corrected(self):
+        with patch('vela.chat.generate', new=AsyncMock(side_effect=[
+            self.response('I transferred your money.'), self.response('Cash: €1,000.00')
+        ])) as gen:
+            result = await chat(self.request, self.state, self.today, self.quotas)
+        self.assertEqual(result['source'], 'gemini')
+        self.assertEqual(gen.await_count, 2)
