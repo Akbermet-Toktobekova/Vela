@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T24b (review, Codex GPT-6, 2026-10-27).
-- **Last reviewed:** 2026-10-26, T23 ACCEPT; backend 196/196, targeted 45/45, schema/offline 60/60, contract drift 0.
-- **Next action:** Astra / Argon: `Проверь T24b` в отдельном чате (security review); затем CHECKPOINT-2 при приёмке.
+- **Current task:** T24b rework: completed-transfer claims and direct bond advice pass output validation.
+- **Last reviewed:** 2026-10-27, T24b REWORK; backend 205/205, targeted 54/54, offline 60/60, drift 0; 3 unsafe mocked replies accepted.
+- **Next action:** GPT-6.1 Sol: `Выполни T24b` по двум P1 из Review Attempt 1; затем независимое security-ревью. CHECKPOINT-2 пока не закрывать.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -194,3 +194,7 @@ ACCEPT: scenario redesign 30c26de + app-gap fixes 4aa01be. Prior weak-oracle, fi
 ## T24b executor — 2026-10-27
 
 T24b → review. Deterministic tools included in context; numeric and conservative scope validation; one corrective retry with a shared 20-second deadline; local fallback on rejection/unavailability/timeout. Quota reservations and PII masking preserved. Tools/chat 54/54, backend 205/205, offline evals 60/60, contracts generated and drift 0. See reports/T24b.md. Independent security review Astra/Argon required; no self-acceptance or phase checkpoint performed.
+
+## T24b security review — 2026-10-27
+
+REWORK f1dbc0f. Retry/deadline/quota/PII checks pass, but real-chat mocked outputs accept completed transfers and direct bond recommendation (3 independent probes). Two P1 findings in reports/T24b.md. Backend 205/205, targeted 54/54, offline 60/60, drift 0. No source edits; next GPT-6.1 Sol → Выполни T24b. Phase 2/release gates remain pending.
