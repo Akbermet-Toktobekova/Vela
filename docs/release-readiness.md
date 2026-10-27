@@ -1,5 +1,7 @@
 # Release Readiness Checklist (`docs/release-readiness.md`)
 
+> Planning update 2026-10-27 (PLAN-01): this document's gate evidence below is the historical Phase-1 snapshot, not a fresh certification of the current tree. T20/T21/T22/T23/T24a have later reports; T24b attempt 2 is still awaiting independent review. Do not infer missing implementation from an old Remaining work cell, or readiness from an old PASS. CHECKPOINT-2 must reconcile evidence after review. The product completion map is [PRODUCT_PLAN](../PRODUCT_PLAN.md); final T46 must also cover T50–T63 and J01–J12. No gate is promoted by this planning update. The current data-delete API retains anonymous AI quota counters; the older “quota database wipe” claim in Gate 9 must not be treated as the current contract. T62 will verify the complete lifecycle, including originals, chats, jobs and backups.
+
 Updated: 2026-10-26  
 Specification Reference: `FinAgent_Production_Development_Prompt.md` (§18)  
 Status: **LOCAL DEMO VERIFIED (PHASE 1 COMPLETE) / STAGING, PILOT & PUBLIC GATES BLOCKED**

@@ -1,6 +1,6 @@
 # BACKLOG — Vela (FinAgent)
 
-Упорядоченный план работ. Задачи выполняются **сверху вниз**. Источники: `PROGRESS.md` §2, `docs/release-readiness.md`, `FinAgent_Production_Development_Prompt.md`.
+Упорядоченный план работ. Сначала независимое ревью готовых задач, затем первая задача с выполненными **Depends on** и закрытыми обязательными Decision; номер не заменяет зависимости. Общая картина: [`PRODUCT_PLAN.md`](../../PRODUCT_PLAN.md), исходное видение: [`USER_VISION.md`](../product/USER_VISION.md). Источники: `PROGRESS.md` §2, `docs/release-readiness.md`, `FinAgent_Production_Development_Prompt.md`.
 Протокол: `AGENTS.md`. Статусы: `todo | in_progress | review | rework | blocked | escalated | done`.
 
 Метки:
@@ -235,35 +235,38 @@
 - **Acceptance:** файл `docs/adr/0001-database-and-auth.md` создан и отражает выбранный вариант.
 
 ### T31 — Alembic-миграции
-- **Model:** Flash · **Status:** todo · **Depends on:** T30
+- **Model:** GPT-6.1 Sol · **Status:** todo · **Depends on:** T30, T50
 - **Scope:** `services/api/alembic/`, `services/api/alembic.ini`, `services/api/vela/store.py`, `services/api/tests/test_migrations.py` (новый)
 - **Steps:** настроить `alembic.ini` и `services/api/alembic/env.py` + начальную миграцию `0001_initial_schema.py` для всех таблиц `store.py` (`upgrade` создаёт таблицы, `downgrade` удаляет). Добавить тест `test_migrations.py`, проверяющий программный вызов `upgrade` → `downgrade` → `upgrade` на временной SQLite БД.
 - **Acceptance:** `upgrade head` → `downgrade base` → `upgrade head` на чистой БД проходит в тесте; все тесты `check.py` зелёные.
 - **Verify:** `python -m unittest services/api/tests/test_migrations.py -v`, `python scripts/check.py`.
+- **PLAN-01 clarification:** T50 определяет совместимость существующей базы. Цикл downgrade base допустим только на одноразовой тестовой БД; отдельно проверить перенос заполненной demo-базы без потери сумм, операций и истории. Удаление существующей рабочей базы не является шагом миграции. Последующие схемы T51/T53/T55/T59 идут собственными миграциями.
 
 ### T32 — Многопользовательская авторизация JWT + изоляция по `user_id`
 - **Model:** Astra GPT 6 (или Argon) · **Status:** todo · **Depends on:** T31 · `[OPUS-REVIEW]`
 - **Scope:** `services/api/vela/auth.py` (новый), `services/api/vela/main.py`, `services/api/vela/store.py`, `services/api/alembic/`, `services/api/tests/test_isolation.py` (новый), `apps/mobile/src/lib/api.ts`
 - **Acceptance:** изоляция состояния по `user_id` (из проверенного JWT-токена или `DEMO_API_TOKEN` при `APP_ENV=local`); тесты в `test_isolation.py`: пользователь A не читает и не меняет данные пользователя B, подмена `user_id` в теле запроса игнорируется, истёкший/невалидный токен → `401`; `DEMO_API_TOKEN` работает только при `APP_ENV=local`.
 - **Verify:** `python -m unittest services/api/tests/test_isolation.py -v`, `python scripts/check.py`.
+- **PLAN-01 clarification:** ADR T30/T50 определяет реальный путь получения/обновления/завершения сессии и входа пользователя; одной проверки заранее выданного JWT недостаточно для J02. До реализации уточнить Scope для выбранного провайдера/локального варианта, не вводить собственную парольную систему по догадке. Изоляция охватывает state, imports, runs, publications и командные receipts. Мобильный путь входа/выхода и очистку прежнего состояния завершает T52. Название переменной среды согласовать с фактическим APP_MODE в коде, не оставлять параллельный непроверенный APP_ENV-bypass.
 
 ### T33 — Durable worker + outbox для импорта
-- **Model:** Astra GPT 6 (или Argon) · **Status:** todo · **Depends on:** T31
+- **Model:** Astra GPT 6 (или Argon) · **Status:** todo · **Depends on:** T31, T32, T34
 - **Scope:** `services/api/vela/worker.py` (новый), `services/api/vela/jobs.py` (новый), `services/api/vela/imports.py`, `services/api/vela/main.py`, `scripts/run-worker.py` (новый), `services/api/tests/test_worker.py` (новый)
 - **Acceptance:** постановка импорта в очередь `POST /v1/imports/jobs` → `202` + `job_id`; статус `GET /v1/jobs/{id}`; ретраи с backoff, dead-letter, возврат зависших задач по `lease_until` (lease timeout); удаление данных (`DELETE /v1/data`) очищает задачи пользователя.
 - **Verify:** `python -m unittest services/api/tests/test_worker.py -v`, `python scripts/check.py`.
 
 ### T34 — Приватное файловое хранилище (`storage.py`)
-- **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-2 · `[PARALLEL-OK]`
+- **Model:** GPT-6.1 Sol; security review Astra / Argon · **Status:** todo · **Depends on:** T32
+- **Decision:** D5 — согласовать хранение оригиналов, сроки и согласие перед интеграцией сохранения файлов. Не передавать исходники внешнему провайдеру без действующих разрешений.
 - **Scope:** `services/api/vela/storage.py` (новый), `services/api/vela/main.py`, `services/api/tests/test_storage.py` (новый)
 - **Steps:**
   1. Создать `services/api/vela/storage.py` (`PrivateStorage` с корневой папкой `.local/storage/` вне webroot):
      - `save_file(user_id: str, filename: str, data: bytes) -> StoredFile`: сохраняет файл в изолированную папку пользователя `.local/storage/<safe_user_id>/<file_id>`, считает и сохраняет контрольную сумму `sha256` в `.meta.json`. Запрещает path traversal (`..`, `/`, `\`).
      - `read_file(user_id: str, file_id: str) -> bytes`: читает файл и проверяет `sha256` (при несовпадении выбрасывает `ValueError("Integrity check failed")`).
      - `erase_user_files(user_id: str) -> None` и `erase_all() -> None`: полностью удаляет файлы с диска.
-  2. Подключить `erase_all()` в `DELETE /v1/data` в `services/api/vela/main.py`.
+  2. Подключить `erase_user_files(authenticated_user_id)` в `DELETE /v1/data` в `services/api/vela/main.py`. `erase_all()` не доступна пользовательскому API; тестовая очистка изолированной среды не является пользовательским удалением.
   3. Написать `services/api/tests/test_storage.py`: сохранение, проверка `sha256`, ошибка при повреждении байтов на диске, защита от path traversal, полное удаление файлов при `DELETE /v1/data`.
-- **Acceptance:** файлы хранятся в папке пользователя с проверкой `SHA-256` при чтении; `DELETE /v1/data` удаляет все файлы с диска (проверено тестом).
+- **Acceptance:** файлы хранятся в папке пользователя с проверкой `SHA-256` при чтении; `DELETE /v1/data` удаляет все файлы только текущего пользователя. A не читает и не удаляет файлы B; проверено отдельными тестами. Владелец берётся из проверенной сессии, не из тела запроса. SHA-256 — проверка целостности, не шифрование.
 - **Verify:** `python -m unittest services/api/tests/test_storage.py -v`, `python scripts/check.py`.
 
 ### T35 — Структурные логи + X-Correlation-ID
@@ -302,6 +305,7 @@
 - **Scope:** `docs/adr/0002..0006-*.md`, `docs/design-system.md`, `docs/ux-decisions.md`, `docs/playbooks/{financial-correctness,design-consistency,agent-evaluation,release-verification}.md`
 - **Steps:** ADR на уже принятые решения: (0002) целые центы EUR и горизонтный прогноз баланса, (0003) только Gemini Flash-Lite модели + SQLite-квоты, (0004) идемпотентность и оптимистичная блокировка `expected_revision`, (0005) base64-импорт для React Native, (0006) каталог 15 действий и MCDA со снапшотами. `design-system.md` — токены из `apps/mobile/src/theme.ts`. Плейбуки — короткие чеклисты (≤ 1 страницы) с реальными командами проверки.
 - **Acceptance:** все файлы созданы; каждый плейбук ≤ 1 страницы и ссылается на реальные команды проекта.
+- **PLAN-01 clarification:** исторический текст Steps не доказывает принятия решения. ADR 0003 фиксирует реально выбранную маршрутизацию runtime-моделей и её расхождения со спецификацией §11; формулировку «только Flash-Lite» нельзя выдавать за согласованную без доказательства. ADR 0001/0007 создаются T30/T50, не дублируются T43.
 
 ### T44 — Модель угроз и карта данных (`threat-model.md`, `data-map.md`)
 - **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-3 · `[PARALLEL-OK]` · `[OPUS-REVIEW]`
@@ -316,7 +320,117 @@
 - **Verify:** проверка валидности YAML и совпадения команд с локальными скриптами.
 
 ### T46 — Финальный аудит готовности
-- **Model:** Astra GPT 6 (orchestrator) · **Status:** todo · **Depends on:** все выше
+- **Model:** Astra GPT 6 (orchestrator) · **Status:** todo · **Depends on:** T30–T35, T40–T45, T50–T63, CHECKPOINT-2, CHECKPOINT-3 (все done)
 - **Steps:** полный прогон проверок; обновить `docs/release-readiness.md` по 4 уровням (`local demo` / `staging` / `pilot` / `public`); перечислить гейты, требующие подписи человека (финансовый, юридический и security-ревью, учётки сторов).
+- **Acceptance:** A–J и J01–J12 из PRODUCT_PLAN сопоставлены с доказательствами; ни один обязательный продуктовый пробел не спрятан за зелёной инфраструктурой. Готовность каждой среды оценивается отдельно; недостающая человеческая проверка остаётся BLOCKED. Аудит не является разрешением на деплой.
 
 ### CHECKPOINT-4 — Оркестратор: `Чекпоинт фазы 4`
+
+## Продуктовые срезы — соответствие видению (T50–T63)
+
+Добавлены PLAN-01, 2026-10-27. Порядок выполнения определяется **Depends on**, не номером: T50 обязателен перед T31; T51–T60 могут выполняться после своих зависимостей, не дожидаясь всех задач фазы 4. Подготовка T40–T45 не блокируется окончанием продуктовых срезов. Финальный T46 ждёт их приёмки. Это основной объём исходного видения, не необязательные улучшения P1–P5.
+
+Для новых задач:
+- Общий Definition of Done из AGENTS обязателен; API-изменения включают `contracts/openapi.json`, `apps/mobile/src/lib/generated.ts` в Scope и генерацию + `--check`.
+- Названия новых файлов — проектируемые; перед стартом подтвердить реальные пути. Если путь/Scope нужно изменить, сначала обновить карточку задачи с объяснением.
+- При слишком большом срезе оркестратор до реализации делит его на T<NN>a/b с отдельными Scope/Acceptance/Verify; родитель done только после всех частей и интеграционной приёмки. Не исполнять несколько задач за чат.
+- Новые библиотеки отдельно согласуются по AGENTS; этот план не разрешает установку сервисов, оплату или деплой.
+- `review` → `done` только независимым ревью. В Verify `backend` означает `python scripts/check.py`, `contracts` — генерацию и проверку drift, `mobile typecheck` — `npm run typecheck` в apps/mobile. Указанный новый тестовый файл создаётся задачей, до реализации его команды не считаются выполненными.
+
+### T50 — Контракт данных и переход от demo к пользовательскому продукту
+- **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T30
+- **Scope:** docs/adr/0007-product-data-contract.md (новый), docs/product/data-contract.md (новый)
+- **Steps:** Спроектировать минимальный совместимый контракт для профиля, счетов/остатков, received/expected income, целей/allocations, provenance, import/source rows, action/execution links, preferences и chat. Сопоставить с текущим State; не требовать отдельную таблицу для каждой сущности. Зафиксировать API-совместимость, версии, сохранность существующих данных, миграционный путь и откат. БД берётся только из T30.
+- **Acceptance:** Каждое A–J из PRODUCT_PLAN имеет владельца данных и последующую задачу; неизвестное не становится нулём; запрет двойного учёта и ownership описаны; спорные финансовые правила вынесены в Decision. Нет кода/новых зависимостей.
+- **Verify:** Ручная сверка с USER_VISION §2–8, мастер-спецификацией §7–10 и текущими моделями; независимое архитектурное ревью.
+
+### T51 — Сохраняемый профиль и происхождение финансовых данных
+- **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T32, T50
+- **Scope:** services/api/vela/{domain.py,store.py,main.py}, services/api/alembic/, services/api/tests/test_profile.py (новый)
+- **Steps:** Реализовать часть контракта T50: профиль, income type/range, явные предпочтения и подтверждение/свежесть/источник фактов. Сохранить текущий API совместимым либо документировать переход. Обновление предпочтений версионировать отдельно; пропуск допустим. Счета/балансовый anchor и связи операций завершаются T53.
+- **Acceptance:** Профиль восстанавливается после перезапуска; A не читает/меняет B; неизвестный доход не превращается в полученный; значения вне диапазона/конфликт версий отклоняются; старая demo-база мигрирует без потери суммы/истории.
+- **Verify:** python -m unittest discover -s services/api/tests -p test_profile.py -v; обязательные backend/migration/contract проверки.
+
+### T52 — Постепенный onboarding и редактирование профиля
+- **Model:** GPT-6.1 Sol · **Status:** todo · **Depends on:** T51
+- **Scope:** apps/mobile/src/app/{snapshot.tsx,connect.tsx,settings.tsx}, apps/mobile/src/components/StateGate.tsx, apps/mobile/src/lib/{api.ts,state.tsx}, services/api/vela/main.py (только устранение скрытых defaults первого импорта), services/api/tests/test_profile.py
+- **Steps:** Подключить пользовательскую сессию T32 и профиль T51, постепенные вопросы/пропуск/возврат/исправление. Привязать к фактическим путям после инвентаризации перед стартом. Предложенная цель требует выбора; неизвестный остаток блокирует только действия, которым он нужен. Не собирать лишние личные данные.
+- **Acceptance:** J01/J02 проходят; после перезапуска сохраняются подтверждённые значения; первый импорт не навязывает demo-цель/буфер; выход из аккаунта не показывает данные прежнего пользователя; понятны ошибки и конфликт.
+- **Verify:** npm run typecheck в apps/mobile; backend/contract при изменении API; воспроизводимый сценарий J01/J02 с указанной средой, автоматизация в T63.
+
+### T53 — Сверка импорта, происхождение строк и исправления
+- **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T51, T33, T34
+- **Scope:** services/api/vela/{imports.py,domain.py,store.py,main.py}, services/api/alembic/, services/api/tests/test_import_reconciliation.py (новый), apps/mobile/src/app/import.tsx, apps/mobile/src/lib/api.ts
+- **Steps:** Подключить UI к заданиям, показать статус/повтор/превью, строки с источником и исправлением категории/суммы/даты до применения. Реализовать контракт счетов/остатков/собственных переводов T50, связь manual income с импортом; неоднозначность дубля требует решения. Применение отдельной идемпотентной командой.
+- **Acceptance:** J03/J04 и связь выполнения из J08: повтор/перекрытие не удваивает операции или доход; closing balance не складывается с историческими строками; перевод между своими счетами не доход; ошибка/удаление/повтор задания не создают лишних записей. Неподдержанная валюта обозначена без выдуманного FX.
+- **Verify:** python -m unittest discover -s services/api/tests -p test_import_reconciliation.py -v; backend, contracts, mobile typecheck; независимые числовые фикстуры.
+
+### T54 — Неопределённый доход и многопериодные сценарии
+- **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T51, T53
+- **Scope:** services/api/vela/{domain.py,debt.py,tools.py,catalogue.py,main.py}, services/api/tests/test_income_scenarios.py (новый), policies/ (только согласованные параметры)
+- **Steps:** Разделить received/expected/confirmed future и допущения. Считать задержку дохода/изменение расходов, обязательства по датам, разовый и регулярный расход на раскрытом горизонте. Не устанавливать вероятности, буферы и пороги по догадке; при нехватке данных — уточнение.
+- **Acceptance:** J05/J07: положительный итог месяца не скрывает промежуточный shortfall; регулярный платёж нельзя обосновать только текущим cash; долг с неизвестными существенными условиями не получает точного обещания; сравнение использует совместимые горизонты и явные допущения.
+- **Verify:** python -m unittest discover -s services/api/tests -p test_income_scenarios.py -v; backend/contracts; независимые фиксированные эталоны и сохранение T10–T12.
+
+### T55 — Несколько целей и калькулятор вкладов
+- **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T51, T54
+- **Scope:** services/api/vela/{domain.py,store.py,main.py,tools.py,catalogue.py}, services/api/vela/goals.py (новый), services/api/alembic/, services/api/tests/test_goals.py (новый)
+- **Steps:** Цели с суммой/сроком/приоритетом, тип reserve или known expense, явные allocations, варианты вклада/срока и отказ от предложенной цели. Мигрировать одну существующую цель; не менять финансовые веса без решения.
+- **Acceptance:** J06 на API: один евро не выделяется двум целям; перенос между счетами не создаёт прогресс; непосильный вклад отвергается; нет цели — разрешённый пустой сценарий; what-if не меняет state.
+- **Verify:** python -m unittest discover -s services/api/tests -p test_goals.py -v; backend/migrations/contracts; эталоны для двух целей.
+
+### T56 — Три специалиста на одной версии состояния
+- **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T54, T55, T24b
+- **Scope:** services/api/vela/{coordination.py,catalogue.py,decision.py,tools.py}, services/api/tests/test_coordination.py, services/api/tests/test_specialists.py (новый)
+- **Steps:** Дополнить cash-flow/spending, debt и savings/goals структурированными результатами T50. Explanation оставить отдельной необязательной функцией. Описать достаточность данных для трендов расходов/комиссий/повторяющихся кассовых провалов; выдавать проверяемые наблюдения. Переиспользовать калькуляторы; отдельный платный LLM на роль не обязателен.
+- **Acceptance:** Три направления дают кандидаты/ссылки на расчёты/неизвестное; причины неприменимости явные; missing debt не равен no debt; пакеты другой версии отклоняются; observations имеют источник и период; нет двойного счёта выгод.
+- **Verify:** python -m unittest discover -s services/api/tests -p test_specialists.py -v; test_coordination.py/test_decision.py и полный backend.
+
+### T57 — Единая публикация рекомендаций и пересчёт
+- **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T56, T33, T35
+- **Scope:** services/api/vela/{main.py,store.py,coordination.py,jobs.py,worker.py,domain.py}, services/api/tests/test_recommendation_flow.py (новый)
+- **Steps:** Подключить coordinator/decision к API состояния и событиям изменений. Фоновая проверка по времени, coalescing, версии preferences/policy, отказ от устаревших результатов. Не создавать конкурирующий второй источник карточки; сохранить совместимость клиента до T58.
+- **Acceptance:** J09/J11: одна действующая primary recommendation; старый worker не публикует; отказ обязательного расчёта отключает непроверенное действие; без существенного изменения карточка стабильна; crash между calculate/publish восстанавливается идемпотентно.
+- **Verify:** python -m unittest discover -s services/api/tests -p test_recommendation_flow.py -v; backend/contracts; тесты гонок и fake clock без внешнего ИИ.
+
+### T58 — Today и My Plan: единый путь решения и выполнения
+- **Model:** GPT-6.1 Sol; review финансовых переходов Astra / Argon · **Status:** todo · **Depends on:** T57, T55, T53
+- **Scope:** apps/mobile/src/app/(tabs)/{index.tsx,plan.tsx}, apps/mobile/src/app/{adjust.tsx,debts.tsx,snapshot.tsx}, apps/mobile/src/components/GoalCard.tsx, apps/mobile/src/lib/{api.ts,state.tsx}, services/api/vela/{domain.py,main.py,store.py}, services/api/tests/test_action_lifecycle.py (новый)
+- **Steps:** Показать опубликованное действие, пользу, причину/альтернативу/допущения; цели/приоритеты и долги в My Plan. Поддержать accept/adjust/postpone/decline/complete по типам каталога; реализацию с большим scope разбить на подзадачи backend/UI до старта. Запись выполнения связать с операцией/аллокацией; исправления сохраняют историю.
+- **Acceptance:** J06–J09: принятие не списывает средства, завершение не удваивается импортом; stale card не actionable; отказ не создаёт скрытую preference; причины и значения совпадают с decision snapshot; три основные вкладки сохранены.
+- **Verify:** python -m unittest discover -s services/api/tests -p test_action_lifecycle.py -v; backend/contracts/mobile typecheck; наблюдаемые сценарии интерфейса, расширить проверки в T63.
+
+### T59 — Постоянный ассистент и безопасные what-if
+- **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T24b, T51, T57, T55
+- **Scope:** services/api/vela/{chat.py,tools.py,main.py,store.py}, services/api/alembic/, services/api/tests/test_assistant_history.py (новый), apps/mobile/src/app/(tabs)/assistant.tsx, apps/mobile/src/lib/api.ts
+- **Steps:** Сохранять диалоги по владельцу с удалением, версиями контекста и ограничением передаваемой истории. Объяснять сохранённое решение, вызывать поддержанные сценарии; изменение реальных данных — только отдельная подтверждённая команда. Историю не отправлять безгранично в модель.
+- **Acceptance:** J10: перезапуск сохраняет сообщения; другой пользователь не получает их; what-if не меняет полный State; старые суммы не выдаются за текущие; отказ/timeout/квота сохраняют безопасный путь T24b.
+- **Verify:** python -m unittest discover -s services/api/tests -p test_assistant_history.py -v; backend/contracts/mobile typecheck; offline evals и mocked model negative cases.
+
+### T60 — Связать уроки с решениями и проверенным знанием
+- **Model:** GPT-6.1 Sol; контент D4 · **Status:** todo · **Depends on:** T58, T17, T18
+- **Scope:** services/api/vela/{lessons.py,tools.py,chat.py}, content/lessons/, policies/action-catalogue.v1.json (только lesson associations), apps/mobile/src/app/learn/[id].tsx, services/api/tests/test_lessons.py
+- **Steps:** Проверить и дополнить путь принцип → интерактивный пример → вопрос/обратная связь; привязать к действию. Reviewed sources с датой/применимостью отдельно от финансовой политики. Не включать embeddings или open-web research без доказанной необходимости.
+- **Acceptance:** Урок доброволен; прогресс сохраняется; личные числа только из актуального калькулятора; непроверенный материал не представлен как reviewed; в runtime доступны только подходящие проверенные материалы либо явное отсутствие ответа.
+- **Verify:** python -m unittest discover -s services/api/tests -p test_lessons.py -v; backend, mobile typecheck; ручная проверка всего контента с D4/T61.
+
+### T61 — Калибровка предпочтений и проверка финансового содержания
+- **Model:** Astra / Argon + человек D4 · **Status:** todo · **Depends on:** T56, T60
+- **Scope:** docs/product/policy-calibration.md (новый), policies/scoring.v1.json, content/lessons/ (только согласованные исправления), evals/calibration/ (новый), services/api/tests/test_decision.py
+- **Steps:** Подготовить swing-weighting сценарии, проверить scales/overlap/сравнимость горизонтов/чувствительность при изменении финансовых допущений и весов. Получить явные предпочтения; единичный отказ не основание для вывода. Человек проверяет каталог, поддержанные продукты, пороги и уроки; до подписи provisional сохраняется.
+- **Acceptance:** Решения по значениям и ограничениям имеют автора/дату/версию; нестабильное решение ведёт к уточнению/сохранению допустимого плана; нет ложной отметки reviewed; отсутствие человека даёт blocked, а не self-signoff.
+- **Verify:** Проверка артефактов калибровки, backend/decision regression при изменении политики; подписанная проверка человеком. D4/D6 обязательны до live approval.
+
+### T62 — Полный жизненный цикл данных и восстановление
+- **Model:** Astra / Argon; независимое security review · **Status:** todo · **Depends on:** T53, T55, T59, T34, T44
+- **Scope:** services/api/vela/{main.py,store.py,storage.py,jobs.py,worker.py}, services/api/tests/test_data_lifecycle.py (новый), docs/playbooks/data-recovery.md (новый), docs/security/data-map.md
+- **Steps:** Расширить export/delete на все новые сущности; согласовать retention D5, удаления originals отдельно от transactions, backup lifecycle. Выполнить restore/rollback drill только в выделенной тестовой среде; задачи не воскрешают удалённого пользователя.
+- **Acceptance:** J12: A удаляет только свои данные; токены/пути не дают доступ к B; диалоги/файлы/previews/jobs охвачены; повтор удаления безопасен; восстановление сохраняет суммы/связи; остаточные counters/backups честно описаны.
+- **Verify:** python -m unittest discover -s services/api/tests -p test_data_lifecycle.py -v; backend/contracts; протокол restore/rollback и isolation tests.
+
+### T63 — Сквозная приёмка видения, качество и расходы
+- **Model:** Astra / Argon; подготовка сценариев GPT-6.1 Sol · **Status:** todo · **Depends on:** T58, T59, T60, T61, T62, T41, T42, T45
+- **Scope:** tests/e2e/, evals/ (новые acceptance-наборы, не переписывать историю результатов), docs/product/acceptance.md (новый), docs/release-readiness.md, PRODUCT_PLAN.md
+- **Steps:** Прогнать J01–J12 и A–E на заявленных устройствах, accessibility, ошибки сети/квот и восстановление; для AI разделить offline, mocks и разрешённые live trials. Добавить свежую независимую выборку после настройки на прежних heldout. Измерить latency/spend по сценарию и согласованному D7 бюджету; не запускать платные/real-data проверки без разрешения.
+- **Acceptance:** Каждый сценарий имеет результат/среду/дату/доказательство; лимиты спецификации проверены либо явно blocked; рекомендации/веса/уроки не обходят T61; нет выдуманного общего процента и статуса public-ready.
+- **Verify:** Фактические backend/mobile/contract/evals/E2E команды из реализованных конфигов; измерения с объёмом выборки и отказами; незапущенные проверки отмечены BLOCKED.
