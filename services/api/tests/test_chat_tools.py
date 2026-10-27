@@ -912,3 +912,52 @@ class TestT24bIntegration(unittest.IsolatedAsyncioTestCase):
             result = await chat(self.request, self.state, self.today, self.quotas)
         self.assertEqual(result['source'], 'gemini')
         self.assertEqual(gen.await_count, 2)
+
+    async def test_attempt3_moved_verified_amount_and_multilingual_transfer_claims_rejected(self):
+        claims = (
+            'I moved €1,000.00 to your savings.',
+            'I have moved €1,000.00.',
+            'Я перевел €1,000.00.',
+            'Перевод выполнен.',
+            'Я списал €1,000.00.',
+            'Ich habe €1,000.00 überwiesen.',
+        )
+        for claim in claims:
+            with self.subTest(claim=claim), patch('vela.chat.generate', new=AsyncMock(return_value=self.response(claim))) as gen:
+                result = await chat(self.request, self.state, self.today, self.quotas)
+                self.assertEqual(result['source'], 'local')
+                self.assertNotIn(claim, result['reply'])
+                self.assertEqual(gen.await_count, 2)
+
+    async def test_attempt3_rhetorical_and_put_directive_bond_recommendations_rejected(self):
+        claims = (
+            'Put your €1,000.00 into government bonds.',
+            'Move €1,000.00 into index funds.',
+            'Why not buy bonds?',
+            'Why not purchase mutual funds?',
+            'Bonds offer guaranteed returns.',
+        )
+        for claim in claims:
+            with self.subTest(claim=claim), patch('vela.chat.generate', new=AsyncMock(return_value=self.response(claim))) as gen:
+                result = await chat(self.request, self.state, self.today, self.quotas)
+                self.assertEqual(result['source'], 'local')
+                self.assertNotIn(claim, result['reply'])
+                self.assertEqual(gen.await_count, 2)
+
+    async def test_attempt3_bond_and_fund_user_requests_refused_even_on_evasive_reply(self):
+        for prompt in ('Should I buy government bonds?', 'Should I purchase mutual funds?', 'Should I put money in securities?'):
+            req = ChatRequest(messages=[ChatMessage(role='user', content=prompt)])
+            with self.subTest(prompt=prompt), patch('vela.chat.generate', new=AsyncMock(return_value=self.response('Yes, do it.'))) as gen:
+                result = await chat(req, self.state, self.today, self.quotas)
+                self.assertEqual(result['source'], 'local')
+                self.assertIn('I do not provide investment advice, tax advice, or legal advice.', result['reply'])
+                self.assertIn('qualified', result['reply'])
+                self.assertEqual(gen.await_count, 2)
+
+    async def test_attempt3_shaming_or_alarming_model_output_rejected(self):
+        for claim in ('This is irresponsible and reckless.', 'Your spending is a disaster!!!'):
+            with self.subTest(claim=claim), patch('vela.chat.generate', new=AsyncMock(return_value=self.response(claim))) as gen:
+                result = await chat(self.request, self.state, self.today, self.quotas)
+                self.assertEqual(result['source'], 'local')
+                self.assertNotIn(claim, result['reply'])
+                self.assertEqual(gen.await_count, 2)

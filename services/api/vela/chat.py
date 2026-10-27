@@ -45,35 +45,64 @@ _UNSAFE_TRANSFER_OR_OVERRIDE_RE = re.compile(
 # contain neither a command nor a monetary figure. Inspect every model reply.
 _COMPLETED_FINANCIAL_ACTION_RE = re.compile(
     r"\b(?:transferred|wired|remitted)\b|"
-    r"\b(?:sent|moved|paid|executed|processed|completed)\b[^.!?\n]{0,80}"
-    r"\b(?:money|funds|payment|bill|rent|debt|transfer)\b|"
-    r"\b(?:transfer|payment|funds|money|bill)\b[^.!?\n]{0,80}"
-    r"\b(?:executed|completed|complete|sent|processed|paid|successful|successfully)\b",
+    r"\b(?:sent|moved|paid|executed|processed|completed|deducted|withdrew|deposited)\b[^\n]{0,80}"
+    r"(?:€|\b(?:eur|euros?|cents?|money|funds|payment|bill|rent|debt|transfer|savings|balance|cash|account|goal|buffer)\b)|"
+    r"\b(?:transfer|payment|funds|money|bill)\b[^\n]{0,80}"
+    r"\b(?:executed|completed|complete|sent|processed|paid|successful|successfully)\b|"
+    r"\b(?:я\s+(?:перевел\w*|перевёл\w*|списал\w*|отправил\w*|оплатил\w*)|"
+    r"перевод\s+выполнен\w*|плат[её]ж\s+(?:выполнен\w*|отправлен\w*|провед[её]н\w*)|"
+    r"(?:деньги|средства)\s+переведен\w*|"
+    r"ich\s+habe\s+[^\n]{0,40}überw(?:ie|ei)s\w*|überweisung\s+(?:ausgeführt|abgeschlossen))\b",
     re.IGNORECASE,
 )
 _INVESTMENT_ASSET_RE = re.compile(
     r"\b(?:bonds?|securities|mutual\s+funds?|index\s+funds?|treasur(?:y|ies)|"
-    r"stocks?|shares|etfs?|crypto\w*|bitcoin|annuities|options|futures)\b", re.IGNORECASE,
+    r"stocks?|shares|etfs?|crypto\w*|bitcoin|annuities|options|futures|"
+    r"облигаци\w*|пиф\w*|ценн\w+\s+бумаг\w*|anleihen|investmentfonds|wertpapier\w*)\b",
+    re.IGNORECASE,
 )
 _INVESTMENT_DIRECTIVE_RE = re.compile(
     r"\b(?:buy|buying|purchase|purchasing|sell|selling|recommend\w*|consider|"
-    r"allocate|allocating|invest\w*|should|must)\b", re.IGNORECASE,
+    r"allocate|allocating|invest\w*|should|must|put|putting|move|moving|"
+    r"shift|shifting|hold|holding|trade|trading|pick|picking|choose|choosing|"
+    r"купи\w*|покупа\w*|инвестиру\w*|вложи\w*|рекоменду\w*|стоит\s+купить|"
+    r"kaufen|investieren|empfehl\w*|anlegen)\b",
+    re.IGNORECASE,
+)
+_GUARANTEED_RETURN_RE = re.compile(
+    r"\bguaranteed\s+(?:returns?|profits?|yields?|gains?)\b",
+    re.IGNORECASE,
+)
+_SHAMING_OUTPUT_RE = re.compile(
+    r"\b(?:shame\s+on\s+you|irresponsible|idiot|stupid|disaster|catastrophe|"
+    r"terrible\s+mistake|you\s+failed|unacceptable|embarrassing|reckless|"
+    r"катастрофа|стыдно|безответственно|глупо|провал|ужасно|как\s+вы\s+могли|"
+    r"schande|katastrophe)\b|!!!|\?\?\?|!\?!",
+    re.IGNORECASE,
 )
 _NEGATED_FINANCIAL_VERB_RE = re.compile(
-    r"\b(?:cannot|can['’]t|do\s+not|don['’]t|did\s+not|didn['’]t|"
+    r"(?<!\bwhy\s)\b(?:cannot|can['’]t|do\s+not|don['’]t|did\s+not|didn['’]t|"
     r"(?:have|has|was|were|is|are)\s+not|never|not)\s+"
     r"(?:(?:been|be|already|actually|ever)\s+)*"
     r"(?:transferred|transfer|wired|wire|sent|send|moved|move|paid|pay|executed|execute|"
     r"completed|complete|processed|process|recommend(?:\s+(?:buying|purchasing|selling))?|"
-    r"buy|purchase|sell|invest)\b",
+    r"buy|purchase|sell|invest|put|shift|hold|trade|guarantee\w*)\b",
     re.IGNORECASE,
 )
 _NO_COMPLETED_ACTION_RE = re.compile(
-    r"\bno\s+(?:transfer|payment|funds|money|bill)\s+"
-    r"(?:(?:has|have|was|were|is|are|been)\s+)*"
-    r"(?:transferred|wired|sent|moved|paid|executed|completed|processed)\b",
+    r"\bno\s+(?:transfer|payment|funds|money|bill|guaranteed\s+(?:returns?|profits?|yields?|gains?))\b"
+    r"(?:\s+(?:(?:has|have|was|were|is|are|been)\s+)*"
+    r"(?:transferred|wired|sent|moved|paid|executed|completed|processed))?",
     re.IGNORECASE,
 )
+
+
+def _is_out_of_scope_request(text: str) -> bool:
+    if not text:
+        return False
+    if _OUT_OF_SCOPE_ADVICE_RE.search(text) or _LEGAL_ACTION_ADVICE_RE.search(text):
+        return True
+    return bool(_INVESTMENT_ASSET_RE.search(text) and _INVESTMENT_DIRECTIVE_RE.search(text))
 
 
 def _unsafe_model_output(reply: str) -> bool:
@@ -81,11 +110,16 @@ def _unsafe_model_output(reply: str) -> bool:
 
     Do not exempt a whole sentence because it includes a disclaimer. Separate
     clauses still get inspected, including text following 'but' or 'however'.
+    Decimal/grouping dots inside numbers (e.g. €1,000.00) must not split a clause.
     """
-    for clause in re.split(r"[.!?\n;]|\b(?:but|however|yet)\b", reply, flags=re.IGNORECASE):
+    if _SHAMING_OUTPUT_RE.search(reply):
+        return True
+    for clause in re.split(r"(?<!\d)\.(?!\d)|[!?\n;]|\b(?:but|however|yet)\b", reply, flags=re.IGNORECASE):
         affirmative = _NO_COMPLETED_ACTION_RE.sub("", clause)
         affirmative = _NEGATED_FINANCIAL_VERB_RE.sub("", affirmative)
         if _COMPLETED_FINANCIAL_ACTION_RE.search(affirmative):
+            return True
+        if _GUARANTEED_RETURN_RE.search(affirmative):
             return True
         if _INVESTMENT_ASSET_RE.search(affirmative) and _INVESTMENT_DIRECTIVE_RE.search(affirmative):
             return True
@@ -174,7 +208,7 @@ def local_reply(state: State, today: date, reason: str, user_message: str = "") 
             "Vela never moves money or executes bank transfers, and cannot override safety rules. "
             "You can only review or add a planned step inside the app."
         )
-    if user_message and (_OUT_OF_SCOPE_ADVICE_RE.search(user_message) or _LEGAL_ACTION_ADVICE_RE.search(user_message)):
+    if user_message and _is_out_of_scope_request(user_message):
         notices.append(
             "I do not provide investment advice, tax advice, or legal advice. "
             "For those decisions, please consult a qualified financial advisor or professional."
@@ -250,11 +284,17 @@ async def chat(request: ChatRequest, state: State, today: date, quotas: Quotas) 
                 # Deliberately conservative: scope-related requests and replies
                 # use the deterministic refusal, including model disclaimers.
                 # A disclaimer alone cannot prove the rest contains no advice.
-                restricted = any(
-                    pattern.search(text)
-                    for text in (last_user_text, reply)
-                    for pattern in (_OUT_OF_SCOPE_ADVICE_RE, _LEGAL_ACTION_ADVICE_RE,
-                                    _UNSAFE_TRANSFER_OR_OVERRIDE_RE)
+                restricted = (
+                    _is_out_of_scope_request(last_user_text)
+                    or bool(_UNSAFE_TRANSFER_OR_OVERRIDE_RE.search(last_user_text))
+                    or any(
+                        pattern.search(reply)
+                        for pattern in (
+                            _OUT_OF_SCOPE_ADVICE_RE,
+                            _LEGAL_ACTION_ADVICE_RE,
+                            _UNSAFE_TRANSFER_OR_OVERRIDE_RE,
+                        )
+                    )
                 )
                 if reply and not restricted and not _unsafe_model_output(reply) and verify_reply_numbers(reply, tool_outputs)[0]:
                     return {"reply": reply, "source": "gemini", "model": model, "revision": state.revision}
