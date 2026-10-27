@@ -757,3 +757,108 @@ class TestChatFallback(unittest.IsolatedAsyncioTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestT24bIntegration(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        from types import SimpleNamespace
+        self.response = lambda text: (SimpleNamespace(text=text), 'test-model')
+        self.today = date(2026, 3, 1)
+        self.state = State(snapshot=Snapshot(as_of=self.today, horizon=self.today + timedelta(days=30),
+                                           cash=100000, saved=0, protected=10000, goal_target=200000))
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.quotas = Quotas(Path(self.temp.name) / 'quota.db')
+        self.request = ChatRequest(messages=[ChatMessage(role='user', content='Explain my cash.')])
+
+    async def test_hallucination_retries_once_then_local_without_mutation(self):
+        before = self.state.model_dump_json()
+        with patch('vela.chat.generate', new=AsyncMock(return_value=self.response('You have €999.00.'))) as gen:
+            result = await chat(self.request, self.state, self.today, self.quotas)
+        self.assertEqual(result['source'], 'local')
+        self.assertEqual(gen.await_count, 2)
+        self.assertNotIn('€999', result['reply'])
+        self.assertEqual(self.state.model_dump_json(), before)
+        self.assertIn('tools', gen.await_args_list[0].args[3]['system_instruction'])
+        self.assertIn('only', gen.await_args_list[1].args[3]['system_instruction'].lower())
+
+    async def test_corrected_retry_is_accepted(self):
+        with patch('vela.chat.generate', new=AsyncMock(side_effect=[self.response('€999.00'), self.response('Cash: €1,000.00')])) as gen:
+            result = await chat(self.request, self.state, self.today, self.quotas)
+        self.assertEqual(result['source'], 'gemini')
+        self.assertEqual(gen.await_count, 2)
+
+    async def test_unsafe_advice_with_disclaimer_is_rejected(self):
+        for text in ('Buy bitcoin.', 'I cannot give tax advice, but deduct your rent.',
+                     'Invest in stocks.', 'You should sue your landlord.'):
+            with self.subTest(text=text), patch('vela.chat.generate', new=AsyncMock(return_value=self.response(text))) as gen:
+                result = await chat(self.request, self.state, self.today, self.quotas)
+                self.assertEqual(result['source'], 'local')
+                self.assertEqual(gen.await_count, 2)
+
+    async def test_restricted_request_cannot_accept_evasive_reply(self):
+        request = ChatRequest(messages=[ChatMessage(role='user', content='Should I buy bitcoin?')])
+        with patch('vela.chat.generate', new=AsyncMock(return_value=self.response('Yes, do it.'))):
+            result = await chat(request, self.state, self.today, self.quotas)
+        self.assertEqual(result['source'], 'local')
+        self.assertIn('qualified', result['reply'])
+
+    async def test_shared_deadline_cancels_retry(self):
+        import asyncio
+        cancelled = asyncio.Event()
+        calls = []
+        async def slow(*args, **kwargs):
+            calls.append(kwargs['timeout_ms'])
+            if len(calls) == 1:
+                await asyncio.sleep(0.01)
+                return self.response('€999.00')
+            try:
+                await asyncio.sleep(10)
+            finally:
+                cancelled.set()
+        with patch('vela.chat.CHAT_TIMEOUT_SECONDS', 0.04), patch('vela.chat.generate', side_effect=slow):
+            result = await chat(self.request, self.state, self.today, self.quotas)
+        self.assertEqual(result['source'], 'local')
+        self.assertTrue(cancelled.is_set())
+        self.assertEqual(len(calls), 2)
+        self.assertLess(calls[1], calls[0])
+
+    async def test_empty_response_falls_back_after_one_retry(self):
+        with patch('vela.chat.generate', new=AsyncMock(return_value=self.response(None))) as gen:
+            result = await chat(self.request, self.state, self.today, self.quotas)
+        self.assertEqual(result['source'], 'local')
+        self.assertEqual(gen.await_count, 2)
+
+    async def test_real_generate_reserves_both_attempts(self):
+        from types import SimpleNamespace
+        from vela.ai import MODELS
+        replies = iter(['€999.00', 'Cash: €1,000.00'])
+        class FakeAio:
+            models = SimpleNamespace(generate_content=AsyncMock(side_effect=lambda **kw: SimpleNamespace(text=next(replies))))
+            async def __aenter__(self): return self
+            async def __aexit__(self, *args): return False
+        with patch.dict(os.environ, {'ENABLE_GEMINI': 'true', 'GEMINI_API_KEY': 'test-only'}), patch(
+            'google.genai.Client', side_effect=lambda **kw: SimpleNamespace(aio=FakeAio())
+        ):
+            result = await chat(self.request, self.state, self.today, self.quotas)
+        self.assertEqual(result['source'], 'gemini')
+        self.assertEqual(sum(item['requests_today'] for item in self.quotas.usage()), 2)
+
+
+    async def test_retry_preserves_masking_and_unavailable_fallback(self):
+        secret = 'DE89370400440532013000'
+        request = ChatRequest(messages=[ChatMessage(role='user', content=f'Explain my balance for {secret}')])
+        with patch.dict(os.environ, {'PII_MASKING': 'true'}), patch('vela.chat.generate', new=AsyncMock(
+            side_effect=[self.response('€999.00'), AIUnavailable('Service unavailable')]
+        )) as gen:
+            result = await chat(request, self.state, self.today, self.quotas)
+        self.assertEqual(result['source'], 'local')
+        self.assertEqual(gen.await_count, 2)
+        for call in gen.await_args_list:
+            self.assertNotIn(secret, json.dumps(call.args[2:4]))
+
+    async def test_external_cancellation_is_not_swallowed(self):
+        import asyncio
+        with patch('vela.chat.generate', new=AsyncMock(side_effect=asyncio.CancelledError)):
+            with self.assertRaises(asyncio.CancelledError):
+                await chat(self.request, self.state, self.today, self.quotas)

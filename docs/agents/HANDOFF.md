@@ -7,9 +7,9 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T23 accepted (attempts 2–3); remaining phase 2 implementation: T24b.
+- **Current task:** T24b (review, Codex GPT-6, 2026-10-27).
 - **Last reviewed:** 2026-10-26, T23 ACCEPT; backend 196/196, targeted 45/45, schema/offline 60/60, contract drift 0.
-- **Next action:** GPT-6.1 Sol: `Выполни T24b`; все зависимости done. Затем независимое security-ревью Astra/Argon и CHECKPOINT-2.
+- **Next action:** Astra / Argon: `Проверь T24b` в отдельном чате (security review); затем CHECKPOINT-2 при приёмке.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -190,3 +190,7 @@ REWORK despite formal 60/60 PASS: task-specific oracles and meaningful financial
 ## T23 re-review — 2026-10-26
 
 ACCEPT: scenario redesign 30c26de + app-gap fixes 4aa01be. Prior weak-oracle, fixture and heldout duplication findings closed; bare Cash passes 0/55 new cases, exact prompt overlap 0. All original failing app-gap inputs retained. Backend 196/196, targeted 45/45, schema/offline 60/60, drift 0. T24b unblocked → GPT-6.1 Sol. Offline tests do not establish live-model safety; phase/release gates remain pending. Detailed evidence and heldout/phrase-matching limitations in reports/T23.md.
+
+## T24b executor — 2026-10-27
+
+T24b → review. Deterministic tools included in context; numeric and conservative scope validation; one corrective retry with a shared 20-second deadline; local fallback on rejection/unavailability/timeout. Quota reservations and PII masking preserved. Tools/chat 54/54, backend 205/205, offline evals 60/60, contracts generated and drift 0. See reports/T24b.md. Independent security review Astra/Argon required; no self-acceptance or phase checkpoint performed.

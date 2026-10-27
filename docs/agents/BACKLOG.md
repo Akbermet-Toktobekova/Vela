@@ -212,7 +212,7 @@
 - **Verify:** `python -m unittest services/api/tests/test_chat_tools.py -v`, `python scripts/check.py`.
 
 ### T24b — Подключение tool-calling и верификации чисел в `chat.py` и `ai.py`
-- **Model:** GPT-6.1 Sol (security review: Astra / Argon) · **Status:** todo · **Depends on:** T24a, T23, T21b · `[OPUS-REVIEW]`
+- **Model:** GPT-6.1 Sol (security review: Astra / Argon) · **Status:** review · **Depends on:** T24a, T23, T21b · `[OPUS-REVIEW]`
 - **Scope:** `services/api/vela/chat.py`, `services/api/vela/ai.py`, `services/api/tests/test_chat_tools.py`
 - **Steps:**
   1. В `chat.py` формировать контекст чата через вызов детерминированных инструментов из `tools.py` (`collect_all_tool_outputs(state)`) и проверять ответ модели через `verify_reply_numbers(reply, tool_outputs)` + проверку отказа на инвестиционные/налоговые советы.

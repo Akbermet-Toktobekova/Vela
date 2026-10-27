@@ -127,7 +127,7 @@ async def generate(quotas: Quotas, route: str, contents, config: dict, tokens: i
         tried.add(model)
         try:
             client = genai.Client(api_key=os.environ["GEMINI_API_KEY"],
-                                  http_options=types.HttpOptions(timeout=max(timeout_ms, 10_000),
+                                  http_options=types.HttpOptions(timeout=max(timeout_ms, 1),
                                                                  retry_options=types.HttpRetryOptions(attempts=1)))
             async with client.aio as ai:
                 response = await ai.models.generate_content(model=model, contents=contents,
