@@ -441,3 +441,9 @@
 - **Steps:** Прогнать J01–J12 и A–E на заявленных устройствах, accessibility, ошибки сети/квот и восстановление; для AI разделить offline, mocks и разрешённые live trials. Добавить свежую независимую выборку после настройки на прежних heldout. Измерить latency/spend по сценарию и согласованному D7 бюджету; не запускать платные/real-data проверки без разрешения.
 - **Acceptance:** Каждый сценарий имеет результат/среду/дату/доказательство; лимиты спецификации проверены либо явно blocked; рекомендации/веса/уроки не обходят T61; нет выдуманного общего процента и статуса public-ready.
 - **Verify:** Фактические backend/mobile/contract/evals/E2E команды из реализованных конфигов; измерения с объёмом выборки и отказами; незапущенные проверки отмечены BLOCKED.
+
+### UI-01 — Исправления UI по MANUAL-05
+- **Model:** Codex · **Status:** review · **Depends on:** пользовательский запрос исправить найденные UI-ошибки.
+- **Scope:** `apps/mobile/src/app/(tabs)/plan.tsx`, `apps/mobile/src/app/adjust.tsx`, `apps/mobile/src/app/(tabs)/index.tsx`, `apps/mobile/src/components/StateGate.tsx`, `apps/mobile/src/lib/api.ts`, `scripts/check-ui-regressions.cjs`; эта карточка, HANDOFF и `docs/agents/reports/UI-01.md`.
+- **Acceptance:** Cancel доступен при shortfall; ошибки счета понятны и сбрасываются после редактирования/закрытия; Add требует актуального допустимого preview; Learn доступен с Today, отключённый StateGate ведёт к Connect. Без новых зависимостей и изменений финансового API.
+- **Verify:** `node scripts/check-ui-regressions.cjs`, `python scripts/check.py`, mobile `npm run typecheck`, полная web-сборка. Ручной UI-прогон только при доступном browser use; ограничения указать отдельно.

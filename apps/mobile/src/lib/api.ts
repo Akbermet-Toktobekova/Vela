@@ -133,6 +133,10 @@ export async function disconnect() {
   connection = null;
   if (Platform.OS !== 'web') await SecureStore.deleteItemAsync(storageKey);
 }
+export function apiErrorMessage(detail: unknown, fallback: string): string {
+  if (typeof detail !== 'string' || /validation error|input_value=|Traceback|errors\.pydantic\.dev/i.test(detail)) return fallback;
+  return detail;
+}
 export async function request<T>(path: string, method = 'GET', body?: unknown, key?: string, timeoutMs = 45000): Promise<T> {
   if (!connection) throw new Error('Connect to your local API first.');
   const controller = new AbortController();
@@ -144,7 +148,7 @@ export async function request<T>(path: string, method = 'GET', body?: unknown, k
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     const result = await response.json();
-    if (!response.ok) throw new Error(typeof result.detail === 'string' ? result.detail : 'Please check the amounts and dates you entered.');
+    if (!response.ok) throw new Error(apiErrorMessage(result.detail, 'Please check the amounts and dates you entered.'));
     return result as T;
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') throw new Error('The request timed out. Try again.');
@@ -176,7 +180,7 @@ export async function uploadStatement(asset: {uri: string; name: string; mimeTyp
       body: form,
     });
     const result = await response.json();
-    if (!response.ok) throw new Error(typeof result.detail === 'string' ? result.detail : 'Could not read that file.');
+    if (!response.ok) throw new Error(apiErrorMessage(result.detail, 'Could not read that file.'));
     return result as ImportPreview;
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') throw new Error('Reading the file took too long. Try a smaller file or CSV export.');

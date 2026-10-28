@@ -12,6 +12,7 @@ import { space, usePalette } from '../../theme';
 function PlanContent({state}: {state: FinancialState}) {
   const p = usePalette();
   const command = useCommand();
+  const billCommand = useCommand();
   const [confirm, setConfirm] = useState<string | null>(null);
   const [showAddBill, setShowAddBill] = useState(false);
   const [billLabel, setBillLabel] = useState('');
@@ -30,15 +31,24 @@ function PlanContent({state}: {state: FinancialState}) {
   const s = state.snapshot!;
   const plans = state.actions.filter(a => a.status === 'planned');
 
+  function clearBillError() {
+    setFormError('');
+    billCommand.reset();
+  }
+
   function submitBill() {
+    if (billCommand.isPending) return;
     try {
       if (!billLabel.trim()) throw new Error('Enter a bill name.');
       const amount = cents(billAmount);
       if (!amount) throw new Error('Enter an amount above zero.');
       if (!/^\d{4}-\d{2}-\d{2}$/.test(billDue)) throw new Error('Use YYYY-MM-DD for due date.');
+      const due = new Date(`${billDue}T00:00:00Z`);
+      if (!Number.isFinite(due.getTime()) || due.toISOString().slice(0, 10) !== billDue) throw new Error('Enter a valid calendar date.');
+      if (billDue < localDate() || billDue > s.horizon) throw new Error(`Choose a due date between today and ${s.horizon}.`);
       const obligation: Obligation = {id: `bill-${Date.now()}`, label: billLabel.trim(), amount, due: billDue, kind: billKind};
       setFormError('');
-      command.mutate({path: '/v1/obligations', body: {revision: state.revision, obligation}}, {
+      billCommand.mutate({path: '/v1/obligations', body: {revision: state.revision, obligation}}, {
         onSuccess: () => {setBillLabel(''); setBillAmount(''); setShowAddBill(false);},
       });
     } catch (e) {
@@ -63,7 +73,10 @@ function PlanContent({state}: {state: FinancialState}) {
         <Copy variant="small" muted>Planned · {action.created_on}</Copy>
         <Copy variant="title">Set aside {money(action.amount)}</Copy>
         {!action.can_complete ? (
-          <Notice>Your snapshot needs confirmation or free funds dropped below this amount. Check Today first.</Notice>
+          <>
+            <Notice>Your snapshot needs confirmation or free funds dropped below this amount. Check Today first or cancel this step.</Notice>
+            <Button label="Cancel step" small secondary disabled={command.isPending} onPress={() => command.mutate({path: `/v1/actions/${action.id}/cancel`, body: {revision: state.revision}}, {onSuccess: () => setConfirm(null)})} />
+          </>
         ) : confirm === action.id ? <>
           <Notice>Confirm once you have set {money(action.amount)} aside. Vela records the allocation in your goal.</Notice>
           <View style={{flexDirection: 'row', gap: space.sm}}>
@@ -79,26 +92,27 @@ function PlanContent({state}: {state: FinancialState}) {
       </Card>
     ))}
 
-    {(command.error || formError) && <Notice>{formError || command.error?.message}</Notice>}
+    {command.error && <Notice>{command.error.message}</Notice>}
 
     <Card>
       <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
         <Copy variant="title">Unpaid bills ({s.obligations.length})</Copy>
-        <Button label={showAddBill ? 'Close' : '+ Add bill'} small secondary onPress={() => setShowAddBill(!showAddBill)} />
+        <Button label={showAddBill ? 'Close' : '+ Add bill'} small secondary disabled={billCommand.isPending} onPress={() => {clearBillError(); setShowAddBill(!showAddBill);}} />
       </View>
 
       {showAddBill && <View style={{gap: space.sm, paddingVertical: space.xs}}>
-        <Field label="Bill name" placeholder="e.g. Rent, Electricity, Credit card" value={billLabel} onChangeText={setBillLabel} />
+        <Field label="Bill name" placeholder="e.g. Rent, Electricity, Credit card" value={billLabel} onChangeText={value => {if (billCommand.isPending) return; clearBillError(); setBillLabel(value);}} />
         <View style={{flexDirection: 'row', gap: space.sm}}>
-          <View style={{flex: 1}}><Field label="Amount (EUR)" numeric placeholder="250" value={billAmount} onChangeText={setBillAmount} /></View>
-          <View style={{flex: 1}}><Field label={`Due (≤ ${s.horizon})`} value={billDue} onChangeText={setBillDue} /></View>
+          <View style={{flex: 1}}><Field label="Amount (EUR)" numeric placeholder="250" value={billAmount} onChangeText={value => {if (billCommand.isPending) return; clearBillError(); setBillAmount(value);}} /></View>
+          <View style={{flex: 1}}><Field label={`Due (≤ ${s.horizon})`} value={billDue} onChangeText={value => {if (billCommand.isPending) return; clearBillError(); setBillDue(value);}} /></View>
         </View>
         <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: space.xs}}>
           {(['rent', 'living', 'debt', 'other'] as const).map(k => (
-            <Chip key={k} label={k} active={billKind === k} onPress={() => setBillKind(k)} />
+            <Chip key={k} label={k} active={billKind === k} onPress={() => {if (billCommand.isPending) return; clearBillError(); setBillKind(k);}} />
           ))}
         </View>
-        <Button label="Save bill" small disabled={command.isPending} onPress={submitBill} />
+        {(formError || billCommand.error) && <Notice>{formError || billCommand.error?.message}</Notice>}
+        <Button label="Save bill" small disabled={billCommand.isPending} onPress={submitBill} />
       </View>}
 
       {s.obligations.length === 0 && <Copy variant="small" muted>No unpaid bills listed through {s.horizon}.</Copy>}

@@ -15,7 +15,7 @@ function AdjustContent({state}: {state: FinancialState}) {
   const [amount, setAmount] = useState(String(defaultCents / 100));
   const command = useCommand();
   const preview = useMutation({mutationFn: (value: string) => request<Preview>('/v1/preview', 'POST', {amount: cents(value)})});
-  const current = preview.data?.revision === state.revision ? preview.data : undefined;
+  const current = preview.isSuccess && preview.variables === amount && preview.data?.revision === state.revision ? preview.data : undefined;
 
   const presets = Array.from(new Set([
     Math.min(1000, maxAllowed),
@@ -26,8 +26,10 @@ function AdjustContent({state}: {state: FinancialState}) {
   ].filter(v => v >= 500))).slice(0, 4);
 
   function pickPreset(centsValue: number) {
+    if (command.isPending) return;
     const str = String(centsValue / 100);
     setAmount(str);
+    command.reset();
     preview.mutate(str);
   }
 
@@ -48,8 +50,8 @@ function AdjustContent({state}: {state: FinancialState}) {
           ))}
         </View>
       )}
-      <Field label="Amount in EUR" numeric value={amount} onChangeText={value => {setAmount(value); preview.reset();}} />
-      <Button label="Check amount" secondary disabled={preview.isPending} onPress={() => preview.mutate(amount)} />
+      <Field label="Amount in EUR" numeric value={amount} onChangeText={value => {if (command.isPending) return; setAmount(value); preview.reset(); command.reset();}} />
+      <Button label="Check amount" secondary disabled={preview.isPending || command.isPending} onPress={() => {if (command.isPending) return; command.reset(); preview.mutate(amount);}} />
       {preview.error && <Notice>{preview.error.message}</Notice>}
       {current && <>
         <Row label="Goal after this step" value={money(current.goal_after)} />
@@ -58,10 +60,11 @@ function AdjustContent({state}: {state: FinancialState}) {
       </>}
       <Button
         label="Add to my plan"
-        disabled={command.isPending || (current ? !current.eligible : maxAllowed <= 0)}
+        disabled={command.isPending || preview.isPending || !current?.eligible}
         onPress={() => {
+          if (!current?.eligible || command.isPending || preview.isPending) return;
           try {
-            const value = current ? current.amount : cents(amount);
+            const value = current.amount;
             command.mutate({path: '/v1/actions', body: {revision: state.revision, amount: value}}, {onSuccess: () => router.replace('/plan')});
           } catch {
             preview.mutate(amount);

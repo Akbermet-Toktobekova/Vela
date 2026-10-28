@@ -227,3 +227,6 @@ REWORK f1dbc0f. Retry/deadline/quota/PII checks pass, but real-chat mocked outpu
 
 ## MANUAL-05 — 2026-10-28
 Доступные проверки завершены: backend 215 OK, offline 60/60, tsc и полная web-сборка PASS, 17/17 дополнительных API-проб с sample-statement.csv. UI: отмена допустимого плана и неполные данные PASS; ввод отклоняется, но Add bill показывает внутреннюю устаревшую ошибку. U06 остаётся FAIL. Browser use отключён при продолжении; оставшиеся UI/телефонные ветки не приняты. Полный охват U01–U22 и ограничения: reports/MANUAL-05.md. Продуктовый код не менялся.
+
+## UI-01 — 2026-10-28
+UI-01 → review: исправлены Cancel step при shortfall, ошибки Add bill, актуальность Choose amount preview, переход Today → Learn и отключённый StateGate. Регрессии до 0/6, после 6/6; backend 215 OK; tsc и полный web export PASS. Browser use отключён: ручная UI-приёмка не объявляется. Подробности и повторный чеклист: reports/UI-01.md. Независимое ревью в новом чате; T24b и релизные гейты без изменений.

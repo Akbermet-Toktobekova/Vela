@@ -86,6 +86,7 @@ function TodayContent({state}: {state: FinancialState}) {
       <View style={{flex: 1}}><Button label="Edit balance" secondary onPress={() => router.push('/snapshot')} /></View>
     </View>
     <Button label="Data, AI quota & connection" small secondary onPress={() => router.push('/settings')} />
+    <Button label="Learn about money" small secondary onPress={() => router.push('/learn')} />
   </>;
 }
 
