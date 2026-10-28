@@ -221,3 +221,6 @@ REWORK f1dbc0f. Retry/deadline/quota/PII checks pass, but real-chat mocked outpu
 ## T24b continuation — Attempt 3, 2026-10-27
 
 Завершены существующие изменения T24b: multilingual completed-action claims, exact-amount transfers, rhetorical/put investment directives, explicit fallback for bond/fund requests, tone/return-guarantee checks. Дополнительно закрыт why-not whitespace bypass; проверены повторная попытка и безопасные контроли. Deadline test стабилизирован без изменения production 20s. Tools/chat 64/64, backend 215/215, offline 60/60, generated contracts/drift 0. T24b → review; независимое security-ревью Astra/Argon. См. reports/T24b.md, Attempt 3.
+
+## MANUAL-04 — 2026-10-28
+Ручной U06 FAIL на 2916825: после Extra 80 при Planned 40 свободно -20; выполнение корректно заблокировано, но Cancel step тоже исчезает. Отмена резерва невозможна. См. reports/MANUAL-04.md. Отдельная база .local/manual-04-20261028.db сохранена; код не менялся. Далее исправить отмену и повторить U06, затем U07.
