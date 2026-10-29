@@ -1039,3 +1039,50 @@ class TestT24bIntegration(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(result['reply'], 'Cash: €1,000.00')
                 self.assertEqual(gen.await_count, 2)
                 self.assertNotIn(claim, json.dumps(gen.await_args_list[1].args[2:4]))
+
+
+    async def test_review5_whitespace_and_cross_sentence_violations_on_both_attempts(self):
+        claims = (
+            'I have just settled\nyour rent.',
+            'I have just settled\n\n\tyour rent.',
+            'Your rent has been\nsettled.',
+            'I have\npaid your bill.',
+            'Gilts would suit you. Buy them.',
+            'Bonds are debt instruments. Purchase those.',
+            'A gilt is a government bond; put your savings into it.',
+            'Buy them. Gilts would suit you.',
+            'Gilts are debt instruments. I cannot buy them, but you should buy them.',
+        )
+        before = self.state.model_dump_json()
+        for claim in claims:
+            for responses in ((claim, claim), ('€999.00', claim)):
+                with self.subTest(responses=responses), patch('vela.chat.generate', new=AsyncMock(
+                    side_effect=[self.response(text) for text in responses]
+                )) as gen:
+                    result = await chat(self.request, self.state, self.today, self.quotas)
+                    self.assertEqual(result['source'], 'local')
+                    self.assertEqual(gen.await_count, 2)
+                    self.assertNotIn(claim, result['reply'])
+                    self.assertEqual(self.state.model_dump_json(), before)
+
+    async def test_review5_whitespace_and_cross_sentence_safe_controls(self):
+        for text in (
+            'I have not\nsettled your rent.',
+            'Your rent has not been\nsettled.',
+            'Gilts are government debt instruments. They have maturity dates.',
+            'Gilts are government debt instruments. Do not buy them without qualified guidance.',
+            'Gilts are government debt instruments. I cannot recommend buying them.',
+            'Bonds are debt instruments. Buy groceries within your budget.',
+            'Do not buy them. Gilts are government debt instruments.',
+            'Cash: €1,000.00. I have not\npaid your rent.',
+        ):
+            for responses in ((text,), ('€999.00', text)):
+                with self.subTest(responses=responses), patch('vela.chat.generate', new=AsyncMock(
+                    side_effect=[self.response(reply) for reply in responses]
+                )) as gen:
+                    before = self.state.model_dump_json()
+                    result = await chat(self.request, self.state, self.today, self.quotas)
+                    self.assertEqual(result['source'], 'gemini')
+                    self.assertEqual(result['reply'], text)
+                    self.assertEqual(gen.await_count, len(responses))
+                    self.assertEqual(self.state.model_dump_json(), before)

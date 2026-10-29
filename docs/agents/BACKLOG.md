@@ -221,7 +221,7 @@
 - **Verify:** `python -m unittest services/api/tests/test_chat_tools.py -v`, `python scripts/check.py`.
 
 ### T24b — Подключение tool-calling и верификации чисел в `chat.py` и `ai.py`
-- **Model:** GPT-6.1 Sol (security review: Astra / Argon) · **Status:** review · **Depends on:** T24a, T23, T21b · `[OPUS-REVIEW]`
+- **Model:** GPT-6.1 Sol (security review: Astra / Argon) · **Status:** done · **Depends on:** T24a, T23, T21b · `[OPUS-REVIEW]`
 - **Scope:** `services/api/vela/chat.py`, `services/api/vela/ai.py`, `services/api/tests/test_chat_tools.py`
 - **Steps:**
   1. В `chat.py` формировать контекст чата через вызов детерминированных инструментов из `tools.py` (`collect_all_tool_outputs(state)`) и проверять ответ модели через `verify_reply_numbers(reply, tool_outputs)` + проверку отказа на инвестиционные/налоговые советы.
@@ -231,6 +231,8 @@
 - **Verify:** `python -m unittest services/api/tests/test_chat_tools.py -v`, `python scripts/check.py`, `python evals/run.py --offline`.
 
 ### CHECKPOINT-2 — Оркестратор: `Чекпоинт фазы 2`
+
+2026-10-29: T24b independently ACCEPTED after bounded R1/R2 and structural rework2; reports/T24b-independent-rework2.md, actual20 mock outcomes,69 focused, centralized244 backend PASS. CHECKPOINT-2 pending CP2-ENV doctor alignment; no cloud/release promotion.
 
 ### CP2-ENV — Align installed Expo SDK patch dependencies
 - **Model:** Codex delegated executor · **Status:** in_progress · **Depends on:** owner-authorized queue; actual CHECKPOINT-2 diagnostic19/20.
