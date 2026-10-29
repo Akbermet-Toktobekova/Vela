@@ -35,6 +35,13 @@ published_recommendations = Table("published_recommendation", metadata, Column("
 # inside a process, while SQLite BEGIN IMMEDIATE coordinates separate starters.
 _migration_lock = RLock()
 
+private_originals = Table('private_original', metadata,
+    Column('owner', String, primary_key=True), Column('file_id', String, primary_key=True),
+    Column('backend', String, nullable=False), Column('object_key', String, nullable=False),
+    Column('sha256', String, nullable=False), Column('size', Integer, nullable=False),
+    Column('created_at', Integer, nullable=False), Column('expires_at', Integer, nullable=False),
+    Column('status', String, nullable=False))
+
 
 class Store:
     def __init__(self, url: str):
@@ -206,3 +213,43 @@ class Store:
     def delete_preview(self, owner: str, preview_id: str, conn=None):
         with self.lock, self.engine.begin() as c:
             c.execute(delete(previews).where(previews.c.owner == owner, previews.c.id == preview_id))
+
+    def add_original(self, owner, file_id, **values):
+        with self.lock, self.engine.begin() as conn:
+            conn.execute(private_originals.insert().values(owner=owner, file_id=file_id, **values))
+
+    def get_original(self, owner, file_id):
+        with self.engine.connect() as conn:
+            row = conn.execute(select(private_originals).where(private_originals.c.owner == owner, private_originals.c.file_id == file_id)).mappings().first()
+            return dict(row) if row else None
+
+    def list_originals(self, owner=None):
+        statement = select(private_originals)
+        if owner is not None:
+            statement = statement.where(private_originals.c.owner == owner)
+        with self.engine.connect() as conn:
+            return [dict(row) for row in conn.execute(statement).mappings()]
+
+    def original_status(self, owner, file_id, status):
+        if status not in ('ready', 'delete_pending'):
+            raise ValueError('Invalid original lifecycle transition.')
+        with self.lock, self.engine.begin() as conn:
+            conn.execute(update(private_originals).where(private_originals.c.owner == owner, private_originals.c.file_id == file_id).values(status=status))
+
+    def activate_original(self, owner, file_id):
+        with self.lock, self.engine.begin() as conn:
+            result = conn.execute(update(private_originals).where(private_originals.c.owner == owner,
+                private_originals.c.file_id == file_id, private_originals.c.status == 'pending').values(status='ready'))
+            return result.rowcount == 1
+
+    def original_cleanup_intent(self, owner, file_id, **values):
+        with self.lock, self.engine.begin() as conn:
+            row = conn.execute(select(private_originals.c.file_id).where(private_originals.c.owner == owner, private_originals.c.file_id == file_id)).first()
+            if row is None:
+                conn.execute(private_originals.insert().values(owner=owner, file_id=file_id, status='delete_pending', **values))
+            else:
+                conn.execute(update(private_originals).where(private_originals.c.owner == owner, private_originals.c.file_id == file_id).values(status='delete_pending'))
+
+    def remove_original(self, owner, file_id):
+        with self.lock, self.engine.begin() as conn:
+            conn.execute(delete(private_originals).where(private_originals.c.owner == owner, private_originals.c.file_id == file_id))

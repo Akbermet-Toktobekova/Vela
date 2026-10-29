@@ -25,6 +25,7 @@ from .profile import install_profile
 from .observations import ObservationsView, analyse
 from .planning import install_planning
 from .auth import SupabaseJWTConfig, SupabaseJWTVerifier, local_owner
+from .storage import PrivateStorage, configured_objects, install_storage
 from .frontend import install_frontend
 from .fx_routes import install_fx
 from .logging_setup import install_request_logging
@@ -118,7 +119,7 @@ class AIStatus(Record):
 
 def create_app(database_url: str | None = None, demo_token: str | None = None, today=None, local_dir: Path | None = None,
                frontend_origins: list[str] | None = None, jwt_config: SupabaseJWTConfig | None = None,
-               jwks_transport=None, auth_clock=None, fx_rates=None) -> FastAPI:
+               jwks_transport=None, auth_clock=None, fx_rates=None, storage_objects=None, storage_clock=None) -> FastAPI:
     mode = os.getenv('APP_MODE', 'demo')
     if mode not in ('demo', 'local', 'cloud'):
         raise RuntimeError('APP_MODE must be local or cloud (demo is a deprecated local alias).')
@@ -135,16 +136,19 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
             raise ValueError('Frontend origins must be exact HTTP(S) origins, without paths or wildcards.')
         parsed.port  # Reject malformed port numbers before creating storage.
     local = local_dir or Path(__file__).resolve().parents[3] / ".local"
+    objects = storage_objects or configured_objects(mode, local, verifier.config.project_url if verifier else None)
     local.mkdir(parents=True, exist_ok=True)
     token = demo_token or os.getenv("DEMO_API_TOKEN")
     if mode != 'cloud' and (not token or len(token) < 24):
         raise RuntimeError("Set DEMO_API_TOKEN to a random token of at least 24 characters. Use scripts/setup-local.py.")
     clock = today or date.today
     store = Store(selected_database or f"sqlite:///{local / 'demo.db'}")
+    storage = PrivateStorage(store, objects, clock=storage_clock)
     quotas = Quotas(local / "quota.db")
     app = FastAPI(title="Vela local API", version="0.2.0")
     app.state.store = store
     app.state.quotas = quotas
+    app.state.storage = storage
     app.add_middleware(CORSMiddleware, allow_origins=origins,
                        allow_methods=["GET", "POST", "PUT", "DELETE"],
                        allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "X-Correlation-ID"],
@@ -575,9 +579,13 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
     def export(who=Depends(owner)):
         return JSONResponse(store.read(who).model_dump(mode="json"), headers={"Content-Disposition": "attachment; filename=vela-export.json"})
 
-    @app.delete("/v1/data")
+    @app.delete("/v1/data", responses={202: {'description': 'Financial data erased; private originals inaccessible with physical deletion pending.'}})
     def erase(who=Depends(owner)):
+        pending = storage.erase_user_files(who)
         store.erase(who)
+        if pending:
+            return JSONResponse({'status': 'deletion_pending', 'originals_pending': pending,
+                'scope': 'Financial data erased; originals are inaccessible and physical cleanup must be retried.'}, status_code=202)
         return {"status": "deleted", "scope": "Balance, bills, plans, transactions and pending uploads. Anonymous AI usage counters are kept."}
 
     install_personal(app, store, owner, idempotency, clock)
@@ -585,4 +593,5 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
     install_planning(app, store, owner, idempotency, clock)
     install_frontend(app, store, owner, clock)
     install_fx(app, store, owner, clock, rates=fx_rates)
+    install_storage(app, storage, owner)
     return app

@@ -279,7 +279,7 @@
 - **Verify:** `python -m unittest services/api/tests/test_worker.py -v`, `python scripts/check.py`.
 
 ### T34 — Приватное файловое хранилище (`storage.py`)
-- **Model:** GPT-6.1 Sol delegated executor; independent security review required · **Status:** in_progress · **Depends on:** T32
+- **Model:** GPT-6.1 Sol delegated executor; independent security review accepted · **Status:** done · **Depends on:** T32
 - **Approved architecture clarification:** ADR0001/PILOT_SPEC replace the legacy filesystem-only cloud design: Supabase private Storage for cloud, isolated filesystem adapter for local tests, explicit retention consent, expiry30days and retryable physical deletion. Scope includes storage metadata persistence/migration, version-aware migration validation, docs/product/storage.md and report. Exact provider operations are mocked; activation/RLS/backup evidence stays T70/T62. Do not alter frozen initial migration. T34 starts after T32 acceptance; root serializes main/store/migration ownership.
 - **Decision:** D5 — согласовать хранение оригиналов, сроки и согласие перед интеграцией сохранения файлов. Не передавать исходники внешнему провайдеру без действующих разрешений.
 - **Scope:** `services/api/vela/storage.py` (новый), `services/api/vela/main.py`, `services/api/tests/test_storage.py` (новый)

@@ -105,7 +105,7 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(set(self.raw()), set(TABLES))
         self.assertTrue(all(not rows for rows in self.raw().values()))
         with database(self.db) as connection:
-            self.assertEqual(connection.execute('SELECT version_num FROM alembic_version').fetchall(), [('0001_initial_schema',)])
+            self.assertEqual(connection.execute('SELECT version_num FROM alembic_version').fetchall(), [('0002_private_originals',)])
         self.migrate('downgrade', 'base')
         with database(self.db) as connection:
             self.assertEqual(connection.execute("SELECT name FROM sqlite_master WHERE type='table' AND name != 'alembic_version'").fetchall(), [])

@@ -13,8 +13,15 @@ def migrate(connection):
         connection.exec_driver_sql('BEGIN IMMEDIATE')
     # Inspect before Alembic creates its version table or applies any DDL.
     # The frozen baseline module, not mutable runtime metadata, defines adoption.
-    baseline = ScriptDirectory.from_config(config).get_revision('0001_initial_schema').module
-    baseline.validate_schema(connection)
+    scripts = ScriptDirectory.from_config(config)
+    baseline = scripts.get_revision('0001_initial_schema').module
+    from sqlalchemy import inspect, text
+    names = set(inspect(connection).get_table_names())
+    versions = connection.execute(text('SELECT version_num FROM alembic_version')).scalars().all() if 'alembic_version' in names else []
+    if 'private_original' in names or versions == ['0002_private_originals']:
+        scripts.get_revision('0002_private_originals').module.validate_schema(connection, baseline)
+    else:
+        baseline.validate_schema(connection)
     context.configure(connection=connection, target_metadata=None)
     with context.begin_transaction():
         context.run_migrations()
