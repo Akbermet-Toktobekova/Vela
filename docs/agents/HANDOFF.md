@@ -5,7 +5,7 @@
 
 ## Сейчас
 
-- **2026-10-29 pilot revision:** owner approved sequential implementation. T64 records the specification, design rules and nine project skills; status review, not independent acceptance. T65 shared UI foundation follows. Full contract: docs/product/PILOT_SPEC.md. Cloud choices resolved; costs/SMTP activation still gated. T24b/CHECKPOINT-2 remain open before real cloud data.
+- **2026-10-29 pilot revision:** owner approved sequential implementation. T64 records the specification, design rules and nine project skills; status review, not independent acceptance. T65 shared UI foundation implemented and in review: neutral/green themes, type scale, 48 targets, loading/destructive/icon controls and field helper/errors. Backend check and mobile typecheck exit 0. Native layout/accessibility not yet exercised. Next implementation slice T66 requires independent review of T64/T65; T24b remains separately pending. Full contract: docs/product/PILOT_SPEC.md. Cloud choices resolved; costs/SMTP activation still gated. T24b/CHECKPOINT-2 remain open before real cloud data.
 
 
 - **MANUAL-03 (2026-10-28):** дополнительные автоматические проверки: contracts PASS, offline 60/60, journeys 31/31. Подробная инструкция повторения и оставшихся UI-веток: `docs/TEST_RUNBOOK.md`; фактический отчёт `docs/agents/reports/MANUAL-03.md`. Новые ручные U06/U07/U14–U22 не приняты.

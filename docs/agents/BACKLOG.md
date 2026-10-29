@@ -459,7 +459,7 @@
 - **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.
 
 ### T65 — Shared mobile UI foundation
-- **Model:** Codex; independent review required · **Status:** todo · **Depends on:** T64
+- **Model:** Codex; independent review required · **Status:** review · **Depends on:** T64
 - **Scope:** apps/mobile/src/theme.ts, apps/mobile/src/components/ui.tsx, report and status files.
 - **Acceptance:** Neutral/green light-dark semantic palette; 16 body/48 targets; pending/destructive/icon buttons, helper/errors; typecheck and backend checks; device verification separate.
 - **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.
