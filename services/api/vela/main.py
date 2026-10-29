@@ -23,6 +23,7 @@ from .chat import ChatRequest, ChatReply, chat
 from .personal import install_personal
 from .observations import ObservationsView, analyse
 from .planning import install_planning
+from .auth import SupabaseJWTConfig, SupabaseJWTVerifier, local_owner
 from .frontend import install_frontend
 from .logging_setup import install_request_logging
 
@@ -114,9 +115,17 @@ class AIStatus(Record):
 
 
 def create_app(database_url: str | None = None, demo_token: str | None = None, today=None, local_dir: Path | None = None,
-               frontend_origins: list[str] | None = None) -> FastAPI:
-    if os.getenv("APP_MODE", "demo") not in ("demo", "local"):
-        raise RuntimeError("Only the local single-user mode is implemented.")
+               frontend_origins: list[str] | None = None, jwt_config: SupabaseJWTConfig | None = None,
+               jwks_transport=None, auth_clock=None) -> FastAPI:
+    mode = os.getenv('APP_MODE', 'demo')
+    if mode not in ('demo', 'local', 'cloud'):
+        raise RuntimeError('APP_MODE must be local or cloud (demo is a deprecated local alias).')
+    verifier = None
+    selected_database = database_url or os.getenv('DATABASE_URL')
+    if mode == 'cloud':
+        verifier = SupabaseJWTVerifier(jwt_config or SupabaseJWTConfig.from_env(), transport=jwks_transport, clock=auth_clock)
+        if not selected_database:
+            raise RuntimeError('Cloud mode requires an explicit database URL; local fallback is disabled.')
     origins = ["http://localhost:8081", "http://localhost:19006"] if frontend_origins is None else frontend_origins
     for origin in origins:
         parsed = urlsplit(origin)
@@ -126,10 +135,10 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
     local = local_dir or Path(__file__).resolve().parents[3] / ".local"
     local.mkdir(parents=True, exist_ok=True)
     token = demo_token or os.getenv("DEMO_API_TOKEN")
-    if not token or len(token) < 24:
+    if mode != 'cloud' and (not token or len(token) < 24):
         raise RuntimeError("Set DEMO_API_TOKEN to a random token of at least 24 characters. Use scripts/setup-local.py.")
     clock = today or date.today
-    store = Store(database_url or os.getenv("DATABASE_URL", f"sqlite:///{local / 'demo.db'}"))
+    store = Store(selected_database or f"sqlite:///{local / 'demo.db'}")
     quotas = Quotas(local / "quota.db")
     app = FastAPI(title="Vela local API", version="0.2.0")
     app.state.store = store
@@ -141,9 +150,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
     install_request_logging(app, origins)
 
     def owner(authorization: Annotated[str | None, Header()] = None) -> str:
-        if not authorization or not secrets.compare_digest(authorization, f"Bearer {token}"):
-            raise HTTPException(401, "Connect this device using your local token.")
-        return "local-demo"
+        return verifier.owner(authorization) if verifier is not None else local_owner(authorization, token)
 
     def idempotency(idempotency_key: Annotated[str, Header(min_length=8, max_length=100)]) -> str:
         return idempotency_key
@@ -199,7 +206,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
 
     @app.get("/health")
     def health():
-        return {"status": "ok", "mode": "local", "ai_enabled": enabled()}
+        return {"status": "ok", "mode": "cloud" if mode == 'cloud' else 'local', "ai_enabled": enabled()}
 
     @app.get("/v1/state", response_model=StateView)
     def get_state(who=Depends(owner)):

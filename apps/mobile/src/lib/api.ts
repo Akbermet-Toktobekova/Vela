@@ -1,5 +1,7 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import { createSessionClient, validateSessionConfig, type SessionClient, type SessionConfig } from './session';
+export { SessionError } from './session';
 
 function readUriAsBase64(uri: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -114,9 +116,58 @@ export interface LessonProgressCommand {
 export interface Connection { url: string; token: string }
 let connection: Connection | null = null;
 const storageKey = 'vela-demo-connection';
+const cloudStorageKey = 'vela-cloud-refresh';
+let cloud: { url: string; client: SessionClient } | null = null;
+
+/** Public deployment config only; T52 supplies visible sign-in/cache lifecycle. */
+export async function configureCloudSession(value: SessionConfig & { apiUrl: string }) {
+  const config = validateSessionConfig(value);
+  const api = new URL(value.apiUrl);
+  if (api.protocol !== 'https:' || api.username || api.password || api.search || api.hash) throw new Error('Use a trusted HTTPS API address.');
+  const url = api.href.replace(/\/$/, '');
+  if (cloud) await cloud.client.signOut();
+  connection = null;
+  if (Platform.OS !== 'web') await SecureStore.deleteItemAsync(storageKey);
+  const storage = Platform.OS === 'web' ? undefined : {
+    async read() {
+      const raw = await SecureStore.getItemAsync(cloudStorageKey);
+      if (!raw) return null;
+      try {
+        const saved = JSON.parse(raw);
+        if (saved.authUrl === config.authUrl && saved.apiUrl === url && typeof saved.refreshToken === 'string') return saved.refreshToken;
+      } catch { /* Invalid saved credentials are cleared, never used. */ }
+      await SecureStore.deleteItemAsync(cloudStorageKey);
+      return null;
+    },
+    async write(refreshToken: string) { await SecureStore.setItemAsync(cloudStorageKey, JSON.stringify({ authUrl: config.authUrl, apiUrl: url, refreshToken })); },
+    async clear() { await SecureStore.deleteItemAsync(cloudStorageKey); },
+  };
+  cloud = { url, client: createSessionClient(config, { storage }) };
+}
+function cloudClient() {
+  if (!cloud) throw new Error('Configure sign-in first.');
+  return cloud.client;
+}
+export const requestSignInCode = (email: string) => cloudClient().requestCode(email);
+export const verifySignInCode = (email: string, code: string) => cloudClient().verifyCode(email, code);
+export const restoreCloudSession = () => cloudClient().restore();
+export const signOutCloudSession = () => cloudClient().signOut();
+
+function endpoint(path: string) {
+  if (!path.startsWith('/') || path.startsWith('//') || path.includes('\\')) throw new Error('Use an API-relative path.');
+  const target = cloud ?? connection;
+  if (!target) throw new Error('Connect to your local API first.');
+  return `${target.url}${path}`;
+}
+async function authenticatedFetch(url: string, init: RequestInit) {
+  const selected = cloud;
+  if (selected) return selected.client.fetch(token => fetch(url, { ...init, redirect: 'error', headers: { ...init.headers, Authorization: `Bearer ${token}` } }));
+  if (!connection) throw new Error('Connect to your local API first.');
+  return fetch(url, { ...init, headers: { ...init.headers, Authorization: `Bearer ${connection.token}` } });
+}
 
 export async function restoreConnection(): Promise<boolean> {
-  if (Platform.OS === 'web') return false;
+  if (cloud || Platform.OS === 'web') return false;
   const saved = await SecureStore.getItemAsync(storageKey);
   if (saved) { connection = JSON.parse(saved) as Connection; return true; }
   return false;
@@ -125,14 +176,20 @@ export async function connect(value: Connection) {
   const url = new URL(value.url);
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) throw new Error('Enter an HTTP or HTTPS API address.');
   const previous = connection;
+  const previousCloud = cloud;
+  cloud = null;
   connection = { url: value.url.replace(/\/$/, ''), token: value.token.trim() };
   try {
     await request<FinancialState>('/v1/state');
+    if (previousCloud) await previousCloud.client.signOut();
     if (Platform.OS !== 'web') await SecureStore.setItemAsync(storageKey, JSON.stringify(connection));
-  } catch (error) { connection = previous; throw error; }
+  } catch (error) { connection = previous; cloud = previousCloud; throw error; }
 }
 export async function disconnect() {
+  const previousCloud = cloud;
+  cloud = null;
   connection = null;
+  if (previousCloud) await previousCloud.client.signOut();
   if (Platform.OS !== 'web') await SecureStore.deleteItemAsync(storageKey);
 }
 export function apiErrorMessage(detail: unknown, fallback: string): string {
@@ -140,14 +197,15 @@ export function apiErrorMessage(detail: unknown, fallback: string): string {
   return detail;
 }
 export async function request<T>(path: string, method = 'GET', body?: unknown, key?: string, timeoutMs = 45000): Promise<T> {
-  if (!connection) throw new Error('Connect to your local API first.');
+  const url = endpoint(path);
+  const serializedBody = body === undefined ? undefined : JSON.stringify(body);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(`${connection.url}${path}`, {
+    const response = await authenticatedFetch(url, {
       method, signal: controller.signal,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${connection.token}`, ...(key ? {'Idempotency-Key': key} : {}) },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json', ...(key ? {'Idempotency-Key': key} : {}) },
+      body: serializedBody,
     });
     const result = await response.json();
     if (!response.ok) throw new Error(apiErrorMessage(result.detail, 'Please check the amounts and dates you entered.'));
@@ -158,7 +216,7 @@ export async function request<T>(path: string, method = 'GET', body?: unknown, k
   } finally { clearTimeout(timeout); }
 }
 export async function uploadStatement(asset: {uri: string; name: string; mimeType?: string; file?: File; base64?: string}): Promise<ImportPreview> {
-  if (!connection) throw new Error('Connect to your local API first.');
+  const url = endpoint('/v1/imports');
   if (Platform.OS !== 'web') {
     const base64 = asset.base64 || await readUriAsBase64(asset.uri);
     return request<ImportPreview>('/v1/imports/base64', 'POST', {
@@ -176,9 +234,8 @@ export async function uploadStatement(asset: {uri: string; name: string; mimeTyp
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 140000);
   try {
-    const response = await fetch(`${connection.url}/v1/imports`, {
+    const response = await authenticatedFetch(url, {
       method: 'POST', signal: controller.signal,
-      headers: { Authorization: `Bearer ${connection.token}` },
       body: form,
     });
     const result = await response.json();

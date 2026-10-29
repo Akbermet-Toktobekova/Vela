@@ -16,6 +16,7 @@ function load(file, mocks) {
   const module={exports:{}};
   vm.runInNewContext(code,{exports:module.exports,module,require:name=>{
     if (name in mocks) return mocks[name];
+    if (name === './session') return load('apps/mobile/src/lib/session.ts', {});
     throw new Error(`Unexpected import ${name}`);
   }, Date,Intl,URL,AbortController,setTimeout,clearTimeout});
   return module.exports;
