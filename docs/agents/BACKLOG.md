@@ -526,3 +526,9 @@
 - **Scope:** services/api/vela/{domain.py,imports.py,main.py,tools.py,observations.py}; tests/test_statement_analytics.py; mobile app/{import.tsx,observations.tsx,personal.tsx,(tabs)/index.tsx,(tabs)/plan.tsx}, lib/{api.ts,navigation.ts}; generated contracts; docs/product/LOCAL_V2.md; task records and report.
 - **Acceptance:** new /v2 statement-apply only merges analytics and never creates/changes balance/saved/obligations/debt/actions; original /v1 apply retained for compatibility. Replace import UI balance/recurring-write controls with analytics-only copy and full preview pagination. Labelled refund credits separated from earnings in preview/summary/tools; imported future dates never finance a plan. Cumulative deterministic suggested observations across three source fixtures, dated evidence IDs/version, no invented confidence/financial thresholds or paid AI. Reachable history pagination beyond50. No automatic unification of legacy snapshot with v2 accounts; record as remaining separate migration.
 - **Verify:** red/green fixture regressions including import invariants/retry/conflict/no-profile/future rows/refund/own-transfer/cumulative patterns/history; backend, typecheck, generate-contracts and drift, UI/navigation regressions, full web export; real isolated Chrome reimport fixtures.
+
+### T73 — Browser JSON export delivery
+- **Model:** Codex · **Status:** in_progress · **Depends on:** owner request after UI-02 export Permission denied.
+- **Scope:** apps/mobile/src/app/settings.tsx; reports/T73.md and BACKLOG/HANDOFF.
+- **Acceptance:** web Export JSON downloads the authenticated export locally without navigator.share; native sharing remains. Do not claim success before preparing data; errors visible. Verify actual browser download contents against synthetic stored state and no connection token. No financial/backend/API changes.
+- **Verify:** actual Chrome download, mobile typecheck, backend suite, full web export; diff check.
