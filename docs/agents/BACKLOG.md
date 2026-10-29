@@ -232,10 +232,10 @@
 
 ### CHECKPOINT-2 — Оркестратор: `Чекпоинт фазы 2`
 
-2026-10-29: T24b independently ACCEPTED after bounded R1/R2 and structural rework2; reports/T24b-independent-rework2.md, actual20 mock outcomes,69 focused, centralized244 backend PASS. CHECKPOINT-2 pending CP2-ENV doctor alignment; no cloud/release promotion.
+2026-10-29: **CHECKPOINT-2 PASS**. T24b independently ACCEPTED,20 mock outcomes/69 focused; root244 backend,60 offline/schema,contracts,TS,independent doctor20/20 after CP2-ENV; full web export PASS. See reports/CHECKPOINT-2.md. No cloud activation/pilot/public approval.
 
 ### CP2-ENV — Align installed Expo SDK patch dependencies
-- **Model:** Codex delegated executor · **Status:** in_progress · **Depends on:** owner-authorized queue; actual CHECKPOINT-2 diagnostic19/20.
+- **Model:** Codex delegated executor · **Status:** done · **Depends on:** owner-authorized queue; actual CHECKPOINT-2 diagnostic19/20.
 - **Scope:** apps/mobile/package.json, apps/mobile/package-lock.json; reports/CP2-ENV.md. Existing dependency patch alignment only; no new packages, UI or backend changes.
 - **Acceptance:** align doctor-reported expo~58.0.21, expo-constants~58.0.14, expo-dev-client~58.0.17, expo-font~58.0.11, expo-linking~58.0.15, expo-router~58.0.28, react-native0.88.1; doctor20/20 and typecheck. Preserve other dependencies and scripts. Lockfile reflects local install; no global install.
 - **Verify:** npm run typecheck; npx expo-doctor; full Expo web export; diff check. Root independent diff/evidence review, no self acceptance.
@@ -288,7 +288,7 @@
 - **Verify:** `python -m unittest services/api/tests/test_storage.py -v`, `python scripts/check.py`.
 
 ### T35 — Структурные логи + X-Correlation-ID
-- **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-2 · `[PARALLEL-OK]`
+- **Model:** Codex delegated executor · **Status:** in_progress · **Depends on:** CHECKPOINT-2 · `[PARALLEL-OK]`
 - **Scope:** `services/api/vela/logging_setup.py` (новый), `services/api/vela/main.py` (только подключение middleware), `services/api/tests/test_correlation.py` (новый)
 - **Acceptance:** JSON-форматтер логов; middleware принимает заголовок `X-Correlation-ID` (или генерирует UUID4, если не передан) и возвращает его в заголовке ответа `X-Correlation-ID`; фильтр логов гарантирует отсутствие сырых сумм, описаний транзакций и PII в логах.
 - **Verify:** `python -m unittest services/api/tests/test_correlation.py -v`, `python scripts/check.py`.

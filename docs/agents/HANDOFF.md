@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 CHECKPOINT-2 PASS:** independent T24b ACCEPT, root244 backend/60offline+schema/contracts, TS, independent doctor20/20 after CP2-ENV; full web export PASS. Report reports/CHECKPOINT-2.md. T30 ADR accepted1d1b5cd, T50 contract in_progress, T35 allowed parallel. T72/T75 done; T73 browser independent acceptance blocked by browser tool, not product bug. No cloud activation/pilot/public or complete journey promotion.
+
 - **2026-10-29 T24b independently ACCEPTED after rework2:** Astra independent context verified20 real-chat mock outcomes and69 focused tests; root final backend244 in35.476s OK, contracts/schema pass. Reports/T24b-independent-rework2.md. CHECKPOINT-2 still pending Expo doctor dependency alignment CP2-ENV (19/20 before fix). T73 browser proof blocked by tooling, not a confirmed product defect. T75/T72 done; no cloud/release promotion.
 
 - **2026-10-29 T75 independently ACCEPTED:** new chat reviewed458ecac, focused7/backend242/client/TS/contracts, real launcher55922/native JS HTTP oracle PASS. Guide docs/product/FRONTEND_INTEGRATION.md; standalone HTML stays disconnected. T24b rework2 resumed with delegated executor after prior chat hit usage limit; targeted checks only, final backend run centralized to avoid duplicate cost. T72 done; T73 browser verification pending.
