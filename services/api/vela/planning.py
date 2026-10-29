@@ -120,6 +120,39 @@ class LegacyFacts(PlanningRecord):
     planned_count: int
 
 
+class RecommendationSummary(PlanningRecord):
+    recommendation_id: str
+    engine_version: str
+    action_id: str
+    outcome: Literal['clarify', 'save', 'maintain', 'shortfall', 'planned', 'goal_reached']
+    amount_cents: int | None
+    can_reserve: bool
+    current_revision: int
+    input_fingerprint: str
+    scoring_version: str
+    provisional_weights: bool
+    domain_review_status: str
+    weighted_score_bp: int | None
+    sensitivity_stable: bool
+    preserved_step_id: str | None
+
+
+def recommendation_summary(decision, current_revision):
+    from .canonical_engine import recommendation_identity
+    selected = next(entry.score for entry in decision.candidates
+                    if entry.score.candidate.candidate_id == decision.selected_candidate_id)
+    return RecommendationSummary(recommendation_id=recommendation_identity(decision),
+        engine_version=decision.engine_version, action_id=decision.selected_action_id,
+        outcome=decision.outcome, amount_cents=decision.selected_amount_cents,
+        can_reserve=decision.can_reserve, current_revision=current_revision,
+        input_fingerprint=decision.input_fingerprint, scoring_version=decision.policy.version,
+        provisional_weights=decision.policy.provisional,
+        domain_review_status=decision.policy.domain_review_status,
+        weighted_score_bp=selected.weighted_score_bp,
+        sensitivity_stable=decision.sensitivity.stable,
+        preserved_step_id=decision.preserved_step_id)
+
+
 class PlanningView(PlanningRecord):
     revision: int
     planning: PlanningState
@@ -137,6 +170,7 @@ class PlanningView(PlanningRecord):
     can_complete: bool
     legacy: LegacyFacts | None
     policy: str = 'fifth-of-available-v1-provisional'
+    recommendation: RecommendationSummary
 
 
 def chosen_account(state):
@@ -183,28 +217,14 @@ def canonical_plan_facts(state, today):
     return CanonicalPlanFacts(reserved, saved, bills, available, reason)
 
 
-def planning_view(state, today):
-    from .domain import suggested_amount
+def planning_view(state, today, *, decision=None):
+    from .canonical_engine import evaluate_account_plan
     p, a = state.personal.planning, chosen_account(state)
     facts = canonical_plan_facts(state, today)
     reserved, saved, bills = facts.reserved, facts.saved, facts.bills
     reason, available = facts.needs_input, facts.available
-    kind, amount, message = 'clarify', None, reason
-    if not reason:
-        if available < 0:
-            kind, message = 'shortfall', 'Your confirmed commitments and allocations exceed this account balance. Review them before a new step.'
-        elif any(s.status == 'planned' for s in p.steps):
-            kind, message = 'planned', 'Keep your accepted step. Complete it only after you have earmarked the money yourself.'
-        elif p.deferred:
-            kind, message = 'maintain', 'No new step for now. Your money remains available.'
-        elif p.goal is None:
-            kind, message = 'maintain', 'No goal is required. Keep your money available, or add a goal when you want one.'
-        elif p.goal.saved >= p.goal.target:
-            kind, message = 'goal_reached', 'Your recorded goal allocation has reached its target.'
-        else:
-            amount = suggested_amount(available, p.goal.target-p.goal.saved)
-            kind = 'save' if amount else 'maintain'
-            message = 'A provisional local suggestion based on this account, protected money and confirmed bills.' if amount else 'Keep your money available; no new savings step fits right now.'
+    decision = decision if decision is not None else evaluate_account_plan(state, today)
+    kind, amount, message = decision.outcome, decision.selected_amount_cents, decision.message
     legacy = None
     if not p.active and state.snapshot:
         s = state.snapshot
@@ -216,10 +236,11 @@ def planning_view(state, today):
                         available=available, needs_input=reason, recommendation_kind=kind,
                         recommendation_amount=amount, message=message or '',
                         can_complete=bool(active and p.goal and active.account_id == p.account_id and reason is None and available is not None
-                                          and available >= 0 and active.amount <= p.goal.target-p.goal.saved), legacy=legacy)
+                                          and available >= 0 and active.amount <= p.goal.target-p.goal.saved), legacy=legacy,
+                        recommendation=recommendation_summary(decision, state.revision))
 
 
-def install_planning(app, store, owner, idempotency, clock):
+def install_planning(app, store, owner, idempotency, clock, *, recommendation_resolver=None):
     def change(who, key, body, kind, apply, **extra):
         return store.mutate(who, key, body.revision, {'kind': kind, **body.model_dump(mode='json'), **extra},
                             apply, lambda s: planning_view(s, clock()).model_dump(mode='json'))

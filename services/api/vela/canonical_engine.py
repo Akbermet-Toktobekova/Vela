@@ -61,6 +61,17 @@ class CanonicalDecision(Record):
     unavailable_candidates: dict[str, str]
 
 
+def recommendation_identity(decision):
+    """Stable relevant-input identity; shared revision is calculation metadata."""
+    return 'canonical-'+fingerprint({
+        'engine_version': decision.engine_version,
+        'input_fingerprint': decision.input_fingerprint,
+        'policy_fingerprint': decision.policy_fingerprint,
+        'catalogue_fingerprint': decision.catalogue_fingerprint,
+        'amount_policy': decision.amount_policy,
+    })
+
+
 def contributions(utilities, weights):
     values = {'R': utilities.vR_bp, 'F': utilities.vF_bp, 'G': utilities.vG_bp,
               'M': utilities.vM_bp,
