@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 UI-TEST-04:** continued T71 real Chrome check: balance replacement, all three income modes, invalid precision/negative input, error clearing, Back without Save and reload/reconnect PASS. Synthetic account retained EUR1100 / 3 income records. Income form lacks balance date/received-date entry. HUF/unknown/retry/conflict/native unrun. See reports/UI-TEST-04.md; T71 remains review.
+
 - **2026-10-29 T71:** local saved profile/accounts/income /v2 slice implemented, review. New /personal screen reached after local Connect or preview Open my saved data. Persistent data separate from preview and legacy snapshot. Backend217/typecheck/contracts pass; API restarted on8000. No Supabase/OTP/cloud acceptance. See reports/T71.md and docs/product/LOCAL_V2.md.
 
 
