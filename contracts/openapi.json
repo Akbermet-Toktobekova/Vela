@@ -191,6 +191,138 @@
         "title": "AccountFacts",
         "type": "object"
       },
+      "AccountValuationLine": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "title": "Account Id",
+            "type": "string"
+          },
+          "converted_minor_exact": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Converted Minor Exact"
+          },
+          "original": {
+            "$ref": "#/components/schemas/OriginalAmount"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuoteView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unavailable": {
+            "anyOf": [
+              {
+                "enum": [
+                  "unknown_amount",
+                  "missing_rate"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable"
+          }
+        },
+        "required": [
+          "account_id",
+          "original",
+          "converted_minor_exact",
+          "unavailable",
+          "quote"
+        ],
+        "title": "AccountValuationLine",
+        "type": "object"
+      },
+      "AccountsValuationView": {
+        "additionalProperties": false,
+        "properties": {
+          "balance_basis": {
+            "const": "current_confirmed_balances",
+            "default": "current_confirmed_balances",
+            "title": "Balance Basis",
+            "type": "string"
+          },
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "estimated": {
+            "title": "Estimated",
+            "type": "boolean"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/AccountValuationLine"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "rate_mode": {
+            "enum": [
+              "latest",
+              "historical_reference"
+            ],
+            "title": "Rate Mode",
+            "type": "string"
+          },
+          "requested_on": {
+            "format": "date",
+            "title": "Requested On",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "target_currency": {
+            "const": "EUR",
+            "default": "EUR",
+            "title": "Target Currency",
+            "type": "string"
+          },
+          "total_minor": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991.0,
+                "minimum": -9007199254740991.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Minor"
+          }
+        },
+        "required": [
+          "revision",
+          "target_currency",
+          "requested_on",
+          "rate_mode",
+          "complete",
+          "estimated",
+          "total_minor",
+          "lines",
+          "balance_basis"
+        ],
+        "title": "AccountsValuationView",
+        "type": "object"
+      },
       "ActionView": {
         "additionalProperties": false,
         "properties": {
@@ -2802,6 +2934,36 @@
         "title": "OneOffExtraPreview",
         "type": "object"
       },
+      "OriginalAmount": {
+        "additionalProperties": false,
+        "properties": {
+          "amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Minor"
+          },
+          "currency": {
+            "enum": [
+              "EUR",
+              "HUF"
+            ],
+            "title": "Currency",
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount_minor",
+          "currency"
+        ],
+        "title": "OriginalAmount",
+        "type": "object"
+      },
       "PayBill": {
         "additionalProperties": false,
         "properties": {
@@ -3300,6 +3462,55 @@
           "income_type"
         ],
         "title": "ProfileCommand",
+        "type": "object"
+      },
+      "QuoteView": {
+        "additionalProperties": false,
+        "properties": {
+          "base": {
+            "enum": [
+              "EUR",
+              "HUF"
+            ],
+            "title": "Base",
+            "type": "string"
+          },
+          "quote": {
+            "enum": [
+              "EUR",
+              "HUF"
+            ],
+            "title": "Quote",
+            "type": "string"
+          },
+          "rate": {
+            "title": "Rate",
+            "type": "string"
+          },
+          "rate_date": {
+            "format": "date",
+            "title": "Rate Date",
+            "type": "string"
+          },
+          "requested_on": {
+            "format": "date",
+            "title": "Requested On",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "base",
+          "quote",
+          "rate",
+          "rate_date",
+          "requested_on",
+          "source"
+        ],
+        "title": "QuoteView",
         "type": "object"
       },
       "ReceivedCommand": {
@@ -7617,6 +7828,69 @@
           }
         },
         "summary": "Profile"
+      }
+    },
+    "/v2/valuations/accounts": {
+      "get": {
+        "operationId": "accounts_valuation_v2_valuations_accounts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "on",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "On"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountsValuationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accounts Valuation"
       }
     }
   }

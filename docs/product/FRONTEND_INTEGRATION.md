@@ -71,6 +71,8 @@ All amounts are integer minor units with the contract's currency; EUR40 is 4000.
 
 ## UI states and verification
 
+T32 adds a separate tested Supabase session adapter; see [authentication](authentication.md). This local kit does not implement its login screens. T67 adds authenticated `GET /v2/valuations/accounts` with optional `on=YYYY-MM-DD`: [FX contract](fx.md). Use returned exact decimal strings, actual rate dates, `complete` and nullable `total_minor`; historical reference values still use current confirmed balances. This display estimate never funds a plan or changes balances. Preserve original currencies/unknown amounts and label incomplete totals.
+
 Disable duplicate submission while a command is pending; preserve edited fields on failure. For a lost response offer retry using the same prepared object. A 409 requires refreshing facts and reviewing consequences, not silently changing revision. A 401 requires reconnecting; 422 shows a safe field/domain message; network/503/non-JSON failures keep the form and show retry. Never log tokens or raw uploaded statements. Client controls are conveniences; server authentication/revision/idempotency remain authoritative. Two browser tabs must handle conflict explicitly.
 
 Never mark an API write successful before acknowledgement. Loading, empty, unknown, stale, ineligible, error and confirmation states belong to the frontend. Native notification permission and financial-content acceptance are not established by these API tests. No production readiness or cloud isolation claim follows from this kit.

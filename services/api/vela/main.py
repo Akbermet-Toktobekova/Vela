@@ -25,6 +25,7 @@ from .observations import ObservationsView, analyse
 from .planning import install_planning
 from .auth import SupabaseJWTConfig, SupabaseJWTVerifier, local_owner
 from .frontend import install_frontend
+from .fx_routes import install_fx
 from .logging_setup import install_request_logging
 
 
@@ -116,7 +117,7 @@ class AIStatus(Record):
 
 def create_app(database_url: str | None = None, demo_token: str | None = None, today=None, local_dir: Path | None = None,
                frontend_origins: list[str] | None = None, jwt_config: SupabaseJWTConfig | None = None,
-               jwks_transport=None, auth_clock=None) -> FastAPI:
+               jwks_transport=None, auth_clock=None, fx_rates=None) -> FastAPI:
     mode = os.getenv('APP_MODE', 'demo')
     if mode not in ('demo', 'local', 'cloud'):
         raise RuntimeError('APP_MODE must be local or cloud (demo is a deprecated local alias).')
@@ -581,4 +582,5 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
     install_personal(app, store, owner, idempotency, clock)
     install_planning(app, store, owner, idempotency, clock)
     install_frontend(app, store, owner, clock)
+    install_fx(app, store, owner, clock, rates=fx_rates)
     return app

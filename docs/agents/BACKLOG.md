@@ -488,7 +488,8 @@
 - **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.
 
 ### T67 — Frankfurter v2 EUR/HUF valuations
-- **Model:** Codex; independent review required · **Status:** in_progress · **Depends on:** T50, T31
+- **Model:** Codex delegated executor; independent review completed · **Status:** done · **Depends on:** T50, T31
+- **Independent acceptance 2026-10-29:** T67-service-independent.md + T67-routes-independent.md;11 service/7 HTTP independently pass, root289 backend/contracts/TS pass. Read-only display valuations; live quote smoke not run.
 - **Scope:** services/api/vela/fx.py, tests, v2 schemas/contracts, report and status files.
 - **Orchestrator bounded delegation:** first isolated fx.py service/tests + docs/product/fx.md + report; no main/store/schema edits while T32 owns integration. API wiring is a subsequent reviewed delta before task acceptance. No guessed rounding policy; expose missing decision if contract does not specify.
 - **Acceptance:** ECB source, Decimal, current/historical cached rates; missing rate incomplete total, no FX affordability; deterministic tests and opt-in live smoke.

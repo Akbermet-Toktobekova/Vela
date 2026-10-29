@@ -29,6 +29,26 @@ export type AccountFacts = {
   "confirmed_on": string | null;
 };
 
+export type AccountValuationLine = {
+  "account_id": string;
+  "original": OriginalAmount;
+  "converted_minor_exact": string | null;
+  "unavailable": "unknown_amount" | "missing_rate" | null;
+  "quote": QuoteView | null;
+};
+
+export type AccountsValuationView = {
+  "revision": number;
+  "target_currency": "EUR";
+  "requested_on": string;
+  "rate_mode": "latest" | "historical_reference";
+  "complete": boolean;
+  "estimated": boolean;
+  "total_minor": number | null;
+  "lines": (AccountValuationLine)[];
+  "balance_basis": "current_confirmed_balances";
+};
+
 export type ActionView = {
   "id": string;
   "amount": number;
@@ -470,6 +490,11 @@ export type OneOffExtraPreview = {
   "months_saved": number | null;
 };
 
+export type OriginalAmount = {
+  "amount_minor": number | null;
+  "currency": "EUR" | "HUF";
+};
+
 export type PayBill = {
   "revision": number;
   "effect": "subtract" | "already_in_balance";
@@ -555,6 +580,15 @@ export type ProfileCommand = {
   "revision": number;
   "focus": "spending" | "reserve" | "debt" | "goal" | "unsure";
   "income_type": "regular" | "irregular" | "mixed" | "unknown";
+};
+
+export type QuoteView = {
+  "base": "EUR" | "HUF";
+  "quote": "EUR" | "HUF";
+  "rate": string;
+  "rate_date": string;
+  "requested_on": string;
+  "source": string;
 };
 
 export type ReceivedCommand = {
