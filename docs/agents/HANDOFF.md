@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 T73 review:** web Export JSON now downloads locally, native Share retained. Actual Chrome produced Downloads/vela-export.json; UTF-8 JSON equals live isolated test export56rows/account1000/revision5, token absent. Download-event helper timed out on Blob, filesystem artifact verified. Backend223/TS/full web export pass. See reports/T73.md. Canonical account/plan migration is next; no done/release promotion.
+
 - **2026-10-29 T72 review:** analytical-only /v2 apply and import UI, labelled refund separation, imported-future cash exclusion, cumulative suggested observations/evidence and paginated history. Real Chrome3fixture uploads+repeat retains56, no hidden profile, account1000 unchanged, streaming delta3 and source rows, page2 oldest6 verified. Backend223/TS/contracts/UI6/nav/full export/offline60 pass. See reports/T72.md. Legacy /v1 apply remains for compatibility; canonical account/plan integration and web export remain next bounded slices. No done/release promotion.
 
 - **2026-10-29 PATTERN-01 review:** three frozen synthetic July/Aug/Sep EUR statement CSVs + predeclared integer oracle in docs/testing/pattern-statements. Real Chrome import16/36/56 rows, repeatSeptember stays56; all56 references/dates/amounts match export. Keep existing preserves cash1000/saved0/bills0; own transfers excluded. Found refund20 classified income, absent cross-file patterns/price change, historical closing balance preselected for current cash, latest list limited50of56. AI disabled; no live-analysis claim. See reports/PATTERN-01.md. UI-02 preceding navigation repair remains review; shared finance model/native/export/delete work remains open.

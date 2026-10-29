@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Share, View } from 'react-native';
+import { Platform, Share, View } from 'react-native';
 import { router } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Card, Copy, Notice, Row, Screen } from '../components/ui';
@@ -22,7 +22,18 @@ export default function SettingsScreen() {
     mutationFn: async (action: 'export' | 'delete' | 'disconnect') => {
       if (action === 'export') {
         const data = await request('/v1/export');
-        await Share.share({message: JSON.stringify(data, null, 2), title: 'Vela export'});
+        const message = JSON.stringify(data, null, 2);
+        if (Platform.OS === 'web') {
+          const url = URL.createObjectURL(new Blob([message], {type: 'application/json'}));
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'vela-export.json';
+          document.body.appendChild(link);
+          try {link.click();} finally {link.remove(); setTimeout(() => URL.revokeObjectURL(url), 30_000);}
+          setStatus('Export prepared. Your browser handles the download.');
+        } else {
+          await Share.share({message, title: 'Vela export'});
+        }
       }
       if (action === 'delete') {
         await request('/v1/data', 'DELETE');

@@ -528,7 +528,7 @@
 - **Verify:** red/green fixture regressions including import invariants/retry/conflict/no-profile/future rows/refund/own-transfer/cumulative patterns/history; backend, typecheck, generate-contracts and drift, UI/navigation regressions, full web export; real isolated Chrome reimport fixtures.
 
 ### T73 — Browser JSON export delivery
-- **Model:** Codex · **Status:** in_progress · **Depends on:** owner request after UI-02 export Permission denied.
+- **Model:** Codex · **Status:** review · **Depends on:** owner request after UI-02 export Permission denied.
 - **Scope:** apps/mobile/src/app/settings.tsx; reports/T73.md and BACKLOG/HANDOFF.
 - **Acceptance:** web Export JSON downloads the authenticated export locally without navigator.share; native sharing remains. Do not claim success before preparing data; errors visible. Verify actual browser download contents against synthetic stored state and no connection token. No financial/backend/API changes.
 - **Verify:** actual Chrome download, mobile typecheck, backend suite, full web export; diff check.
