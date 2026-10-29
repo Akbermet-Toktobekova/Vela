@@ -1,3 +1,5 @@
+> Approved amendment 2026-10-29: docs/product/PILOT_SPEC.md governs revised product behaviour, including analytics-only imports, progressive onboarding, cloud email OTP, EUR/HUF and contextual explanations. Historical requirements below are preserved for traceability; resolve conflicts using the amendment.
+
 # FinAgent — Production Development Master Prompt
 
 Version 1.1 · Updated 24 October 2026 — Stitch as visual foundation

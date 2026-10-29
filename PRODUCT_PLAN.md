@@ -1,3 +1,5 @@
+> **Approved revision 2026-10-29:** [PILOT_SPEC](docs/product/PILOT_SPEC.md) supersedes conflicting behaviour below. Statements are analytics-only; EUR/HUF, cloud OTP and progressive onboarding are approved. Older progress remains historical, not pilot acceptance.
+
 # Vela — общий план продукта и прогресс
 
 Обновлено: **2026-10-27**. Владелец видения: пользователь. Ведение статусов: оркестратор.

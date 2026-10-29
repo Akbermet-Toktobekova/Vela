@@ -42,3 +42,6 @@ description: Execute exactly one Vela backlog task (T<NN>) as Gemini Flash 3.8, 
 - Править `PROGRESS.md` и `docs/release-readiness.md` (это делает оркестратор), если задача прямо этого не требует.
 - Выполнять больше одной задачи за сессию.
 - Писать в отчёт результаты команд, которые не запускались.
+
+## Approved pilot revision
+Read docs/product/PILOT_SPEC.md for revised behaviour. UI work must use uxpeak and shared design-system tokens. Review the complete user journey, not only module existence; distinguish automated, real-device and owner acceptance. The owner may explicitly authorize sequential bounded tasks in one session; record each separately.

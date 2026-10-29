@@ -1,3 +1,5 @@
+> **2026-10-29 approved pilot:** docs/product/PILOT_SPEC.md is the revised behaviour contract. Existing done statuses are historical module acceptance. T30 decision resolved: Supabase Postgres/Auth/private Storage + Render API/worker, email OTP; paid activation awaits estimate. D5: originals expire 30 days after upload. T50 must separate analytics from finances and specify /v2 EUR/HUF migration. T53 import cannot change finances. T52 onboarding precedes optional statements.
+
 # BACKLOG — Vela (FinAgent)
 
 Упорядоченный план работ. Сначала независимое ревью готовых задач, затем первая задача с выполненными **Depends on** и закрытыми обязательными Decision; номер не заменяет зависимости. Общая картина: [`PRODUCT_PLAN.md`](../../PRODUCT_PLAN.md), исходное видение: [`USER_VISION.md`](../product/USER_VISION.md). Источники: `PROGRESS.md` §2, `docs/release-readiness.md`, `FinAgent_Production_Development_Prompt.md`.
@@ -447,3 +449,47 @@
 - **Scope:** `apps/mobile/src/app/(tabs)/plan.tsx`, `apps/mobile/src/app/adjust.tsx`, `apps/mobile/src/app/(tabs)/index.tsx`, `apps/mobile/src/components/StateGate.tsx`, `apps/mobile/src/lib/api.ts`, `scripts/check-ui-regressions.cjs`; эта карточка, HANDOFF и `docs/agents/reports/UI-01.md`.
 - **Acceptance:** Cancel доступен при shortfall; ошибки счета понятны и сбрасываются после редактирования/закрытия; Add требует актуального допустимого preview; Learn доступен с Today, отключённый StateGate ведёт к Connect. Без новых зависимостей и изменений финансового API.
 - **Verify:** `node scripts/check-ui-regressions.cjs`, `python scripts/check.py`, mobile `npm run typecheck`, полная web-сборка. Ручной UI-прогон только при доступном browser use; ограничения указать отдельно.
+
+## Approved pilot implementation — 2026-10-29
+
+### T64 — Approved specification, uxpeak and project skill cleanup
+- **Model:** Codex; independent review required · **Status:** review · **Depends on:** —
+- **Scope:** AGENTS.md, PRODUCT_PLAN.md, master specification amendment, docs/product/PILOT_SPEC.md, docs/design-system.md, docs/skills-manifest.md, .agents/skills/, BACKLOG/HANDOFF, report.
+- **Acceptance:** Persist approved journeys, preserve history; exactly nine skills, no active dangling Native Core references; no application acceptance claimed.
+- **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.
+
+### T65 — Shared mobile UI foundation
+- **Model:** Codex; independent review required · **Status:** todo · **Depends on:** T64
+- **Scope:** apps/mobile/src/theme.ts, apps/mobile/src/components/ui.tsx, report and status files.
+- **Acceptance:** Neutral/green light-dark semantic palette; 16 body/48 targets; pending/destructive/icon buttons, helper/errors; typecheck and backend checks; device verification separate.
+- **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.
+
+### T66 — Synthetic isolated pilot navigation prototype
+- **Model:** Codex; independent review required · **Status:** todo · **Depends on:** T65
+- **Scope:** apps/mobile/src/app/, apps/mobile/src/components/, synthetic fixtures, report and status files.
+- **Acceptance:** All pilot routes/states demonstrable without real finances; example isolated; Android/iPhone UX evidence required before integrated acceptance.
+- **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.
+
+### T67 — Frankfurter v2 EUR/HUF valuations
+- **Model:** Codex; independent review required · **Status:** todo · **Depends on:** T50, T31
+- **Scope:** services/api/vela/fx.py, tests, v2 schemas/contracts, report and status files.
+- **Acceptance:** ECB source, Decimal, current/historical cached rates; missing rate incomplete total, no FX affordability; deterministic tests and opt-in live smoke.
+- **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.
+
+### T68 — Optional local reminders
+- **Model:** Codex; independent review required · **Status:** todo · **Depends on:** T52, T58
+- **Scope:** apps/mobile reminder module/settings, v2 preferences, migrations/tests/contracts, report and status files.
+- **Acceptance:** Explicit expo-notifications dependency; daily/weekdays/N-days/time; per-device opt-in, neutral text, logout/cancel/timezone handling; native verification.
+- **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.
+
+### T69 — Home-screen Add income shortcut
+- **Model:** Codex; independent review required · **Status:** todo · **Depends on:** T54, T58
+- **Scope:** apps/mobile config/dependency/shortcut module, income route, tests, report and status files.
+- **Acceptance:** Explicit expo-quick-actions dependency after SDK compatibility; cold/warm/auth resume opens form without writing; both native platforms.
+- **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.
+
+### T70 — Cloud configuration and activation estimate
+- **Model:** Codex; independent review required · **Status:** todo · **Depends on:** T30, T32, T33, T34
+- **Scope:** deployment templates, operations docs, report and status files.
+- **Acceptance:** Render API/worker + Supabase + SMTP configuration without secrets; monthly estimate and activation checklist; no deployment/purchase without owner approval.
+- **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.

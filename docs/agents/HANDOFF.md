@@ -5,6 +5,9 @@
 
 ## Сейчас
 
+- **2026-10-29 pilot revision:** owner approved sequential implementation. T64 records the specification, design rules and nine project skills; status review, not independent acceptance. T65 shared UI foundation follows. Full contract: docs/product/PILOT_SPEC.md. Cloud choices resolved; costs/SMTP activation still gated. T24b/CHECKPOINT-2 remain open before real cloud data.
+
+
 - **MANUAL-03 (2026-10-28):** дополнительные автоматические проверки: contracts PASS, offline 60/60, journeys 31/31. Подробная инструкция повторения и оставшихся UI-веток: `docs/TEST_RUNBOOK.md`; фактический отчёт `docs/agents/reports/MANUAL-03.md`. Новые ручные U06/U07/U14–U22 не приняты.
 
 - **Ручной web-прогон мануала (MANUAL-02, 2026-10-28):** на изолированной `.local/manual-u01-u22-20261028.db` пройдены U01–U05 и U08–U12 (U11 только local); U13 BLOCKED, остальные не принимались. Найдены: smoke не ловит падение полной web-сборки, stale-preview UX в Choose amount, Learn недоступен/зависает на прямом web-route. Постоянная demo.db и продуктовый код не менялись. Отчёт: `docs/agents/reports/MANUAL-02.md`.

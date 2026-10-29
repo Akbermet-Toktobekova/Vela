@@ -54,3 +54,6 @@ description: Orchestrate the Vela multi-model team (Astra GPT 6 / Gemini 4 Argon
 ## Правила решений
 - Продуктовые, финансовые (веса, пороги, проценты), юридические и платные решения принимает **пользователь**. Оркестратор формулирует вопрос с 2–3 вариантами и рекомендацией.
 - Не называть продукт «production-ready» без доказательств по гейтам (спецификация §18).
+
+## Approved pilot revision
+Read docs/product/PILOT_SPEC.md for revised behaviour. UI work must use uxpeak and shared design-system tokens. Review the complete user journey, not only module existence; distinguish automated, real-device and owner acceptance. The owner may explicitly authorize sequential bounded tasks in one session; record each separately.

@@ -5,7 +5,7 @@ description: Build feature work with high overbuilding risk. Use for new behavio
 
 # Lean build
 
-Native Core's architecture-first simplicity remains mandatory. Turn feature into complete narrow outcome fitting system.
+Trace invariants and ownership; prefer existing implementation, responsible helper, standard library or installed dependency before introducing new structure. Turn feature into complete narrow outcome fitting system.
 
 - Derive observable acceptance and explicit non-goals from request and repository.
 - Trace entry point through layers owning invariants.
@@ -13,6 +13,6 @@ Native Core's architecture-first simplicity remains mandatory. Turn feature into
 - Reuse fitting seam. Refactor when patching duplicates behavior, weakens ownership, or hides root cause.
 - Omit modes, providers, config, extensibility, and polish unless acceptance needs them.
 - Add surface, dependency, service, config, or migration only for lifecycle design or acceptance; state material tradeoff.
-- Keep work runnable; preserve Core safety.
+- Keep work runnable; preserve authorization, data, accessibility, compatibility and rollback safety.
 
 Exercise path. Run focused proof. Stop when acceptance passes. Report only material omissions and trigger.

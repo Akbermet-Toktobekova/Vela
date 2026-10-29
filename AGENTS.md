@@ -1,7 +1,7 @@
 # AGENTS.md — Vela (FinAgent): единый протокол для всех агентов
 
 Этот файл — канонические правила проекта. Его обязан соблюдать **любой** агент (Claude Opus, Astra GPT 6, Gemini 4 Argon, Gemini Flash 3.8 и любой будущий).
-Мастер-спецификация: `FinAgent_Production_Development_Prompt.md`. При конфликте: безопасность > этот файл > спецификация > скиллы.
+Мастер-спецификация: `FinAgent_Production_Development_Prompt.md`; утверждённые изменения 2026-10-29: `docs/product/PILOT_SPEC.md` (при расхождении продуктового поведения читать новую редакцию). При конфликте: безопасность > этот файл > спецификация > скиллы.
 
 ---
 
@@ -57,7 +57,7 @@
 
 1. **Одна задача за сессию.** Трогать только файлы из поля `Scope` задачи. Если нужно выйти за scope, остановиться и записать это в отчёт как вопрос.
 2. **Не угадывать.** Неясное требование → статус `blocked` + вопрос в отчёте. Не придумывать финансовые правила, веса и пороги.
-3. **Деньги — только целые центы** (`int`, EUR). Никаких `float` в финансовой логике. Не ломать инварианты из `services/api/vela/domain.py`.
+3. **Деньги — только целые минимальные единицы с явной валютой** (`int`, EUR/HUF в новом контракте; legacy EUR сохраняет совместимость). Курсы — Decimal; выписки никогда автоматически не меняют балансы. Никаких `float` в финансовой логике. Не ломать инварианты из `services/api/vela/domain.py`.
 4. **Не удалять** существующий код, тесты, комментарии и документацию без явного указания в задаче.
 5. **Никогда:** не публиковать, не деплоить, не трогать продакшн-данные, не коммитить секреты (`.env`, `.local/`), не покупать сервисы, не ставить глобальные пакеты без задачи.
 6. **Не фабриковать результаты.** В отчёт идёт только реальный вывод реально запущенных команд.
@@ -98,3 +98,7 @@ python scripts/generate-contracts.py         # если трогали API; 0 dr
 - `.agents/skills/vela-orchestrator/` — для оркестратора (ревью, выбор следующей задачи, наследование роли)
 - `.agents/skills/vela-executor/` — для Argon/Flash (выполнение одной задачи)
 - Вспомогательные: `surgical-patch` (мелкие фиксы), `lean-build` (новые фичи), `migration` (схемы/БД), `safe-refactor`, `investigate-first` (непонятные баги), `verify-and-stop` (только проверка).
+
+## Approved implementation sequence — 2026-10-29
+
+Owner authorized sequential implementation of the complete pilot plan in this session. Execute bounded backlog slices with separate reports/commits; never promote own work to done. UI tasks use uxpeak and docs/design-system.md. Preserve USER_VISION and historical reports. Real cloud data still requires T24b independent acceptance and CHECKPOINT-2; deployment and paid activation require an estimate and owner decision.
