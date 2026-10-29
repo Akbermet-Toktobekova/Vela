@@ -1,7 +1,10 @@
 """Transactional local store; intentionally limited to one synthetic demo identity."""
 import hashlib
 import json
+from pathlib import Path
 from threading import RLock
+from alembic import command
+from alembic.config import Config
 from sqlalchemy import Column, Integer, MetaData, String, Table, Text, create_engine, select, update, delete
 from .domain import State
 
@@ -28,11 +31,24 @@ published_recommendations = Table("published_recommendation", metadata, Column("
                                   Column("financial_revision", Integer, nullable=False),
                                   Column("payload", Text, nullable=False))
 
+# Alembic's command environment uses module-level proxies; serialize bootstrap
+# inside a process, while SQLite BEGIN IMMEDIATE coordinates separate starters.
+_migration_lock = RLock()
+
 
 class Store:
     def __init__(self, url: str):
         self.engine = create_engine(url, connect_args={"check_same_thread": False} if url.startswith("sqlite") else {})
-        metadata.create_all(self.engine)
+        config = Config(str(Path(__file__).resolve().parents[1] / 'alembic.ini'))
+        try:
+            with _migration_lock, self.engine.begin() as connection:
+                if connection.dialect.name == 'sqlite':
+                    connection.exec_driver_sql('BEGIN IMMEDIATE')
+                config.attributes['connection'] = connection
+                command.upgrade(config, 'head')
+        except Exception:
+            self.engine.dispose()
+            raise
         self.lock = RLock()
 
     def read(self, owner: str) -> State:

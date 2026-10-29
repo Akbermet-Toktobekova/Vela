@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 T31 independently ACCEPTED:** reports/T31-independent.md;10 focused tests, root259 backend43.134s and generated contracts/drift PASS. Frozen five-table SQLite baseline/adoption preserves full rows; populated downgrade guarded. Use project .venv/Scripts/python.exe (Alembic local dependency). T35 CORS500 correction frozen under re-review. T32 precise preflight/scope recorded; next implementation after this acceptance. No cloud activation/demo.db/API8000–8003.
+
 - **2026-10-29 next bounded queue:** T30 accepted1d1b5cd; T50 independently accepted6b25f31 (ADR0007/product-data-v1), T31 migration in_progress delegated to t72_executor, T35 logging in_progress delegated to t75_executor (root requested correlation header also on unexpected500). Root owns shared statuses/commits; final backend once after code stabilizes. T73 remains browser-blocked. Current checks/infrastructure gates documented CHECKPOINT-2; no demo.db/API8000–8003/cloud activation. User explicitly requested minimal-credit precise assignments: narrow file ownership, targeted executor tests, centralized integration suite; reuse existing agents.
 
 - **2026-10-29 CHECKPOINT-2 PASS:** independent T24b ACCEPT, root244 backend/60offline+schema/contracts, TS, independent doctor20/20 after CP2-ENV; full web export PASS. Report reports/CHECKPOINT-2.md. T30 ADR accepted1d1b5cd, T50 contract in_progress, T35 allowed parallel. T72/T75 done; T73 browser independent acceptance blocked by browser tool, not product bug. No cloud activation/pilot/public or complete journey promotion.
