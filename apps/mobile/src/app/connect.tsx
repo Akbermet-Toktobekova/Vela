@@ -22,6 +22,7 @@ export default function ConnectScreen() {
   const {setConnected} = useConnection();
   const mutation = useMutation({mutationFn: () => connect({url, token}), onSuccess: () => {setConnected(true); router.replace('/');}});
   return <Screen title="Connect Vela" eyebrow="Local API">
+    <Card soft><Copy variant="title">Explore the new Vela experience</Copy><Copy muted>Try the first-time journey and new screens using isolated example data.</Copy><Button label="Open design preview" onPress={() => router.push("/pilot")} /></Card>
     <Card soft>
       <Copy variant="title">Personal finance & AI assistant</Copy>
       <Copy muted>Upload bank statements (CSV, XLSX, PDF, image), track bills and goals, and chat with Gemini 3.1 & 3.5 Flash-Lite.</Copy>

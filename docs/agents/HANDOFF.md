@@ -5,6 +5,9 @@
 
 ## Сейчас
 
+- **2026-10-29 T66:** owner explicitly authorized proceeding on current T65 without promoting its review status. Added isolated `/pilot` route and Open design preview on Connect. Synthetic, in-memory only; no API/auth/upload/AI/notification calls. Status review. Typecheck PASS, backend 215 tests PASS, full web export PASS. Native/owner UX acceptance remains unrun. See reports/T66.md for limitations.
+
+
 - **2026-10-29 pilot revision:** owner approved sequential implementation. T64 records the specification, design rules and nine project skills; status review, not independent acceptance. T65 shared UI foundation implemented and in review: neutral/green themes, type scale, 48 targets, loading/destructive/icon controls and field helper/errors. Backend check and mobile typecheck exit 0. Native layout/accessibility not yet exercised. Next implementation slice T66 requires independent review of T64/T65; T24b remains separately pending. Full contract: docs/product/PILOT_SPEC.md. Cloud choices resolved; costs/SMTP activation still gated. T24b/CHECKPOINT-2 remain open before real cloud data.
 
 

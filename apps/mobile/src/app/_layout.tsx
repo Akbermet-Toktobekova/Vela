@@ -12,6 +12,7 @@ export default function RootLayout() {
   if (!loaded && !error) return <Loading />;
   return <Providers><StatusBar style="auto" /><Stack screenOptions={{headerStyle: {backgroundColor: p.background}, headerTintColor: p.text, contentStyle: {backgroundColor: p.background}}}>
     <Stack.Screen name="(tabs)" options={{headerShown: false}} />
+    <Stack.Screen name="pilot" options={{headerShown: false}} />
     <Stack.Screen name="connect" options={{title: 'Connect API'}} />
     <Stack.Screen name="snapshot" options={{title: 'Balance & bills'}} />
     <Stack.Screen name="import" options={{title: 'Import statement'}} />
