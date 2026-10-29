@@ -1,3 +1,5 @@
+2026-10-29 CHECKPOINT-3 engineering PASS:335backend85.118s/contracts/TS/doctor20/20; [evidence](agents/reports/CHECKPOINT-3.md). T33/T34/T51 accepted; T53a reconciliation and T70 configuration underway. Live PostgreSQL/RLS/shared quotas/provider/restore/human/device/activation remain separate gates.
+
 2026-10-29 current backend: T31 migrations, T32 mocked-provider JWT/session isolation, T35 private request diagnostics and T67 ECB display valuations accepted. Combined289backend86.879s,17session/TS/contracts/UI6 PASS. Evidence: [T32](agents/reports/T32-independent.md), [T67](agents/reports/T67-routes-independent.md). T34 storage/T51 profile underway. Real PostgreSQL/RLS/cloud OTP delivery, worker, full journeys, human/device/activation gates remain unaccepted. Historical counts below are preserved.
 
 # Release Readiness Checklist (`docs/release-readiness.md`)

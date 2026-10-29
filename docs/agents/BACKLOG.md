@@ -402,7 +402,7 @@
 - **Verify:** python -m unittest discover -s services/api/tests -p test_income_scenarios.py -v; backend/contracts; независимые фиксированные эталоны и сохранение T10–T12.
 
 ### T53a — Backend source review, corrections and analytical reconciliation
-- **Model:** Codex delegated executor; independent review required · **Status:** todo · **Depends on:** T51, T33, T34
+- **Model:** Codex delegated executor; independent review required · **Status:** in_progress · **Depends on:** T51, T33, T34
 - **Scope:** reconciliation.py (new), additive domain.py aggregate, imports.py immutable parsed-source capture, main.py installer, test_import_reconciliation.py, generated contracts, docs/product/reconciliation.md, report. Reuse Store.mutate; store.py only if common-transaction source guards require it.
 - **Acceptance:** implement reports/T53-backend-preflight.md source/review/correction/apply portion. Preserve source ordinal and identical-purchase multiplicity; exact source retries link once; ambiguous overlap requires explicit resolution; immutable correction history. One canonical analytical ledger, compatible EUR projection, HUF stays separate. Closing balances are historical anchors, never money writes. Owner/revision/command-key checks; numerical fixture and restart/rollback proofs. Original expiry never erases parsed provenance. T53 parent UI/J03/J04 remains open.
 - **Verify:** focused test_import_reconciliation.py, backend/contracts, independent fixed integer oracle; no live data or provider.
@@ -526,8 +526,9 @@
 - **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.
 
 ### T70 — Cloud configuration and activation estimate
-- **Model:** Codex; independent review required · **Status:** todo · **Depends on:** T30, T32, T33, T34
+- **Model:** Codex delegated executor; independent review required · **Status:** in_progress · **Depends on:** T30, T32, T33, T34
 - **Scope:** deployment templates, operations docs, report and status files.
+- **Explicit implementation scope:** secret-free cloud launcher/config tests, Render API/worker templates, reviewed database-access SQL, requirements.txt pinned psycopg[binary]3.x (project-local installation only), actual-env/OTP/private-storage/TLS guide and dated primary-source estimate. No deployment, real database/provider requests, secret inspection or paid activation. Local SQLite quota is not shared-cloud proof; activation stays blocked until required multi-process quota/RLS/PostgreSQL/provider evidence exists.
 - **Acceptance:** Render API/worker + Supabase + SMTP configuration without secrets; monthly estimate and activation checklist; no deployment/purchase without owner approval.
 - **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.
 

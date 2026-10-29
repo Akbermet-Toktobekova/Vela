@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 CHECKPOINT-3 engineering PASS:** T33accepted a740a5d; root335backend85.118s/contracts/TS/doctor20/20. Evidence reports/CHECKPOINT-3.md; no livecloud/RLS/provider readiness claim. Next T53a reconciliation implementation (t67_fx_executor), T70 secretfreecloudconfig (t32_session_adapter). T53b links then T54/T55; parentT53 UI remainsopen. Userfocus completebackend; standaloneHTML disconnected.
+
 - **2026-10-29 T34/T51 accepted:** T34 privateoriginals0620600 (independent16storage+10migration; targetbindingfixed), T51profile38b6f94 (independent10). Rootcombined315backend80.392s/contracts/TS PASS. T33durableupload/enqueue/worker now delegated t72_executor; T53backend and T70config preflights delegated separately, no premature implementation. Rootowns status/commits; T34frontendingest intentionally T33. No demo.db/API8000–8003/cloudactivation.
 
 - **2026-10-29 T32/T67 accepted:** a26a100 verified JWT/session; f1f0f5b read-only ECB valuations. Independent root12isolation/17session, delegated11FX/7HTTP, combined289backend86.879s/contracts/TS/UI6 PASS. All provider responses mocked; no cloud/Postgres/RLS/device/OTP delivery claim. Next parallel T34 durableprivateoriginals (t72_executor), T51 profile (t32_session_adapter), T33 preflight (t67_fx_executor). HALF_UP owner-approved for FX; demo.db/API8000–8003 untouched.
@@ -77,7 +79,7 @@
 
 - **Orchestrator:** Codex (GPT-6), owner-authorized parallel queue 2026-10-29
 - **Current phase:** 3 — migrations, verified ownership and durable infrastructure; Phase2 engineering checkpoint passed417f256.
-- **Current task:** T33 durable idempotent upload/enqueue/worker; prepare T53 backend and T70 configuration scopes.
+- **Current task:** T53a source reconciliation + T70 offline cloud configuration after CHECKPOINT-3 engineering PASS.
 - **Last reviewed:** 2026-10-29, T72 REWORK R1; backend231/targeted6/contracts drift0/TS/UI/navigation/web PASS. T74 accepted at f436831; T24b remains independently pending.
 - **Next action:** Review T34/T51 then execute durable T33 jobs; main/store/migration ownership serialized. T73 browser proof remains tooling-blocked. Cloud activation requires estimate/owner decision.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
