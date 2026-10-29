@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 owner-authorized parallel backend queue:** root Codex orchestrates; subagents `t75_executor` (frontend contract/client/synthetic launcher), `t72_executor` (refund R1), `independent_audit` (T24b/T73 independent review and remaining dependency audit). Shared checkout uses disjoint product/report ownership; root alone updates BACKLOG/HANDOFF and stages explicit task files. Existing T75 dirty changes preserved. Independent acceptance required; no deployment, paid activation or fabricated native/cloud evidence. Never read/change demo.db or access/manage API8000–8003. Standalone HTML stays disconnected. Current source HEAD db5b78a; execution continues until accepted work or recorded external blockers.
+
 - **2026-10-29 independent T72 review: REWORK.** Original2ad1652/current f436831 checked. R1: supported StateView/JSON cash-flow tool drops separate refund_cents (expected2000), raw branch and net arithmetic correct. New synthetic API54295/UI54300/Chrome19006: oracle56 rows, analytical-only invariants, T74 plan preservation, repeat/retry/conflicts/future-income exclusion/evidence and pagination PASS; backend231/targeted6/contracts/TS/UI/navigation/web PASS. See reports/T72.md Review. Next: `Выполни T72` R1 + parity regression, then independent new-chat review. T73 remains review; T74 done; release gates unchanged. demo.db/API8000–8003 untouched.
 
 - **2026-10-29 independent T74 re-review of5fc0aa7: ACCEPT.** Receipt bypass resolved; full HTTP route matrix, changed-body fingerprint409 and deterministic adoption race independently passed on new temporary SQLite DBs/free ports. Backend231/targeted8/contracts drift0/TS/UI6/navigation/full web export PASS. See reports/T74.md Independent receipt re-review. Next: new-chat `Проверь T72`; T73 separately pending. T72/T73 remain review; no journey/release gate promotion. demo.db/API8000–8003 untouched.
@@ -53,11 +55,11 @@
 - **Product plan:** [`PRODUCT_PLAN.md`](../../PRODUCT_PLAN.md) — читать перед выбором следующей задачи. Исходное видение сохранено в `docs/product/USER_VISION.md`. Планирование PLAN-01 завершено 2026-10-27; задачи реализации им не принимались.
 - **После CHECKPOINT-2:** D2/T30 → T50 (контракт данных) → T31/T32; подробные зависимости T50–T63 в BACKLOG. T46 требует сквозной приёмки продукта, а не только старой инфраструктурной очереди.
 
-- **Orchestrator:** Codex (GPT-6), independent review session 2026-10-29
+- **Orchestrator:** Codex (GPT-6), owner-authorized parallel queue 2026-10-29
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T72 (rework R1, independent review 2026-10-29; see reports/T72.md).
+- **Current task:** Parallel T75 completion + T72 R1; independent T24b/T73 review. Root coordinates integration and acceptance.
 - **Last reviewed:** 2026-10-29, T72 REWORK R1; backend231/targeted6/contracts drift0/TS/UI/navigation/web PASS. T74 accepted at f436831; T24b remains independently pending.
-- **Next action:** `Выполни T72` — fix R1 and add raw/StateView/JSON refund parity regression; then new-chat `Проверь T72`. T73 separate; T24b and CHECKPOINT-2 still required before real cloud data.
+- **Next action:** Collect executor evidence, commit each bounded slice separately, arrange independent new-context reviews; resolve T24b/CHECKPOINT-2 before dependent infrastructure work. No cloud activation without required decisions.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
@@ -65,7 +67,7 @@
 | ID | Вопрос | Нужен к задаче | Ответ |
 |---|---|---|---|
 | D1 | Веса MCDA: ок использовать провизорные демо-веса с пометкой `provisional`? | T15 | Да (`provisional: true`) |
-| D2 | БД/авторизация: (A) локальный Postgres в Docker, (B) Supabase cloud, (C) пока SQLite + Alembic | T30 | — |
+| D2 | БД/авторизация | T30 | Resolved by PILOT_SPEC 2026-10-29: Supabase Postgres/Auth/private Storage; Render API/worker; email OTP. Activation/costs remain gated. |
 | D3 | Есть ли Android-эмулятор / iOS-симулятор / устройство для Maestro? | T42 | — |
 | D4 | Кто проверит финансовый контент уроков (человек)? | T17/T18 | — |
 
