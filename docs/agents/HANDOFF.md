@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **Owner renewed complete backend execution:** T32 resumed after prior Astra usage-limit failure with disjoint backend executor t72_executor and mobile session-adapter executor t32_session_adapter. T67 FX service delegated independently to t67_fx_executor; integration remains root-controlled. Narrow file lists, focused checks and final centralized backend gate minimize duplicate work. T31/T35 remain accepted; no demo.db/API8000–8003/live cloud/paid activation.
+
 - **2026-10-29 T35 independently ACCEPTED:** T35-independent.md final re-review;500 CORS exact allowlist fixed,5 focused PASS, root combined259backend43.134s/contracts PASS. T31 accepted d374a2c. T32 delegated to t32_auth_executor (Astra heavy) with precise preflight, local mocked JWT/OTP/isolation proof only; no cloud activation. Root owns statuses/commits and shared final integration gate.
 
 - **2026-10-29 T31 independently ACCEPTED:** reports/T31-independent.md;10 focused tests, root259 backend43.134s and generated contracts/drift PASS. Frozen five-table SQLite baseline/adoption preserves full rows; populated downgrade guarded. Use project .venv/Scripts/python.exe (Alembic local dependency). T35 CORS500 correction frozen under re-review. T32 precise preflight/scope recorded; next implementation after this acceptance. No cloud activation/demo.db/API8000–8003.
