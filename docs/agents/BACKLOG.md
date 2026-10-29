@@ -334,7 +334,7 @@
 - **PLAN-01 clarification:** исторический текст Steps не доказывает принятия решения. ADR 0003 фиксирует реально выбранную маршрутизацию runtime-моделей и её расхождения со спецификацией §11; формулировку «только Flash-Lite» нельзя выдавать за согласованную без доказательства. ADR 0001/0007 создаются T30/T50, не дублируются T43.
 
 ### T44 — Модель угроз и карта данных (`threat-model.md`, `data-map.md`)
-- **Model:** Flash · **Status:** todo · **Depends on:** CHECKPOINT-3 · `[PARALLEL-OK]` · `[OPUS-REVIEW]`
+- **Model:** Codex delegated executor; root independent review accepted · **Status:** done · **Depends on:** CHECKPOINT-3 · `[PARALLEL-OK]` · `[OPUS-REVIEW]`
 - **Scope:** `docs/security/threat-model.md` (новый), `docs/security/data-map.md` (новый)
 - **Steps:** описать границы доверия (Mobile App ↔ FastAPI ↔ Gemini Cloud API ↔ Local/DB Storage), таблицу угроз по STRIDE для каждой границы, защиту от prompt injection через банковские выписки, маскирование PII (`pii.py`), хранение и полное удаление по `DELETE /v1/data`, владельца каждого остаточного риска.
 - **Acceptance:** оба документа созданы, покрывают STRIDE, prompt injection, PII и удаление данных; проходят ревью оркестратора.
