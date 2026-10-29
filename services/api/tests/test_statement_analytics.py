@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 
 from fastapi.testclient import TestClient
 from vela.main import create_app
-from vela.domain import Transaction
+from vela.domain import StateView, Transaction
 from vela.tools import calculate_cash_flow
 
 
@@ -116,6 +116,35 @@ class StatementAnalyticsTests(unittest.TestCase):
         result = self.apply(response.json(), 'analytics-future-01')
         self.assertEqual(result.status_code, 200, result.text)
         self.assertEqual(result.json()['available'], before['available'])
+
+    def test_august_refund_cash_flow_parity_for_raw_typed_and_json_state(self):
+        # Frozen fixture oracle: earnings 1500, refund 20, gross debits 862.98.
+        applied = self.apply(self.upload('08'), 'analytics-refund-parity-01')
+        self.assertEqual(applied.status_code, 200, applied.text)
+        before = self.get('/v1/export')
+        json_state = self.get('/v1/state')
+        sources = {
+            'raw': self.app.state.store.read('local-demo'),
+            'typed': StateView.model_validate(json_state),
+            'json': json_state,
+        }
+        expected = {'income_cents': 150000, 'refund_cents': 2000,
+                    'spending_cents': 86298, 'net_cash_flow_cents': 65702}
+        for name, source in sources.items():
+            with self.subTest(source=name):
+                flow = calculate_cash_flow(source, days=30)
+                self.assertTrue(flow['data_available'])
+                for field, amount in expected.items():
+                    self.assertEqual(flow.get(field), amount, field)
+        # A summary for 30 days cannot establish a seven-day refund amount.
+        for name in ('typed', 'json'):
+            with self.subTest(unavailable_source=name):
+                flow = calculate_cash_flow(sources[name], days=7)
+                self.assertFalse(flow['data_available'])
+                self.assertEqual(flow['source'], 'summary_unavailable_for_requested_horizon')
+                for field in expected:
+                    self.assertIsNone(flow.get(field), field)
+        self.assertEqual(self.get('/v1/export'), before)
 
     def test_non_eur_cannot_be_silently_saved_as_eur(self):
         response = self.client.post('/v1/imports', headers=self.headers,

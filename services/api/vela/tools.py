@@ -295,6 +295,7 @@ def calculate_cash_flow(state: State | StateView | dict | Any, days: int = 30) -
             "period_start": p_start.isoformat() if p_start else None,
             "period_end": p_end.isoformat() if p_end else None,
             "income_cents": income_cents,
+            "refund_cents": refund_cents,
             "income_eur": format_eur(income_cents),
             "spending_cents": spending_cents,
             "spending_eur": format_eur(spending_cents),
