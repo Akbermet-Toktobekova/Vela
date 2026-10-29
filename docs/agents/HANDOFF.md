@@ -5,6 +5,9 @@
 
 ## Сейчас
 
+- **2026-10-29 T66 follow-up:** owner-requested three fixes implemented: completed copy, direct evidence page, Boolean error guard removing RN Web warning. Fresh real Chrome rerun and typecheck/backend215/web-export pass. See T66 report follow-up; earlier findings are historical. Native checks and independent acceptance remain open.
+
+
 - **2026-10-29 T66:** owner explicitly authorized proceeding on current T65 without promoting its review status. Added isolated `/pilot` route and Open design preview on Connect. Synthetic, in-memory only; no API/auth/upload/AI/notification calls. Status review. Typecheck PASS, backend 215 tests PASS, full web export PASS. Native/owner UX acceptance remains unrun. See reports/T66.md for limitations.
 
 

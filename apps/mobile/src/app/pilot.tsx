@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Button, Card, Chip, Copy, Field, IconButton, Notice, Row, Screen } from '../components/ui';
 import { space } from '../theme';
 
-type Page = 'welcome' | 'intent' | 'account' | 'income-profile' | 'today' | 'plan' | 'assistant' | 'income' | 'balance' | 'import' | 'reminders' | 'settings';
+type Page = 'welcome' | 'intent' | 'account' | 'income-profile' | 'today' | 'plan' | 'assistant' | 'income' | 'balance' | 'import' | 'reminders' | 'settings' | 'evidence';
 type Scenario = 'ready' | 'empty' | 'offline' | 'stale' | 'conflict' | 'unavailable';
 const tabs: {page: Page; label: string}[] = [{page: 'today', label: 'Today'}, {page: 'plan', label: 'My Plan'}, {page: 'assistant', label: 'Assistant'}];
 const choices = ['Understand my spending', 'Build a financial cushion', 'Manage debt', 'Save for something', 'Not sure yet'];
@@ -81,7 +81,7 @@ export default function PilotScreen() {
       : 'Recommendation example-subscriptions-v1: checking a recurring service helps you decide whether to keep it. The example shows three monthly payments. Cancelling is your choice; potential future savings are not money received. Your balance has not changed.';
     setChat(c => [...c, {question, answer}]); setInput('');
   };
-  const titles: Record<Page, string> = {welcome: 'Welcome to Vela', intent: 'Start with what matters', account: 'Your money', 'income-profile': 'Your income', today: 'Today', plan: 'My Plan', assistant: 'Assistant', income: 'Add income', balance: 'Update balance', import: 'Statement analysis', reminders: 'Your reminders', settings: 'Profile & data'};
+  const titles: Record<Page, string> = {welcome: 'Welcome to Vela', intent: 'Start with what matters', account: 'Your money', 'income-profile': 'Your income', today: 'Today', plan: 'My Plan', assistant: 'Assistant', income: 'Add income', balance: 'Update balance', import: 'Statement analysis', reminders: 'Your reminders', settings: 'Profile & data', evidence: 'Supporting transactions'};
   const moneyFields = <>
     <Copy muted>Main account · EUR · example session</Copy>
     <Copy>Last known balance: {balance === null ? 'Not provided' : format(balance)}</Copy>
@@ -123,7 +123,7 @@ export default function PilotScreen() {
       <Card><Copy muted>Your money · Main account</Copy><Copy variant="money">{balance === null || scenario === 'empty' ? 'Not provided' : format(balance)}</Copy><Copy variant="small" muted>{scenario === 'stale' ? 'Example balance needs an update' : 'Manually entered · this preview session'}</Copy></Card>
       <Card soft>
         <View style={{flexDirection: 'row', alignItems: 'center', gap: space.sm}}><View style={{flex: 1}}><Copy variant="title">{balance === null || scenario === 'empty' ? 'Start with your balance' : action === 'planned' ? 'Your subscription review is planned' : action === 'completed' ? 'Your review is complete' : 'Review a recurring payment'}</Copy></View><IconButton label="Explain this recommendation" onPress={() => {setExplanation(true); go('assistant');}}><Copy>ⓘ</Copy></IconButton></View>
-        <Copy muted>{balance === null || scenario === 'empty' ? 'A known balance helps us plan. You can still explore statement analysis.' : 'Check whether Example Streaming is still useful to you. No need to decide now.'}</Copy>
+        <Copy muted>{balance === null || scenario === 'empty' ? 'A known balance helps us plan. You can still explore statement analysis.' : action === 'completed' ? 'You have reviewed this service. Your balance is unchanged; no service was cancelled by Vela.' : 'Check whether Example Streaming is still useful to you. No need to decide now.'}</Copy>
         <Button label={balance === null || scenario === 'empty' ? 'Add balance' : 'Open my plan'} onPress={() => go(balance === null || scenario === 'empty' ? 'balance' : 'plan')} />
       </Card>
       <Button label="Add income" onPress={() => {setIncluded(null); setReplacement(''); go('income');}} />
@@ -140,7 +140,7 @@ export default function PilotScreen() {
       <Card><Copy variant="title">Upcoming commitments</Copy><Copy muted>Not provided yet. Unknown commitments are not treated as zero.</Copy></Card>
     </>}
     {page === 'assistant' && <>
-      {explanation && <Card soft><Copy variant="title">Why this step?</Copy><Copy>Reviewing a recurring payment helps you choose what to keep. Based on example-subscriptions-v1, not your bank data.</Copy><Button label="Show supporting transactions" secondary onPress={() => go('import')} /></Card>}
+      {explanation && <Card soft><Copy variant="title">Why this step?</Copy><Copy>Reviewing a recurring payment helps you choose what to keep. Based on example-subscriptions-v1, not your bank data.</Copy><Button label="Show supporting transactions" secondary onPress={() => go('evidence')} /></Card>}
       {['Explain my next step', 'Review my spending', 'Check recurring payments', 'What if I choose a smaller step?'].map(q => <Chip key={q} label={q} onPress={() => ask(q)} />)}
       {chat.map((m, i) => <Card key={i}><Copy variant="title">{m.question}</Copy><Copy>{m.answer}</Copy></Card>)}
       <Field label="Ask about this example" value={input} onChangeText={setInput} />
@@ -157,6 +157,13 @@ export default function PilotScreen() {
       </>}
       <Copy muted>{page === 'balance' ? 'This replaces your known balance. The difference is not recorded as spending or income.' : 'Only the choice above determines whether your balance changes.'}</Copy>
       <Button label="Save in preview" onPress={saveMoney} />
+    </Card>}
+    {page === 'evidence' && <Card>
+      <Copy variant="title">Evidence for this recommendation</Copy>
+      <Copy muted>example-subscriptions-v1 · synthetic July–September statement · three payments</Copy>
+      {['2026-07-05', '2026-08-05', '2026-09-05'].map(date => <Row key={date} label={`${date} · Example Streaming`} value="-€12.99" />)}
+      <Copy>These recurring payments suggest a subscription. They do not tell us whether the service is useful to you.</Copy>
+      <Copy variant="small" muted>Viewing this evidence does not import a file or change your balance.</Copy>
     </Card>}
     {page === 'import' && <Card>
       <Copy variant="title">Understand recurring spending</Copy><Copy muted>This example has three EUR transactions across July–September. Importing does not change money, goals or debt.</Copy>
@@ -188,7 +195,7 @@ export default function PilotScreen() {
         if (reminders && (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time) || (frequency === 'Every N days' && !/^[1-9]\d{0,2}$/.test(interval)))) {setError('Enter a valid time and a whole number of days.'); return;}
         setError(''); setReminderSaved(true);
       }} />
-      {error && <Notice>{error}</Notice>}{reminderSaved && <Notice>Preference saved in this preview only. No permission requested or notification scheduled.</Notice>}
+      {Boolean(error) && <Notice>{error}</Notice>}{reminderSaved && <Notice>Preference saved in this preview only. No permission requested or notification scheduled.</Notice>}
     </Card>}
     <Card><Copy variant="small" muted>Preview controls · simulate states</Copy>
       <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: space.sm}}>{(['ready', 'empty', 'offline', 'stale', 'conflict', 'unavailable'] as Scenario[]).map(s => <Chip key={s} label={s} active={scenario === s} onPress={() => setScenario(s)} />)}</View>

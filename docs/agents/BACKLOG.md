@@ -467,6 +467,7 @@
 ### T66 — Synthetic isolated pilot navigation prototype
 - **Model:** Codex; independent review required · **Status:** review · **Depends on:** T65
 - **Scope:** apps/mobile/src/app/, apps/mobile/src/components/, synthetic fixtures, report and status files.
+- **Follow-up 2026-10-29:** three owner-requested browser findings corrected and rerun; report T66 follow-up. Status remains review pending independent/native acceptance.
 - **Owner authorization 2026-10-29:** proceed to T66 on the current T65 foundation; T64/T65 remain review, no independent acceptance implied.
 - **Acceptance:** All pilot routes/states demonstrable without real finances; example isolated; Android/iPhone UX evidence required before integrated acceptance.
 - **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.
