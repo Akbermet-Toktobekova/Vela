@@ -1,0 +1,453 @@
+{
+  "synthetic": true,
+  "currency": "EUR",
+  "amount_unit": "integer cents",
+  "opening_balance": 200000,
+  "months": [
+    {
+      "month": "2026-07",
+      "file": "SYNTHETIC-2026-07-EUR.csv",
+      "row_count": 16,
+      "opening_balance": 200000,
+      "closing_balance": 272702,
+      "external_income": 150000,
+      "refunds": 0,
+      "gross_external_spending": 77298,
+      "net_external_spending": 77298,
+      "own_transfer_net": 0,
+      "rows": [
+        {
+          "date": "2026-07-01",
+          "description": "SYNTHETIC Rent Cedar",
+          "cents": -60000,
+          "kind": "expense",
+          "reference": "SYN-7-001"
+        },
+        {
+          "date": "2026-07-05",
+          "description": "SYNTHETIC Employer salary",
+          "cents": 150000,
+          "kind": "income",
+          "reference": "SYN-7-002"
+        },
+        {
+          "date": "2026-07-06",
+          "description": "SYNTHETIC Stream Cedar subscription",
+          "cents": -999,
+          "kind": "expense",
+          "reference": "SYN-7-003"
+        },
+        {
+          "date": "2026-07-07",
+          "description": "SYNTHETIC Lidl groceries",
+          "cents": -2500,
+          "kind": "expense",
+          "reference": "SYN-7-004"
+        },
+        {
+          "date": "2026-07-08",
+          "description": "SYNTHETIC Cafe Cedar",
+          "cents": -500,
+          "kind": "expense",
+          "reference": "SYN-7-012"
+        },
+        {
+          "date": "2026-07-09",
+          "description": "SYNTHETIC Metro ticket",
+          "cents": -1000,
+          "kind": "expense",
+          "reference": "SYN-7-010"
+        },
+        {
+          "date": "2026-07-11",
+          "description": "SYNTHETIC Cafe Cedar",
+          "cents": -500,
+          "kind": "expense",
+          "reference": "SYN-7-013"
+        },
+        {
+          "date": "2026-07-12",
+          "description": "SYNTHETIC Fit Cedar gym membership",
+          "cents": -2500,
+          "kind": "expense",
+          "reference": "SYN-7-008"
+        },
+        {
+          "date": "2026-07-14",
+          "description": "SYNTHETIC Lidl groceries",
+          "cents": -2500,
+          "kind": "expense",
+          "reference": "SYN-7-005"
+        },
+        {
+          "date": "2026-07-18",
+          "description": "SYNTHETIC Cloud Cedar subscription",
+          "cents": -499,
+          "kind": "expense",
+          "reference": "SYN-7-009"
+        },
+        {
+          "date": "2026-07-21",
+          "description": "SYNTHETIC Lidl groceries",
+          "cents": -2500,
+          "kind": "expense",
+          "reference": "SYN-7-006"
+        },
+        {
+          "date": "2026-07-22",
+          "description": "SYNTHETIC Metro ticket",
+          "cents": -1000,
+          "kind": "expense",
+          "reference": "SYN-7-011"
+        },
+        {
+          "date": "2026-07-23",
+          "description": "SYNTHETIC Own transfer to savings REF-OWN",
+          "cents": -10000,
+          "kind": "own_transfer",
+          "reference": "SYN-7-014"
+        },
+        {
+          "date": "2026-07-24",
+          "description": "SYNTHETIC Own transfer from savings REF-OWN",
+          "cents": 10000,
+          "kind": "own_transfer",
+          "reference": "SYN-7-015"
+        },
+        {
+          "date": "2026-07-28",
+          "description": "SYNTHETIC Lidl groceries",
+          "cents": -2500,
+          "kind": "expense",
+          "reference": "SYN-7-007"
+        },
+        {
+          "date": "2026-07-28",
+          "description": "SYNTHETIC Bank account fee",
+          "cents": -300,
+          "kind": "expense",
+          "reference": "SYN-7-016"
+        }
+      ]
+    },
+    {
+      "month": "2026-08",
+      "file": "SYNTHETIC-2026-08-EUR.csv",
+      "row_count": 20,
+      "opening_balance": 272702,
+      "closing_balance": 338404,
+      "external_income": 150000,
+      "refunds": 2000,
+      "gross_external_spending": 86298,
+      "net_external_spending": 84298,
+      "own_transfer_net": 0,
+      "rows": [
+        {
+          "date": "2026-08-01",
+          "description": "SYNTHETIC Rent Cedar",
+          "cents": -60000,
+          "kind": "expense",
+          "reference": "SYN-8-001"
+        },
+        {
+          "date": "2026-08-05",
+          "description": "SYNTHETIC Employer salary",
+          "cents": 150000,
+          "kind": "income",
+          "reference": "SYN-8-002"
+        },
+        {
+          "date": "2026-08-06",
+          "description": "SYNTHETIC Stream Cedar subscription",
+          "cents": -999,
+          "kind": "expense",
+          "reference": "SYN-8-003"
+        },
+        {
+          "date": "2026-08-07",
+          "description": "SYNTHETIC Lidl groceries",
+          "cents": -3000,
+          "kind": "expense",
+          "reference": "SYN-8-004"
+        },
+        {
+          "date": "2026-08-08",
+          "description": "SYNTHETIC Cafe Cedar",
+          "cents": -500,
+          "kind": "expense",
+          "reference": "SYN-8-012"
+        },
+        {
+          "date": "2026-08-09",
+          "description": "SYNTHETIC Metro ticket",
+          "cents": -1000,
+          "kind": "expense",
+          "reference": "SYN-8-010"
+        },
+        {
+          "date": "2026-08-11",
+          "description": "SYNTHETIC Cafe Cedar",
+          "cents": -500,
+          "kind": "expense",
+          "reference": "SYN-8-013"
+        },
+        {
+          "date": "2026-08-12",
+          "description": "SYNTHETIC Fit Cedar gym membership",
+          "cents": -2500,
+          "kind": "expense",
+          "reference": "SYN-8-008"
+        },
+        {
+          "date": "2026-08-14",
+          "description": "SYNTHETIC Lidl groceries",
+          "cents": -3000,
+          "kind": "expense",
+          "reference": "SYN-8-005"
+        },
+        {
+          "date": "2026-08-14",
+          "description": "SYNTHETIC Cafe Cedar",
+          "cents": -500,
+          "kind": "expense",
+          "reference": "SYN-8-014"
+        },
+        {
+          "date": "2026-08-17",
+          "description": "SYNTHETIC Cafe Cedar",
+          "cents": -500,
+          "kind": "expense",
+          "reference": "SYN-8-015"
+        },
+        {
+          "date": "2026-08-18",
+          "description": "SYNTHETIC Cloud Cedar subscription",
+          "cents": -499,
+          "kind": "expense",
+          "reference": "SYN-8-009"
+        },
+        {
+          "date": "2026-08-18",
+          "description": "SYNTHETIC Shop Nova purchase REF-AUG-01",
+          "cents": -6000,
+          "kind": "expense",
+          "reference": "SYN-8-019"
+        },
+        {
+          "date": "2026-08-21",
+          "description": "SYNTHETIC Lidl groceries",
+          "cents": -3000,
+          "kind": "expense",
+          "reference": "SYN-8-006"
+        },
+        {
+          "date": "2026-08-21",
+          "description": "SYNTHETIC Shop Nova refund REF-AUG-01",
+          "cents": 2000,
+          "kind": "refund",
+          "reference": "SYN-8-020"
+        },
+        {
+          "date": "2026-08-22",
+          "description": "SYNTHETIC Metro ticket",
+          "cents": -1000,
+          "kind": "expense",
+          "reference": "SYN-8-011"
+        },
+        {
+          "date": "2026-08-23",
+          "description": "SYNTHETIC Own transfer to savings REF-OWN",
+          "cents": -10000,
+          "kind": "own_transfer",
+          "reference": "SYN-8-016"
+        },
+        {
+          "date": "2026-08-24",
+          "description": "SYNTHETIC Own transfer from savings REF-OWN",
+          "cents": 10000,
+          "kind": "own_transfer",
+          "reference": "SYN-8-017"
+        },
+        {
+          "date": "2026-08-28",
+          "description": "SYNTHETIC Lidl groceries",
+          "cents": -3000,
+          "kind": "expense",
+          "reference": "SYN-8-007"
+        },
+        {
+          "date": "2026-08-28",
+          "description": "SYNTHETIC Bank account fee",
+          "cents": -300,
+          "kind": "expense",
+          "reference": "SYN-8-018"
+        }
+      ]
+    },
+    {
+      "month": "2026-09",
+      "file": "SYNTHETIC-2026-09-EUR.csv",
+      "row_count": 20,
+      "opening_balance": 338404,
+      "closing_balance": 419806,
+      "external_income": 165000,
+      "refunds": 0,
+      "gross_external_spending": 83598,
+      "net_external_spending": 83598,
+      "own_transfer_net": 0,
+      "rows": [
+        {
+          "date": "2026-09-01",
+          "description": "SYNTHETIC Rent Cedar",
+          "cents": -60000,
+          "kind": "expense",
+          "reference": "SYN-9-001"
+        },
+        {
+          "date": "2026-09-05",
+          "description": "SYNTHETIC Employer salary",
+          "cents": 165000,
+          "kind": "income",
+          "reference": "SYN-9-002"
+        },
+        {
+          "date": "2026-09-06",
+          "description": "SYNTHETIC Stream Cedar subscription",
+          "cents": -1299,
+          "kind": "expense",
+          "reference": "SYN-9-003"
+        },
+        {
+          "date": "2026-09-07",
+          "description": "SYNTHETIC Lidl groceries",
+          "cents": -3500,
+          "kind": "expense",
+          "reference": "SYN-9-004"
+        },
+        {
+          "date": "2026-09-08",
+          "description": "SYNTHETIC Cafe Cedar",
+          "cents": -500,
+          "kind": "expense",
+          "reference": "SYN-9-012"
+        },
+        {
+          "date": "2026-09-09",
+          "description": "SYNTHETIC Metro ticket",
+          "cents": -1000,
+          "kind": "expense",
+          "reference": "SYN-9-010"
+        },
+        {
+          "date": "2026-09-11",
+          "description": "SYNTHETIC Cafe Cedar",
+          "cents": -500,
+          "kind": "expense",
+          "reference": "SYN-9-013"
+        },
+        {
+          "date": "2026-09-12",
+          "description": "SYNTHETIC Fit Cedar gym membership",
+          "cents": -2500,
+          "kind": "expense",
+          "reference": "SYN-9-008"
+        },
+        {
+          "date": "2026-09-14",
+          "description": "SYNTHETIC Lidl groceries",
+          "cents": -3500,
+          "kind": "expense",
+          "reference": "SYN-9-005"
+        },
+        {
+          "date": "2026-09-14",
+          "description": "SYNTHETIC Cafe Cedar",
+          "cents": -500,
+          "kind": "expense",
+          "reference": "SYN-9-014"
+        },
+        {
+          "date": "2026-09-17",
+          "description": "SYNTHETIC Cafe Cedar",
+          "cents": -500,
+          "kind": "expense",
+          "reference": "SYN-9-015"
+        },
+        {
+          "date": "2026-09-18",
+          "description": "SYNTHETIC Cloud Cedar subscription",
+          "cents": -499,
+          "kind": "expense",
+          "reference": "SYN-9-009"
+        },
+        {
+          "date": "2026-09-20",
+          "description": "SYNTHETIC Cafe Cedar",
+          "cents": -500,
+          "kind": "expense",
+          "reference": "SYN-9-016"
+        },
+        {
+          "date": "2026-09-21",
+          "description": "SYNTHETIC Lidl groceries",
+          "cents": -3500,
+          "kind": "expense",
+          "reference": "SYN-9-006"
+        },
+        {
+          "date": "2026-09-22",
+          "description": "SYNTHETIC Metro ticket",
+          "cents": -1000,
+          "kind": "expense",
+          "reference": "SYN-9-011"
+        },
+        {
+          "date": "2026-09-23",
+          "description": "SYNTHETIC Cafe Cedar",
+          "cents": -500,
+          "kind": "expense",
+          "reference": "SYN-9-017"
+        },
+        {
+          "date": "2026-09-23",
+          "description": "SYNTHETIC Own transfer to savings REF-OWN",
+          "cents": -10000,
+          "kind": "own_transfer",
+          "reference": "SYN-9-018"
+        },
+        {
+          "date": "2026-09-24",
+          "description": "SYNTHETIC Own transfer from savings REF-OWN",
+          "cents": 10000,
+          "kind": "own_transfer",
+          "reference": "SYN-9-019"
+        },
+        {
+          "date": "2026-09-28",
+          "description": "SYNTHETIC Lidl groceries",
+          "cents": -3500,
+          "kind": "expense",
+          "reference": "SYN-9-007"
+        },
+        {
+          "date": "2026-09-28",
+          "description": "SYNTHETIC Bank account fee",
+          "cents": -300,
+          "kind": "expense",
+          "reference": "SYN-9-020"
+        }
+      ]
+    }
+  ],
+  "patterns": [
+    "Employer salary on day 5: EUR1500 in July/August, EUR1650 in September; observed increase, no forecast guarantee.",
+    "Rent EUR600 on day 1 each month.",
+    "Stream Cedar EUR9.99 on day 6 in July/August; EUR12.99 in September: increase EUR3.",
+    "Fit Cedar gym EUR25 on day 12 and Cloud Cedar EUR4.99 on day 18, each month.",
+    "Bank account fee EUR3 on day 28 each month.",
+    "Groceries four equal purchases per month: EUR100 / EUR120 / EUR140.",
+    "Cafe Cedar EUR5 purchases: 2 / 4 / 6 per month, totals EUR10 / EUR20 / EUR30; no motive inferred.",
+    "Own savings transfer out EUR100 on day 23 and back EUR100 on day 24 each month. Not external income/spending; net0.",
+    "August Shop Nova purchase EUR60 REF-AUG-01 and partial refund EUR20 with same reference. Refund is not salary; net purchase EUR40."
+  ]
+}

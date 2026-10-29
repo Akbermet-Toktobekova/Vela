@@ -514,3 +514,9 @@
 - **Scope:** mobile src/app/_layout.tsx, connect.tsx, personal.tsx, settings.tsx, (tabs)/index.tsx; src/lib/navigation.ts; scripts/check-navigation.cjs; docs/product/LOCAL_V2.md, BACKLOG/HANDOFF and reports/UI-02.md.
 - **Acceptance:** saved accounts expose planning/data/learning; planning has return to accounts; protected direct routes reconnect to intended allowed local route; malicious/external return destinations rejected. Clearly distinguish legacy EUR planning inputs from v2 accounts; no automatic financial copying/summing/mutation. Existing planning workflow becomes testable by normal UI. No claim of completed shared financial-model integration.
 - **Verify:** focused navigation regression, current UI regressions, backend suite, mobile typecheck, contract check, full web export; real Chrome entry-to-plan manual P0 and reachable downstream branches, with remaining failures documented.
+
+### PATTERN-01 — Three synthetic statements with predeclared ground truth
+- **Model:** Codex · **Status:** review · **Depends on:** owner request to create2-3 statements, determine expected patterns first, then use them in UI tests.
+- **Scope:** docs/testing/pattern-statements/, docs/agents/reports/PATTERN-01.md, BACKLOG/HANDOFF. No product code or financial policy changes.
+- **Acceptance:** exactly three clearly synthetic EUR statement CSVs, reconciled running balances and integer-minor-unit oracle; predefined recurring/income/price/refund/own-transfer patterns; real UI upload/apply/reimport comparison, known limitations stated. Never mark parser output as the oracle.
+- **Verify:** independent Decimal/csv reconciliation; actual Chrome on isolated test DB; compare row counts and money effects, document semantic/pattern gaps. No live AI or paid calls.
