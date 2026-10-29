@@ -300,6 +300,14 @@ export type DecisionEvaluationSnapshot = {
   "ranked_candidates": (ScoredCandidate)[];
 };
 
+export type EnqueueImport = {
+  "filename": string;
+  "content_type"?: string | null;
+  "content_base64": string;
+  "retention_consent": true;
+  "processing": ProcessingConsent;
+};
+
 export type FactFreshness = {
   "source": "unknown" | "legacy" | "manual";
   "source_date": string | null;
@@ -383,6 +391,24 @@ export type IncomeEstimate = {
   "currency"?: "EUR" | "HUF" | null;
   "frequency"?: string | null;
   "next_expected_on"?: string | null;
+};
+
+export type JobCommand = {
+  "version": number;
+};
+
+export type JobView = {
+  "job_id": string;
+  "version": number;
+  "status": "uploading" | "queued" | "running" | "retry_wait" | "succeeded" | "failed" | "dead_letter" | "cancelled";
+  "stage": string;
+  "attempts": number;
+  "next_attempt_at": number | null;
+  "result_preview_id": string | null;
+  "error": string | null;
+  "can_retry": boolean;
+  "can_cancel": boolean;
+  "status_url": string;
 };
 
 export type LegacyFacts = {
@@ -615,6 +641,11 @@ export type PreviewView = {
   "eligible": boolean;
   "remaining": number;
   "goal_after": number;
+};
+
+export type ProcessingConsent = {
+  "external_ai": boolean;
+  "notice_version": "import-processing-v1";
 };
 
 export type ProfileCommand = {

@@ -5,7 +5,7 @@ from pathlib import Path
 from threading import RLock
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import Column, Integer, MetaData, String, Table, Text, create_engine, select, update, delete
+from sqlalchemy import Column, Integer, MetaData, String, Table, Text, UniqueConstraint, create_engine, select, update, delete
 from .domain import State
 
 
@@ -41,6 +41,17 @@ private_originals = Table('private_original', metadata,
     Column('sha256', String, nullable=False), Column('size', Integer, nullable=False),
     Column('created_at', Integer, nullable=False), Column('expires_at', Integer, nullable=False),
     Column('status', String, nullable=False))
+
+import_generations = Table('import_generation', metadata, Column('owner', String, primary_key=True), Column('generation', String, nullable=False))
+import_jobs = Table('import_job', metadata,
+    Column('owner', String, primary_key=True), Column('job_id', String, primary_key=True),
+    Column('key', String, nullable=False), Column('fingerprint', String, nullable=False),
+    Column('generation', String, nullable=False), Column('file_id', String, nullable=False),
+    Column('version', Integer, nullable=False), Column('status', String, nullable=False),
+    Column('attempts', Integer, nullable=False), Column('next_attempt_at', Integer, nullable=False),
+    Column('lease_until', Integer, nullable=False), Column('lease_token', String, nullable=False),
+    Column('created_at', Integer, nullable=False), Column('updated_at', Integer, nullable=False),
+    Column('payload', Text, nullable=False), UniqueConstraint('owner', 'key', name='uq_import_job_owner_key'))
 
 
 class Store:
@@ -91,6 +102,8 @@ class Store:
 
     def erase(self, owner: str):
         with self.lock, self.engine.begin() as conn:
+            conn.execute(delete(import_jobs).where(import_jobs.c.owner == owner))
+            conn.execute(delete(import_generations).where(import_generations.c.owner == owner))
             conn.execute(delete(receipts).where(receipts.c.owner == owner))
             conn.execute(delete(states).where(states.c.owner == owner))
             conn.execute(delete(previews).where(previews.c.owner == owner))

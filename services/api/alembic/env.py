@@ -18,7 +18,9 @@ def migrate(connection):
     from sqlalchemy import inspect, text
     names = set(inspect(connection).get_table_names())
     versions = connection.execute(text('SELECT version_num FROM alembic_version')).scalars().all() if 'alembic_version' in names else []
-    if 'private_original' in names or versions == ['0002_private_originals']:
+    if names & {'import_job', 'import_generation'} or versions == ['0003_import_jobs']:
+        scripts.get_revision('0003_import_jobs').module.validate_schema(connection, baseline, scripts.get_revision('0002_private_originals').module)
+    elif 'private_original' in names or versions == ['0002_private_originals']:
         scripts.get_revision('0002_private_originals').module.validate_schema(connection, baseline)
     else:
         baseline.validate_schema(connection)

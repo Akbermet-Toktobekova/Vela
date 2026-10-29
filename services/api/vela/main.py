@@ -26,6 +26,7 @@ from .observations import ObservationsView, analyse
 from .planning import install_planning
 from .auth import SupabaseJWTConfig, SupabaseJWTVerifier, local_owner
 from .storage import PrivateStorage, configured_objects, install_storage
+from .jobs import JobRepository, install_jobs
 from .frontend import install_frontend
 from .fx_routes import install_fx
 from .logging_setup import install_request_logging
@@ -144,11 +145,13 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
     clock = today or date.today
     store = Store(selected_database or f"sqlite:///{local / 'demo.db'}")
     storage = PrivateStorage(store, objects, clock=storage_clock)
+    jobs = JobRepository(store, storage)
     quotas = Quotas(local / "quota.db")
     app = FastAPI(title="Vela local API", version="0.2.0")
     app.state.store = store
     app.state.quotas = quotas
     app.state.storage = storage
+    app.state.jobs = jobs
     app.add_middleware(CORSMiddleware, allow_origins=origins,
                        allow_methods=["GET", "POST", "PUT", "DELETE"],
                        allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "X-Correlation-ID"],
@@ -471,7 +474,8 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         data = await file.read(MAX_BYTES + 1)
         preview_id = f"imp-{int(time.time()*1000):014d}-{uuid4().hex[:6]}"
         try:
-            result = await build_preview(data, file.filename or "statement", file.content_type, quotas, clock(), preview_id)
+            result = await build_preview(data, file.filename or "statement", file.content_type, quotas, clock(), preview_id,
+                                         external_ai_allowed=False if mode=='cloud' else None)
         except ImportError_ as exc:
             raise HTTPException(422, str(exc)) from exc
         store.save_preview(who, preview_id, result.model_dump_json())
@@ -487,7 +491,8 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
             raise HTTPException(422, "Could not decode uploaded file.") from exc
         preview_id = f"imp-{int(time.time()*1000):014d}-{uuid4().hex[:6]}"
         try:
-            result = await build_preview(data, body.filename, body.content_type, quotas, clock(), preview_id)
+            result = await build_preview(data, body.filename, body.content_type, quotas, clock(), preview_id,
+                                         external_ai_allowed=False if mode=='cloud' else None)
         except ImportError_ as exc:
             raise HTTPException(422, str(exc)) from exc
         store.save_preview(who, preview_id, result.model_dump_json())
@@ -581,8 +586,10 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
 
     @app.delete("/v1/data", responses={202: {'description': 'Financial data erased; private originals inaccessible with physical deletion pending.'}})
     def erase(who=Depends(owner)):
-        pending = storage.erase_user_files(who)
+        # Remove jobs/generation before external cleanup so no running parser can
+        # publish into the deleted owner while provider deletion is in flight.
         store.erase(who)
+        pending = storage.erase_user_files(who)
         if pending:
             return JSONResponse({'status': 'deletion_pending', 'originals_pending': pending,
                 'scope': 'Financial data erased; originals are inaccessible and physical cleanup must be retried.'}, status_code=202)
@@ -594,4 +601,5 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
     install_frontend(app, store, owner, clock)
     install_fx(app, store, owner, clock, rates=fx_rates)
     install_storage(app, storage, owner)
+    install_jobs(app, jobs, owner, idempotency)
     return app

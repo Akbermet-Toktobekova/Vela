@@ -545,7 +545,8 @@ def file_type(filename: str, content_type: str | None, data: bytes = b"") -> str
     raise ImportError_("Upload a CSV, Excel (.xlsx), PDF or image of a statement.")
 
 
-async def build_preview(data: bytes, filename: str, content_type: str | None, quotas: Quotas, today: date, preview_id: str) -> ImportPreview:
+async def build_preview(data: bytes, filename: str, content_type: str | None, quotas: Quotas, today: date, preview_id: str,
+                        *, external_ai_allowed: bool | None = None) -> ImportPreview:
     if not data:
         raise ImportError_("This file is empty.")
     if len(data) > MAX_BYTES:
@@ -554,6 +555,7 @@ async def build_preview(data: bytes, filename: str, content_type: str | None, qu
     warnings: list[str] = []
     parser, model, meta = "local", None, {"currency": "EUR", "opening": None, "closing": None}
     rows: list[dict] = []
+    can_ai = enabled() and external_ai_allowed is not False
     try:
         if kind in ("csv", "xlsx"):
             try:
@@ -570,7 +572,7 @@ async def build_preview(data: bytes, filename: str, content_type: str | None, qu
                         if currencies:
                             meta['currency'] = next(iter(currencies))
             except Exception as local_error:
-                if not enabled():
+                if not can_ai:
                     raise ImportError_(str(local_error)) from local_error
                 warnings.append("Unusual table layout — read with Gemini AI.")
                 text = decode(data) if kind == "csv" else "\n".join(";".join(r) for r in xlsx_rows(data))
@@ -579,16 +581,23 @@ async def build_preview(data: bytes, filename: str, content_type: str | None, qu
             if parser == "local":
                 for r in rows:
                     r["category"] = keyword_category(r["description"], r["amount"])
-                ok, model = await ai_categorize(rows, quotas) if enabled() else (False, None)
+                ok, model = await ai_categorize(rows, quotas) if can_ai else (False, None)
                 if not ok:
                     warnings.append("Categories were guessed from keywords.")
         elif kind == "pdf":
             extracted = pdf_text(data)
-            allow_raw = raw_document_ai_allowed()
-            if enabled() and not allow_raw:
+            allow_raw = raw_document_ai_allowed() and external_ai_allowed is not False
+            if external_ai_allowed is False:
+                rows = parse_pdf_lines(extracted)
+                for r in rows:
+                    r['category'] = keyword_category(r['description'], r['amount'])
+            elif enabled() and not allow_raw:
                 warnings.append("Raw PDF was not sent to Gemini; locally extracted text was masked before AI processing.")
             try:
-                if len(extracted) >= 80:
+                if external_ai_allowed is False:
+                    if not rows:
+                        raise ImportError_('This PDF needs external processing permission or a supported text layout.')
+                elif len(extracted) >= 80:
                     rows, meta, model = await ai_read(b"", "text/plain", quotas, text=extracted[:250_000])
                 elif allow_raw or not enabled():
                     rows, meta, model = await ai_read(data, "application/pdf", quotas)
@@ -598,7 +607,7 @@ async def build_preview(data: bytes, filename: str, content_type: str | None, qu
                         r["category"] = keyword_category(r["description"], r["amount"])
                 parser = "gemini" if model is not None else "local"
             except Exception as pdf_error:
-                if len(extracted) >= 80 and allow_raw:
+                if len(extracted) >= 80 and allow_raw and external_ai_allowed is not False:
                     try:
                         rows, meta, model = await ai_read(data, "application/pdf", quotas)
                         parser = "gemini"
@@ -615,6 +624,8 @@ async def build_preview(data: bytes, filename: str, content_type: str | None, qu
                         raise
                     raise ImportError_("No transactions found in this PDF.") from pdf_error
         else:
+            if external_ai_allowed is False:
+                raise ImportError_('Image processing requires explicit external-AI permission.')
             if enabled() and not raw_document_ai_allowed():
                 raise ImportError_("Image import requires ALLOW_RAW_DOCUMENT_AI=true while PII masking is enabled.")
             mime = content_type if (content_type or "").startswith("image/") else "image/jpeg"

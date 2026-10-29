@@ -130,7 +130,7 @@ class PrivateStorage:
         self.store, self.objects = store, objects
         self.clock = clock or time.time
 
-    def save_file(self, user_id, filename, data, *, retention_consent=False):
+    def save_file(self, user_id, filename, data, *, retention_consent=False, _file_id=None):
         if retention_consent is not True:
             raise ValueError('Explicit consent to retain this original for 30 days is required.')
         if (not isinstance(filename, str) or not filename or len(filename) > 180
@@ -138,13 +138,15 @@ class PrivateStorage:
             raise ValueError('Invalid original filename.')
         if not isinstance(data, bytes) or not data or len(data) > MAX_BYTES:
             raise ValueError('Original must contain at most16MiB of bytes.')
-        file_id, now = uuid4().hex, int(self.clock())
+        file_id, now = _file_id or uuid4().hex, int(self.clock())
         key = file_identity(user_id, file_id)
         digest = hashlib.sha256(data).hexdigest()
         values = dict(backend=self.objects.identity, object_key=key, sha256=digest,
                       size=len(data), created_at=now, expires_at=now+RETENTION_SECONDS)
         # Before external I/O, persist cleanup intent even if upload response is lost.
         with self.store.lock:
+            if self.store.get_original(user_id, file_id) is not None:
+                raise ValueError('An original identity cannot be reused.')
             self.store.add_original(user_id, file_id, **values, status='pending')
             cleanup_confirmed = False
             try:
