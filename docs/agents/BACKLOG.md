@@ -502,3 +502,9 @@
 - **Scope:** personal.py models/routes, State personal field and legacy-view exclusion, main router registration, personal screen/connect/layout/preview entry, personal tests, generated contracts, docs/task reports.
 - **Acceptance:** authenticated local /v2 persistence; optional unknown balance, profile, EUR/HUF accounts, replacement balance and three income modes; retry identity/revision conflict; legacy finances unchanged; export/delete include data. No cloud/auth/FX/recommendation acceptance.
 - **Verify:** backend check, targeted personal tests, mobile typecheck, generate-contracts and --check, full web export. Native/UI persistence proof separate.
+
+### UI-TEST-05 — Full workflow verification
+- **Model:** GPT-6.1 Sol · **Status:** review · **Depends on:** owner request to exercise the complete user workflow.
+- **Scope:** reports/UI-TEST-05.md, HANDOFF/BACKLOG, generated offline eval report. Verification only.
+- **Result:** integrated path blocked at personal-to-plan/assistant/import/settings navigation; complete U01-U22/J01-J12 dispositions and prototype-vs-persisted evidence in report. No code acceptance implied.
+- **Verify:** actual Chrome persistent/prototype paths, backend217, journeys31, offline60, UI regression6, TS/contracts exit0. Native checks unrun.
