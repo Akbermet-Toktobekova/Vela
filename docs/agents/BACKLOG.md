@@ -263,7 +263,7 @@
 - **PLAN-01 clarification:** T50 определяет совместимость существующей базы. Цикл downgrade base допустим только на одноразовой тестовой БД; отдельно проверить перенос заполненной demo-базы без потери сумм, операций и истории. Удаление существующей рабочей базы не является шагом миграции. Последующие схемы T51/T53/T55/T59 идут собственными миграциями.
 
 ### T32 — Многопользовательская авторизация JWT + изоляция по `user_id`
-- **Model:** Astra GPT 6 (или Argon) · **Status:** todo · **Depends on:** T31 · `[OPUS-REVIEW]`
+- **Model:** Astra GPT 6 (delegated heavy executor) · **Status:** in_progress · **Depends on:** T31 · `[OPUS-REVIEW]`
 - **Scope:** `services/api/vela/auth.py` (новый), `services/api/vela/main.py`, `services/api/vela/store.py`, `services/api/alembic/`, `services/api/tests/test_isolation.py` (новый), `apps/mobile/src/lib/api.ts`
 - **Orchestrator scope clarification 2026-10-29:** implement accepted Supabase email OTP/session adapter and trusted asymmetric JWT verification as specified in reports/T32-preflight.md, using APP_MODE only. Scope additionally includes services/api/requirements.txt (explicit PyJWT[crypto] declaration, project-local environment only), a small mobile auth adapter and deterministic session-adapter tests, docs/product/authentication.md and reports/T32.md. Reuse existing httpx/fetch/SecureStore; no Supabase SDK, password system, live provider calls, new product tables or automatic local-data transfer. T52 owns screens/account-cache flows; T70 owns actual provider/SMTP configuration and activation. Begin only after T31 independent acceptance.
 - **Acceptance:** изоляция состояния по `user_id` (из проверенного JWT-токена или `DEMO_API_TOKEN` при `APP_ENV=local`); тесты в `test_isolation.py`: пользователь A не читает и не меняет данные пользователя B, подмена `user_id` в теле запроса игнорируется, истёкший/невалидный токен → `401`; `DEMO_API_TOKEN` работает только при `APP_ENV=local`.
@@ -291,7 +291,7 @@
 - **Verify:** `python -m unittest services/api/tests/test_storage.py -v`, `python scripts/check.py`.
 
 ### T35 — Структурные логи + X-Correlation-ID
-- **Model:** Codex delegated executor · **Status:** in_progress · **Depends on:** CHECKPOINT-2 · `[PARALLEL-OK]`
+- **Model:** Codex delegated executor · **Status:** done · **Depends on:** CHECKPOINT-2 · `[PARALLEL-OK]`
 - **Scope:** `services/api/vela/logging_setup.py` (новый), `services/api/vela/main.py` (только подключение middleware), `services/api/tests/test_correlation.py` (новый)
 - **Acceptance:** JSON-форматтер логов; middleware принимает заголовок `X-Correlation-ID` (или генерирует UUID4, если не передан) и возвращает его в заголовке ответа `X-Correlation-ID`; фильтр логов гарантирует отсутствие сырых сумм, описаний транзакций и PII в логах.
 - **Verify:** `python -m unittest services/api/tests/test_correlation.py -v`, `python scripts/check.py`.

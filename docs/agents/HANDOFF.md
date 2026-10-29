@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 T35 independently ACCEPTED:** T35-independent.md final re-review;500 CORS exact allowlist fixed,5 focused PASS, root combined259backend43.134s/contracts PASS. T31 accepted d374a2c. T32 delegated to t32_auth_executor (Astra heavy) with precise preflight, local mocked JWT/OTP/isolation proof only; no cloud activation. Root owns statuses/commits and shared final integration gate.
+
 - **2026-10-29 T31 independently ACCEPTED:** reports/T31-independent.md;10 focused tests, root259 backend43.134s and generated contracts/drift PASS. Frozen five-table SQLite baseline/adoption preserves full rows; populated downgrade guarded. Use project .venv/Scripts/python.exe (Alembic local dependency). T35 CORS500 correction frozen under re-review. T32 precise preflight/scope recorded; next implementation after this acceptance. No cloud activation/demo.db/API8000–8003.
 
 - **2026-10-29 next bounded queue:** T30 accepted1d1b5cd; T50 independently accepted6b25f31 (ADR0007/product-data-v1), T31 migration in_progress delegated to t72_executor, T35 logging in_progress delegated to t75_executor (root requested correlation header also on unexpected500). Root owns shared statuses/commits; final backend once after code stabilizes. T73 remains browser-blocked. Current checks/infrastructure gates documented CHECKPOINT-2; no demo.db/API8000–8003/cloud activation. User explicitly requested minimal-credit precise assignments: narrow file ownership, targeted executor tests, centralized integration suite; reuse existing agents.
@@ -69,7 +71,7 @@
 
 - **Orchestrator:** Codex (GPT-6), owner-authorized parallel queue 2026-10-29
 - **Current phase:** 3 — migrations, verified ownership and durable infrastructure; Phase2 engineering checkpoint passed417f256.
-- **Current task:** Parallel T31 migration + T35 request logging; T50 contract accepted. Root coordinates integration and independent acceptance.
+- **Current task:** T32 verified identity/isolation implementation after accepted T31/T35; root coordinates independent acceptance.
 - **Last reviewed:** 2026-10-29, T72 REWORK R1; backend231/targeted6/contracts drift0/TS/UI/navigation/web PASS. T74 accepted at f436831; T24b remains independently pending.
 - **Next action:** Independently review T31/T35, then T32 authenticated owner/session isolation; later T51/T34 can run on disjoint scopes. T73 actual browser save remains tooling-blocked. Cloud activation still requires estimate/owner decision.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)

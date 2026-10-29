@@ -24,6 +24,7 @@ from .personal import install_personal
 from .observations import ObservationsView, analyse
 from .planning import install_planning
 from .frontend import install_frontend
+from .logging_setup import install_request_logging
 
 
 class Command(Record):
@@ -135,7 +136,9 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
     app.state.quotas = quotas
     app.add_middleware(CORSMiddleware, allow_origins=origins,
                        allow_methods=["GET", "POST", "PUT", "DELETE"],
-                       allow_headers=["Authorization", "Content-Type", "Idempotency-Key"])
+                       allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "X-Correlation-ID"],
+                       expose_headers=["X-Correlation-ID"])
+    install_request_logging(app, origins)
 
     def owner(authorization: Annotated[str | None, Header()] = None) -> str:
         if not authorization or not secrets.compare_digest(authorization, f"Bearer {token}"):
