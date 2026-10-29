@@ -387,17 +387,30 @@
 
 ### T53 — Сверка импорта, происхождение строк и исправления
 - **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T51, T33, T34
+- **Owner-requested backend split:** T53a/T53b deliver the backend; this parent retains mobile/job UI and actual journey acceptance. Backend-only downstream calculations depend on accepted children, not an unimplemented UI claim.
 - **Scope:** services/api/vela/{imports.py,domain.py,store.py,main.py}, services/api/alembic/, services/api/tests/test_import_reconciliation.py (новый), apps/mobile/src/app/import.tsx, apps/mobile/src/lib/api.ts
 - **Steps:** Подключить UI к заданиям, показать статус/повтор/превью, строки с источником и исправлением категории/суммы/даты до применения. Реализовать контракт счетов/остатков/собственных переводов T50, связь manual income с импортом; неоднозначность дубля требует решения. Применение отдельной идемпотентной командой.
 - **Acceptance:** J03/J04 и связь выполнения из J08: повтор/перекрытие не удваивает операции или доход; closing balance не складывается с историческими строками; перевод между своими счетами не доход; ошибка/удаление/повтор задания не создают лишних записей. Неподдержанная валюта обозначена без выдуманного FX.
 - **Verify:** python -m unittest discover -s services/api/tests -p test_import_reconciliation.py -v; backend, contracts, mobile typecheck; независимые числовые фикстуры.
 
 ### T54 — Неопределённый доход и многопериодные сценарии
-- **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T51, T53
+- **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T51, T53a, T53b (backend dependency split; T53 parent UI acceptance remains separate)
 - **Scope:** services/api/vela/{domain.py,debt.py,tools.py,catalogue.py,main.py}, services/api/tests/test_income_scenarios.py (новый), policies/ (только согласованные параметры)
 - **Steps:** Разделить received/expected/confirmed future и допущения. Считать задержку дохода/изменение расходов, обязательства по датам, разовый и регулярный расход на раскрытом горизонте. Не устанавливать вероятности, буферы и пороги по догадке; при нехватке данных — уточнение.
 - **Acceptance:** J05/J07: положительный итог месяца не скрывает промежуточный shortfall; регулярный платёж нельзя обосновать только текущим cash; долг с неизвестными существенными условиями не получает точного обещания; сравнение использует совместимые горизонты и явные допущения.
 - **Verify:** python -m unittest discover -s services/api/tests -p test_income_scenarios.py -v; backend/contracts; независимые фиксированные эталоны и сохранение T10–T12.
+
+### T53a — Backend source review, corrections and analytical reconciliation
+- **Model:** Codex delegated executor; independent review required · **Status:** todo · **Depends on:** T51, T33, T34
+- **Scope:** reconciliation.py (new), additive domain.py aggregate, imports.py immutable parsed-source capture, main.py installer, test_import_reconciliation.py, generated contracts, docs/product/reconciliation.md, report. Reuse Store.mutate; store.py only if common-transaction source guards require it.
+- **Acceptance:** implement reports/T53-backend-preflight.md source/review/correction/apply portion. Preserve source ordinal and identical-purchase multiplicity; exact source retries link once; ambiguous overlap requires explicit resolution; immutable correction history. One canonical analytical ledger, compatible EUR projection, HUF stays separate. Closing balances are historical anchors, never money writes. Owner/revision/command-key checks; numerical fixture and restart/rollback proofs. Original expiry never erases parsed provenance. T53 parent UI/J03/J04 remains open.
+- **Verify:** focused test_import_reconciliation.py, backend/contracts, independent fixed integer oracle; no live data or provider.
+
+### T53b — Backend manual-event and own-transfer evidence links
+- **Model:** Codex delegated executor; independent review required · **Status:** todo · **Depends on:** T53a
+- **Scope:** reconciliation.py, tests/test_evidence_links.py (new), contracts, reconciliation docs/report; personal/planning lookup helpers only if needed.
+- **Acceptance:** explicit same-owner/account/currency/amount linkage to existing received income, balance anchor or supported completed planning step; no second financial event. Own-transfer paired evidence excludes analytical income/spending without moving balances. Reject ambiguous/foreign/unsupported links, retries once, original facts/history retained. Unsupported future action types remain unavailable until T58 backend.
+- **Verify:** independent included-income5000, paired-transfer3000 and foreign-reference fixtures; focused tests plus backend/contracts.
 
 ### T55 — Несколько целей и калькулятор вкладов
 - **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T51, T54
