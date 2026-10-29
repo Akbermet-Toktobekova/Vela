@@ -986,3 +986,56 @@ class TestT24bIntegration(unittest.IsolatedAsyncioTestCase):
                 result = await chat(self.request, self.state, self.today, self.quotas)
                 self.assertEqual(result['source'], 'gemini')
                 self.assertEqual(gen.await_count, 1)
+
+
+    async def test_review4_settlement_and_gilt_violations_rejected(self):
+        claims = (
+            'I have just settled your rent.',
+            'Your rent has been settled.',
+            'I settled your bill.',
+            'Use your savings to buy a gilt.',
+            'Consider purchasing gilts.',
+            'I cannot settle your rent, but I have just settled your rent.',
+            'I cannot recommend buying gilts, but use your savings to buy a gilt.',
+        )
+        before = self.state.model_dump_json()
+        for claim in claims:
+            for responses in ((claim, claim), ('€999.00', claim)):
+                with self.subTest(responses=responses), patch('vela.chat.generate', new=AsyncMock(
+                    side_effect=[self.response(text) for text in responses]
+                )) as gen:
+                    result = await chat(self.request, self.state, self.today, self.quotas)
+                    self.assertEqual(result['source'], 'local')
+                    self.assertNotIn(claim, result['reply'])
+                    self.assertEqual(gen.await_count, 2)
+                    self.assertEqual(self.state.model_dump_json(), before)
+
+    async def test_review4_settlement_and_gilt_safe_controls(self):
+        controls = (
+            'I have not settled your rent.',
+            'I have not just settled your rent.',
+            'Your rent has not been settled.',
+            'No payment has been settled.',
+            'A gilt is a UK government bond.',
+            'Gilts are UK government debt instruments.',
+            'I cannot recommend buying a gilt.',
+            'Do not buy gilts without qualified guidance.',
+        )
+        for text in controls:
+            with self.subTest(text=text), patch('vela.chat.generate', new=AsyncMock(
+                return_value=self.response(text)
+            )) as gen:
+                result = await chat(self.request, self.state, self.today, self.quotas)
+                self.assertEqual(result['source'], 'gemini')
+                self.assertEqual(gen.await_count, 1)
+
+    async def test_review4_violations_can_be_corrected_without_leaking_rejected_reply(self):
+        for claim in ('I have just settled your rent.', 'Use your savings to buy a gilt.'):
+            with self.subTest(claim=claim), patch('vela.chat.generate', new=AsyncMock(side_effect=[
+                self.response(claim), self.response('Cash: €1,000.00')
+            ])) as gen:
+                result = await chat(self.request, self.state, self.today, self.quotas)
+                self.assertEqual(result['source'], 'gemini')
+                self.assertEqual(result['reply'], 'Cash: €1,000.00')
+                self.assertEqual(gen.await_count, 2)
+                self.assertNotIn(claim, json.dumps(gen.await_args_list[1].args[2:4]))
