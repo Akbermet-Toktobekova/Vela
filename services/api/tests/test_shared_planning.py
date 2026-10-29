@@ -212,3 +212,60 @@ class SharedPlanningTests(unittest.TestCase):
         self.assertEqual(after['personal'], before['personal'])
         self.assertEqual(after['snapshot'], before['snapshot'])
         self.assertEqual(after['actions'], before['actions'])
+
+    def test_pre_adoption_receipts_cannot_expose_legacy_advice_after_activation(self):
+        receipts = []
+
+        def capture(route, fields=None, method='POST', allowed=False):
+            body = {'revision': self.get()['revision'], **(fields or {})}
+            key = f'old-receipt-{len(receipts):03}'
+            response = self.command(route, body, method, key)
+            self.assertEqual(response.status_code, 200, response.text)
+            # Inactive legacy retries retain their original semantics.
+            self.assertEqual(self.command(route, body, method, key).json(), response.json())
+            receipts.append((route, body, method, key, allowed))
+            return response.json()
+
+        capture('/v1/demo')
+        capture('/v1/snapshot', {'snapshot': self.get('/v1/export')['snapshot']}, 'PUT')
+        capture('/v1/confirm', {'field': 'debt_known'})
+        capture('/v1/income', {'amount': 100, 'event_id': 'old-income-event',
+                             'received_on': str(self.day), 'already_in_balance': True})
+        capture('/v1/obligations', {'obligation': {'id': 'extra', 'label': 'Extra', 'amount': 100, 'due': str(self.day)}})
+        capture('/v1/obligations/extra/done', {'paid': True})
+        action = capture('/v1/actions', {'amount': 100})['actions'][-1]['id']
+        capture(f'/v1/actions/{action}/cancel')
+        action = capture('/v1/actions', {'amount': 100})['actions'][-1]['id']
+        capture(f'/v1/actions/{action}/complete')
+        capture('/v1/defer')
+        capture('/v1/decision/evaluate')
+        capture('/v1/debts', {'debt': {'id': 'old-debt', 'balance_cents': 10000, 'apr_bps': 1000}}, allowed=True)
+        capture('/v1/debts/old-debt', method='DELETE', allowed=True)
+        lesson_id = self.get('/v1/lessons')['lessons'][0]['id']
+        capture(f'/v1/lessons/{lesson_id}/progress', {'selected_index': 0, 'completed': True}, allowed=True)
+        fixture = Path(__file__).resolve().parents[3]/'docs/testing/pattern-statements/SYNTHETIC-2026-09-EUR.csv'
+        upload = self.client.post('/v1/imports', headers=self.headers,
+                                 files={'file': (fixture.name, fixture.read_bytes(), 'text/csv')})
+        self.assertEqual(upload.status_code, 200, upload.text)
+        preview_id = upload.json()['id']
+        capture(f'/v1/imports/{preview_id}/apply')
+        capture(f'/v2/imports/{preview_id}/apply', allowed=True)
+        account = self.account(balance=self.get('/v1/export')['snapshot']['cash'])
+        self.write('/v2/planning/adopt-legacy', {'account_id': account, 'confirm_finances': True})
+        self.write(f'/v2/accounts/{account}/balance', {'balance': 1000, 'confirmed_on': str(self.day)}, 'PUT')
+        before = self.get('/v1/export')
+        self.assertEqual(self.get()['recommendation_kind'], 'shortfall')
+        for route, body, method, key, allowed in receipts:
+            with self.subTest(route=route):
+                response = self.command(route, body, method, key)
+                if not allowed:
+                    self.assertIn(response.status_code, (409, 422), response.text)
+                else:
+                    self.assertEqual(response.status_code, 200, response.text)
+                    if '/lessons/' in route:
+                        self.assertEqual(response.json(), self.get(f'/v1/lessons/{lesson_id}'))
+                    else:
+                        self.assertEqual(response.json(), self.get('/v1/state'))
+                        self.assertIsNone(response.json()['snapshot'])
+                        self.assertEqual(response.json()['actions'], [])
+                self.assertEqual(self.get('/v1/export'), before)

@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 T74 receipt rework REVIEW (GPT-6.1 Sol):** guard runs before cached legacy receipts under store lock; allowed debt/import/lesson retries return current context without duplicate effects. Regression red16 failures -> green8tests; backend231 OK; contracts drift0/TS/UI6/navigation/full web export PASS. Real HTTP/free64584/new DB: old evaluation replay409, snapshot/actions preserved. See reports/T74.md Receipt rework. API8000–8003/demo.db untouched. Next: independent new-chat `Проверь T74`. T72/T73 and release gates unchanged.
+
 - **2026-10-29 independent T74 review of5db44fc: REWORK.** Pre-adoption idempotent /v1/decision/evaluate replay bypasses activation guard and returns obsolete cash/advice after account falls to shortfall. Real HTTP/free62389/new isolated DB reproduced200 with legacy cash100000 vs current1000. See reports/T74.md Review. Next heavy executor: `Выполни T74`, then independent new-chat review. T72/T73 remain review; release gates unchanged.
 
 - **2026-10-29 T74 review:** continuation from9ca6cf8 completed. Stale lesson context fixed; legacy state no longer asserts old cash, old preview/decision/evaluate/chat explicitly unavailable after activation. Backend230/targeted7/contracts drift0/TS/UI6/navigation/full web export PASS. Real Chrome new-account/no-goal/plan/bill/preview40/income100/complete/cancel/Assistant/Learn and separate explicit legacy adoption PASS; original snapshot preserved. New isolated APIs8002/8003 and databases only; demo.db/API8000/API8001 untouched. See reports/T74.md continuation. Next independent orchestrator: `Проверь T74`. T72/T73 remain review; no done/release promotion.

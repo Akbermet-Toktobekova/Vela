@@ -156,6 +156,22 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         data['recommendation'] = {'kind': 'clarify', 'amount': 0, 'message': 'Open your shared account plan for current facts.'}
         return data
 
+    def mutate_legacy(who, key, revision, command, apply, render):
+        # Check the current mode before Store can return a pre-adoption receipt.
+        # Hold the same reentrant lock through lookup/mutation/render so adoption
+        # cannot race this check. Receipts and original history remain untouched.
+        with store.lock:
+            active = store.read(who).personal.planning.active
+            if active:
+                if command['kind'] == 'evaluate_decision':
+                    require_legacy(store.read(who))
+                if command['kind'] not in ('import_analytics', 'add_debt', 'delete_debt', 'lesson_progress'):
+                    raise ValueError('Use your shared account plan. Legacy money changes are disabled after adoption.')
+            result = store.mutate(who, key, revision, command, apply, render)
+            # Still-allowed commands may also have old receipts containing legacy
+            # StateView/lesson context. Keep one-time effects, show current facts.
+            return render(store.read(who)) if active else result
+
     def change(who, key, body, kind, apply, extra=None):
         def checked(s):
             if s.personal.planning.active and kind not in ('import_analytics', 'add_debt', 'delete_debt'):
@@ -163,7 +179,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
             apply(s)
             if s.personal.planning.active and kind in ('add_debt', 'delete_debt'):
                 s.personal.planning.debts_confirmed = False
-        return store.mutate(who, key, body.revision, {"kind": kind, **body.model_dump(mode="json"), **(extra or {})},
+        return mutate_legacy(who, key, body.revision, {"kind": kind, **body.model_dump(mode="json"), **(extra or {})},
                             checked, lambda state: view(state, clock()))
 
     def rebuild(s, **changes) -> Snapshot:
@@ -359,7 +375,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         def render(s):
             return snap_holder["snapshot"].model_dump(mode="json")
 
-        return store.mutate(
+        return mutate_legacy(
             who,
             key,
             body.revision,
@@ -414,7 +430,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         def render(s):
             return get_lesson_detail(lesson_id, s, clock()).model_dump(mode="json")
 
-        return store.mutate(
+        return mutate_legacy(
             who,
             eff_key,
             expected_rev,
