@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 T75 independently ACCEPTED:** new chat reviewed458ecac, focused7/backend242/client/TS/contracts, real launcher55922/native JS HTTP oracle PASS. Guide docs/product/FRONTEND_INTEGRATION.md; standalone HTML stays disconnected. T24b rework2 resumed with delegated executor after prior chat hit usage limit; targeted checks only, final backend run centralized to avoid duplicate cost. T72 done; T73 browser verification pending.
+
 - **2026-10-29 T72 R1 independently ACCEPTED:** source ab6d533; separate chat01a18742-8ee8-7532-a9b8-8c51ad9b1740 independently verified raw/StateView/JSON refund2000 and horizon/state invariants, targeted7/backend242/TS/contracts/UI/nav/web. T72 done. T75 source458ecac under independent review in chat01a18745-1f65-70f0-b236-4a50c05ed43c; T24b safety rework executed in chat01a18741-64d5-7643-90e7-e058246239f6 and separately reviewed by Astra subagent. T73 actual browser verification in progress. No cloud or release promotion.
 
 - **2026-10-29 owner-authorized parallel backend queue:** root Codex orchestrates; subagents `t75_executor` (frontend contract/client/synthetic launcher), `t72_executor` (refund R1), `independent_audit` (T24b/T73 independent review and remaining dependency audit). Shared checkout uses disjoint product/report ownership; root alone updates BACKLOG/HANDOFF and stages explicit task files. Existing T75 dirty changes preserved. Independent acceptance required; no deployment, paid activation or fabricated native/cloud evidence. Never read/change demo.db or access/manage API8000–8003. Standalone HTML stays disconnected. Current source HEAD db5b78a; execution continues until accepted work or recorded external blockers.
