@@ -1774,6 +1774,76 @@
         "title": "DecisionEvaluationSnapshot",
         "type": "object"
       },
+      "FactFreshness": {
+        "additionalProperties": false,
+        "properties": {
+          "age_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Days"
+          },
+          "confirmed_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed On"
+          },
+          "recorded_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recorded On"
+          },
+          "source": {
+            "enum": [
+              "unknown",
+              "legacy",
+              "manual"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "source_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Date"
+          }
+        },
+        "required": [
+          "source",
+          "source_date",
+          "recorded_on",
+          "confirmed_on",
+          "age_days"
+        ],
+        "title": "FactFreshness",
+        "type": "object"
+      },
       "FrontendCapabilities": {
         "additionalProperties": false,
         "properties": {
@@ -2175,6 +2245,93 @@
         "title": "IncomeCommand",
         "type": "object"
       },
+      "IncomeEstimate": {
+        "additionalProperties": false,
+        "description": "Stated expectation only: it is never a ReceivedIncome or balance effect.",
+        "properties": {
+          "amount_minor": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Minor"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "enum": [
+                  "EUR",
+                  "HUF"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "frequency": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frequency"
+          },
+          "maximum_minor": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maximum Minor"
+          },
+          "minimum_minor": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum Minor"
+          },
+          "next_expected_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Expected On"
+          }
+        },
+        "title": "IncomeEstimate",
+        "type": "object"
+      },
       "LegacyFacts": {
         "additionalProperties": false,
         "properties": {
@@ -2548,6 +2705,32 @@
         "title": "LessonsListView",
         "type": "object"
       },
+      "ManualProfileFact": {
+        "additionalProperties": false,
+        "properties": {
+          "confirmed": {
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "source": {
+            "const": "manual",
+            "default": "manual",
+            "title": "Source",
+            "type": "string"
+          },
+          "source_date": {
+            "format": "date",
+            "title": "Source Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_date",
+          "confirmed"
+        ],
+        "title": "ManualProfileFact",
+        "type": "object"
+      },
       "ModelUsage": {
         "additionalProperties": false,
         "properties": {
@@ -2828,6 +3011,47 @@
         "title": "ObservationsView",
         "type": "object"
       },
+      "OnboardingCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "minimum": 0.0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "skipped": {
+            "items": {
+              "enum": [
+                "focus",
+                "accounts",
+                "income",
+                "obligations"
+              ],
+              "type": "string"
+            },
+            "maxItems": 4,
+            "title": "Skipped",
+            "type": "array"
+          },
+          "step": {
+            "enum": [
+              "focus",
+              "accounts",
+              "income",
+              "obligations",
+              "complete"
+            ],
+            "title": "Step",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision",
+          "step"
+        ],
+        "title": "OnboardingCommand",
+        "type": "object"
+      },
       "OneOffExtraPreview": {
         "additionalProperties": false,
         "properties": {
@@ -3035,6 +3259,16 @@
           },
           "planning": {
             "$ref": "#/components/schemas/PlanningState"
+          },
+          "profile_details": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfileDetails"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "title": "PersonalState",
@@ -3305,6 +3539,42 @@
         "title": "PlanningView",
         "type": "object"
       },
+      "PreferencesCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "fact": {
+            "$ref": "#/components/schemas/ManualProfileFact"
+          },
+          "preference_version": {
+            "minimum": 0.0,
+            "title": "Preference Version",
+            "type": "integer"
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfilePreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revision": {
+            "minimum": 0.0,
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision",
+          "preference_version",
+          "preferences",
+          "fact"
+        ],
+        "title": "PreferencesCommand",
+        "type": "object"
+      },
       "Preview": {
         "additionalProperties": false,
         "properties": {
@@ -3462,6 +3732,315 @@
           "income_type"
         ],
         "title": "ProfileCommand",
+        "type": "object"
+      },
+      "ProfileDetails": {
+        "additionalProperties": false,
+        "properties": {
+          "focus_fact": {
+            "$ref": "#/components/schemas/ProfileFact"
+          },
+          "income_estimate": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IncomeEstimate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "income_estimate_fact": {
+            "$ref": "#/components/schemas/ProfileFact"
+          },
+          "income_input_version": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Income Input Version",
+            "type": "integer"
+          },
+          "income_type_fact": {
+            "$ref": "#/components/schemas/ProfileFact"
+          },
+          "onboarding": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfileOnboarding"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "preference_version": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Preference Version",
+            "type": "integer"
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfilePreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "preferences_fact": {
+            "$ref": "#/components/schemas/ProfileFact"
+          }
+        },
+        "title": "ProfileDetails",
+        "type": "object"
+      },
+      "ProfileDetailsCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "fact": {
+            "$ref": "#/components/schemas/ManualProfileFact"
+          },
+          "focus": {
+            "anyOf": [
+              {
+                "enum": [
+                  "spending",
+                  "reserve",
+                  "debt",
+                  "goal",
+                  "unsure"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Focus"
+          },
+          "income_estimate": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IncomeEstimate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "income_input_version": {
+            "minimum": 0.0,
+            "title": "Income Input Version",
+            "type": "integer"
+          },
+          "income_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "regular",
+                  "irregular",
+                  "mixed",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Income Type"
+          },
+          "preference_version": {
+            "minimum": 0.0,
+            "title": "Preference Version",
+            "type": "integer"
+          },
+          "revision": {
+            "minimum": 0.0,
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision",
+          "preference_version",
+          "income_input_version",
+          "fact"
+        ],
+        "title": "ProfileDetailsCommand",
+        "type": "object"
+      },
+      "ProfileDetailsView": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "details": {
+            "$ref": "#/components/schemas/ProfileDetails"
+          },
+          "focus": {
+            "enum": [
+              "spending",
+              "reserve",
+              "debt",
+              "goal",
+              "unsure"
+            ],
+            "title": "Focus",
+            "type": "string"
+          },
+          "freshness": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FactFreshness"
+            },
+            "title": "Freshness",
+            "type": "object"
+          },
+          "income_type": {
+            "enum": [
+              "regular",
+              "irregular",
+              "mixed",
+              "unknown"
+            ],
+            "title": "Income Type",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision",
+          "focus",
+          "income_type",
+          "details",
+          "freshness",
+          "as_of"
+        ],
+        "title": "ProfileDetailsView",
+        "type": "object"
+      },
+      "ProfileFact": {
+        "additionalProperties": false,
+        "properties": {
+          "confirmed_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed On"
+          },
+          "recorded_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recorded On"
+          },
+          "source": {
+            "default": "unknown",
+            "enum": [
+              "unknown",
+              "legacy",
+              "manual"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "source_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Date"
+          }
+        },
+        "title": "ProfileFact",
+        "type": "object"
+      },
+      "ProfileOnboarding": {
+        "additionalProperties": false,
+        "properties": {
+          "skipped": {
+            "items": {
+              "enum": [
+                "focus",
+                "accounts",
+                "income",
+                "obligations"
+              ],
+              "type": "string"
+            },
+            "maxItems": 4,
+            "title": "Skipped",
+            "type": "array"
+          },
+          "step": {
+            "enum": [
+              "focus",
+              "accounts",
+              "income",
+              "obligations",
+              "complete"
+            ],
+            "title": "Step",
+            "type": "string"
+          },
+          "updated_on": {
+            "format": "date",
+            "title": "Updated On",
+            "type": "string"
+          }
+        },
+        "required": [
+          "step",
+          "updated_on"
+        ],
+        "title": "ProfileOnboarding",
+        "type": "object"
+      },
+      "ProfilePreferences": {
+        "additionalProperties": false,
+        "properties": {
+          "preferences": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "Preferences",
+            "type": "array"
+          },
+          "restrictions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "Restrictions",
+            "type": "array"
+          }
+        },
+        "title": "ProfilePreferences",
         "type": "object"
       },
       "QuoteView": {
@@ -7828,6 +8407,251 @@
           }
         },
         "summary": "Profile"
+      }
+    },
+    "/v2/profile/details": {
+      "get": {
+        "operationId": "get_profile_v2_profile_details_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDetailsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Profile"
+      },
+      "put": {
+        "operationId": "update_profile_v2_profile_details_put",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileDetailsCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDetailsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Profile"
+      }
+    },
+    "/v2/profile/onboarding": {
+      "put": {
+        "operationId": "update_onboarding_v2_profile_onboarding_put",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnboardingCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDetailsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Onboarding"
+      }
+    },
+    "/v2/profile/preferences": {
+      "put": {
+        "operationId": "update_preferences_v2_profile_preferences_put",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDetailsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Preferences"
       }
     },
     "/v2/valuations/accounts": {

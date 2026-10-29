@@ -21,6 +21,7 @@ from .ai import Quotas, MODELS, ROUTES, enabled
 from .imports import ImportPreview, ImportError_, build_preview, MAX_BYTES, keyword_category
 from .chat import ChatRequest, ChatReply, chat
 from .personal import install_personal
+from .profile import install_profile
 from .observations import ObservationsView, analyse
 from .planning import install_planning
 from .auth import SupabaseJWTConfig, SupabaseJWTVerifier, local_owner
@@ -580,6 +581,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         return {"status": "deleted", "scope": "Balance, bills, plans, transactions and pending uploads. Anonymous AI usage counters are kept."}
 
     install_personal(app, store, owner, idempotency, clock)
+    install_profile(app, store, owner, idempotency, clock)
     install_planning(app, store, owner, idempotency, clock)
     install_frontend(app, store, owner, clock)
     install_fx(app, store, owner, clock, rates=fx_rates)

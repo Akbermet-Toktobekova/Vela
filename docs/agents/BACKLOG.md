@@ -274,6 +274,7 @@
 ### T33 — Durable worker + outbox для импорта
 - **Model:** Astra GPT 6 (или Argon) · **Status:** todo · **Depends on:** T31, T32, T34
 - **Scope:** `services/api/vela/worker.py` (новый), `services/api/vela/jobs.py` (новый), `services/api/vela/imports.py`, `services/api/vela/main.py`, `scripts/run-worker.py` (новый), `services/api/tests/test_worker.py` (новый)
+- **Orchestrator scope clarification:** reports/T33-preflight.md is the bounded implementation contract after T34 acceptance. Include store.py common-transaction guards, new migration and version-aware validator, docs/product/jobs.md, generated contracts. Durable job row is its transactional dispatch outbox; no Redis or new SDK. Explicit infrastructure defaults: lease120seconds, heartbeat30seconds, maximum3attempts, exponential retry5seconds times2^(attempt-1), configurable/validated; these are operational controls, not financial rules. Idempotent enqueue/status/retry/cancel and owner deletion/generation races require focused proofs. No live AI/provider/database activation in verification.
 - **Acceptance:** постановка импорта в очередь `POST /v1/imports/jobs` → `202` + `job_id`; статус `GET /v1/jobs/{id}`; ретраи с backoff, dead-letter, возврат зависших задач по `lease_until` (lease timeout); удаление данных (`DELETE /v1/data`) очищает задачи пользователя.
 - **Verify:** `python -m unittest services/api/tests/test_worker.py -v`, `python scripts/check.py`.
 
@@ -369,7 +370,7 @@
 - **Verify:** Ручная сверка с USER_VISION §2–8, мастер-спецификацией §7–10 и текущими моделями; независимое архитектурное ревью.
 
 ### T51 — Сохраняемый профиль и происхождение финансовых данных
-- **Model:** GPT-6.1 Sol delegated executor; independent review required · **Status:** in_progress · **Depends on:** T32, T50
+- **Model:** GPT-6.1 Sol delegated executor; independent review accepted · **Status:** done · **Depends on:** T32, T50
 - **Scope:** services/api/vela/{domain.py,store.py,main.py}, services/api/alembic/, services/api/tests/test_profile.py (новый)
 - **Current ownership clarification:** reuse PersonalState JSON aggregate through personal.py profile fields and a dedicated profile.py installer; add docs/product/profile.md and report. Preserve legacy profile route/command. No new SQL entity needed without proof; T34 owns store/migrations/main during parallel work. Root registers profile installer after that source freezes. Optional income/provenance/preferences are not received financial events.
 - **Steps:** Реализовать часть контракта T50: профиль, income type/range, явные предпочтения и подтверждение/свежесть/источник фактов. Сохранить текущий API совместимым либо документировать переход. Обновление предпочтений версионировать отдельно; пропуск допустим. Счета/балансовый anchor и связи операций завершаются T53.
