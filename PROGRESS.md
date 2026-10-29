@@ -1,3 +1,5 @@
+Независимое ревью T72 от2026-10-29: REWORK R1 — cash-flow tool по summary/StateView не возвращает refund_cents2000 из августовского oracle. Изоляция финансов, три импорта+повтор56, cumulative evidence, история50+6 и T74-интеграция независимо проверены на новой синтетической HTTP/Chrome среде. Backend231 (19.545s), targeted6, TS/contracts/UI/navigation/web PASS. [Доказательства](docs/agents/reports/T72.md). T73 review, T74 принят, J01–J12 и релизные гейты неизменны.
+
 # Vela (FinAgent) — Прогресс разработки / Development Progress
 
 Независимое ревью 2026-10-29: ограниченный локальный T74 принят после исправления receipt bypass. Проверено: backend231 (30.389s), targeted8, real HTTP receipt matrix и race/fingerprint probes2, contracts drift0, TS, UI6, navigation, web958modules/21bundles. [Доказательства и границы](docs/agents/reports/T74.md). T72/T73 не приняты; сквозные J01–J12 и релизные гейты не повышены.

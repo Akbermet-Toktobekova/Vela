@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 independent T72 review: REWORK.** Original2ad1652/current f436831 checked. R1: supported StateView/JSON cash-flow tool drops separate refund_cents (expected2000), raw branch and net arithmetic correct. New synthetic API54295/UI54300/Chrome19006: oracle56 rows, analytical-only invariants, T74 plan preservation, repeat/retry/conflicts/future-income exclusion/evidence and pagination PASS; backend231/targeted6/contracts/TS/UI/navigation/web PASS. See reports/T72.md Review. Next: `Выполни T72` R1 + parity regression, then independent new-chat review. T73 remains review; T74 done; release gates unchanged. demo.db/API8000–8003 untouched.
+
 - **2026-10-29 independent T74 re-review of5fc0aa7: ACCEPT.** Receipt bypass resolved; full HTTP route matrix, changed-body fingerprint409 and deterministic adoption race independently passed on new temporary SQLite DBs/free ports. Backend231/targeted8/contracts drift0/TS/UI6/navigation/full web export PASS. See reports/T74.md Independent receipt re-review. Next: new-chat `Проверь T72`; T73 separately pending. T72/T73 remain review; no journey/release gate promotion. demo.db/API8000–8003 untouched.
 
 - **2026-10-29 T74 receipt rework REVIEW (GPT-6.1 Sol):** guard runs before cached legacy receipts under store lock; allowed debt/import/lesson retries return current context without duplicate effects. Regression red16 failures -> green8tests; backend231 OK; contracts drift0/TS/UI6/navigation/full web export PASS. Real HTTP/free64584/new DB: old evaluation replay409, snapshot/actions preserved. See reports/T74.md Receipt rework. API8000–8003/demo.db untouched. Next: independent new-chat `Проверь T74`. T72/T73 and release gates unchanged.
@@ -51,11 +53,11 @@
 - **Product plan:** [`PRODUCT_PLAN.md`](../../PRODUCT_PLAN.md) — читать перед выбором следующей задачи. Исходное видение сохранено в `docs/product/USER_VISION.md`. Планирование PLAN-01 завершено 2026-10-27; задачи реализации им не принимались.
 - **После CHECKPOINT-2:** D2/T30 → T50 (контракт данных) → T31/T32; подробные зависимости T50–T63 в BACKLOG. T46 требует сквозной приёмки продукта, а не только старой инфраструктурной очереди.
 
-- **Orchestrator:** Codex (GPT-6), review session 2026-10-26
+- **Orchestrator:** Codex (GPT-6), independent review session 2026-10-29
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T74 (in_progress, continuation checkpoint 2026-10-29; see reports/T74.md).
-- **Last reviewed:** 2026-10-27, T24b REWORK; backend 205/205, targeted 54/54, offline 60/60, drift 0; 3 unsafe mocked replies accepted.
-- **Next action:** Astra / Argon: `Проверь T24b` в отдельном чате; CHECKPOINT-2 после приёмки.
+- **Current task:** T72 (rework R1, independent review 2026-10-29; see reports/T72.md).
+- **Last reviewed:** 2026-10-29, T72 REWORK R1; backend231/targeted6/contracts drift0/TS/UI/navigation/web PASS. T74 accepted at f436831; T24b remains independently pending.
+- **Next action:** `Выполни T72` — fix R1 and add raw/StateView/JSON refund parity regression; then new-chat `Проверь T72`. T73 separate; T24b and CHECKPOINT-2 still required before real cloud data.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
