@@ -2,6 +2,8 @@
 
 # Vela — общий план продукта и прогресс
 
+2026-10-29 current engineering: CHECKPOINT-2 passed ([evidence](docs/agents/reports/CHECKPOINT-2.md)); local frontend kit T75 independently accepted, T30 approved architecture recorded and T50 data contract independently accepted ([contract review](docs/agents/reports/T50-independent.md)). T31/T35 are in execution. These close planning/safety/local integration slices, not multi-user cloud or J01–J12 acceptance. Historical status text below remains preserved.
+
 2026-10-29: T72 local analytics accepted after independent R1 re-review of ab6d533. Refund evidence now agrees across raw/typed/JSON tools; targeted7/backend242 and independent oracle pass. See [R1 acceptance](docs/agents/reports/T72-independent-r1.md). B/C remain partial for cloud, durable jobs, reconciliation and full journeys; earlier REWORK entries below are historical.
 
 Обновлено: **2026-10-27**. Владелец видения: пользователь. Ведение статусов: оркестратор.

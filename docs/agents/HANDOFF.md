@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 next bounded queue:** T30 accepted1d1b5cd; T50 independently accepted6b25f31 (ADR0007/product-data-v1), T31 migration in_progress delegated to t72_executor, T35 logging in_progress delegated to t75_executor (root requested correlation header also on unexpected500). Root owns shared statuses/commits; final backend once after code stabilizes. T73 remains browser-blocked. Current checks/infrastructure gates documented CHECKPOINT-2; no demo.db/API8000–8003/cloud activation. User explicitly requested minimal-credit precise assignments: narrow file ownership, targeted executor tests, centralized integration suite; reuse existing agents.
+
 - **2026-10-29 CHECKPOINT-2 PASS:** independent T24b ACCEPT, root244 backend/60offline+schema/contracts, TS, independent doctor20/20 after CP2-ENV; full web export PASS. Report reports/CHECKPOINT-2.md. T30 ADR accepted1d1b5cd, T50 contract in_progress, T35 allowed parallel. T72/T75 done; T73 browser independent acceptance blocked by browser tool, not product bug. No cloud activation/pilot/public or complete journey promotion.
 
 - **2026-10-29 T24b independently ACCEPTED after rework2:** Astra independent context verified20 real-chat mock outcomes and69 focused tests; root final backend244 in35.476s OK, contracts/schema pass. Reports/T24b-independent-rework2.md. CHECKPOINT-2 still pending Expo doctor dependency alignment CP2-ENV (19/20 before fix). T73 browser proof blocked by tooling, not a confirmed product defect. T75/T72 done; no cloud/release promotion.
@@ -64,10 +66,10 @@
 - **После CHECKPOINT-2:** D2/T30 → T50 (контракт данных) → T31/T32; подробные зависимости T50–T63 в BACKLOG. T46 требует сквозной приёмки продукта, а не только старой инфраструктурной очереди.
 
 - **Orchestrator:** Codex (GPT-6), owner-authorized parallel queue 2026-10-29
-- **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** Parallel T75 completion + T72 R1; independent T24b/T73 review. Root coordinates integration and acceptance.
+- **Current phase:** 3 — migrations, verified ownership and durable infrastructure; Phase2 engineering checkpoint passed417f256.
+- **Current task:** Parallel T31 migration + T35 request logging; T50 contract accepted. Root coordinates integration and independent acceptance.
 - **Last reviewed:** 2026-10-29, T72 REWORK R1; backend231/targeted6/contracts drift0/TS/UI/navigation/web PASS. T74 accepted at f436831; T24b remains independently pending.
-- **Next action:** Collect executor evidence, commit each bounded slice separately, arrange independent new-context reviews; resolve T24b/CHECKPOINT-2 before dependent infrastructure work. No cloud activation without required decisions.
+- **Next action:** Independently review T31/T35, then T32 authenticated owner/session isolation; later T51/T34 can run on disjoint scopes. T73 actual browser save remains tooling-blocked. Cloud activation still requires estimate/owner decision.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
