@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 T74 IN_PROGRESS — continuation checkpoint requested by owner.** Read reports/T74.md FIRST after this HANDOFF, then T74 BACKLOG Scope. Canonical local account-plan backend and new shared-plan/shared-assistant UI implemented but NOT browser-verified. Backend227/targeted4/typecheck pass; contracts generated. Still must fix/audit stale legacy lesson/advice readers, finish migration/read-safety tests, run final gates and actual isolated Chrome flow. Do NOT treat this as review/done or completed integration. Preserve live API8000/demo.db; older dedicated API8001 currently runs T72 code. Detailed files, process recovery, commands and next steps in reports/T74.md.
+
 - **2026-10-29 T73 review:** web Export JSON now downloads locally, native Share retained. Actual Chrome produced Downloads/vela-export.json; UTF-8 JSON equals live isolated test export56rows/account1000/revision5, token absent. Download-event helper timed out on Blob, filesystem artifact verified. Backend223/TS/full web export pass. See reports/T73.md. Canonical account/plan migration is next; no done/release promotion.
 
 - **2026-10-29 T72 review:** analytical-only /v2 apply and import UI, labelled refund separation, imported-future cash exclusion, cumulative suggested observations/evidence and paginated history. Real Chrome3fixture uploads+repeat retains56, no hidden profile, account1000 unchanged, streaming delta3 and source rows, page2 oldest6 verified. Backend223/TS/contracts/UI6/nav/full export/offline60 pass. See reports/T72.md. Legacy /v1 apply remains for compatibility; canonical account/plan integration and web export remain next bounded slices. No done/release promotion.
@@ -42,7 +44,7 @@
 
 - **Orchestrator:** Codex (GPT-6), review session 2026-10-26
 - **Current phase:** 2 — Безопасность ИИ и приватность (Приоритет 2)
-- **Current task:** T24b (review, GPT-6.1 Sol, attempt 3 continuation).
+- **Current task:** T74 (in_progress, continuation checkpoint 2026-10-29; see reports/T74.md).
 - **Last reviewed:** 2026-10-27, T24b REWORK; backend 205/205, targeted 54/54, offline 60/60, drift 0; 3 unsafe mocked replies accepted.
 - **Next action:** Astra / Argon: `Проверь T24b` в отдельном чате; CHECKPOINT-2 после приёмки.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)

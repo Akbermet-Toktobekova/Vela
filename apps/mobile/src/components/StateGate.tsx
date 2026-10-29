@@ -4,7 +4,7 @@ import { FinancialState } from '../lib/api';
 import { useCommand, useConnection, useFinancialState } from '../lib/state';
 import { Button, Card, Copy, Loading, Notice } from './ui';
 
-export function StateGate({children}: {children: (state: FinancialState) => React.ReactNode}) {
+export function StateGate({children, allowEmpty = false}: {children: (state: FinancialState) => React.ReactNode; allowEmpty?: boolean}) {
   const query = useFinancialState();
   const command = useCommand();
   const {ready, connected} = useConnection();
@@ -12,7 +12,7 @@ export function StateGate({children}: {children: (state: FinancialState) => Reac
   if (!connected) return <Redirect href="/connect" />;
   if (query.isPending) return <Loading />;
   if (query.isError) return <><Notice>{query.error.message}</Notice><Button label="Try again" onPress={() => {void query.refetch();}} /><Button label="Connection settings" secondary onPress={() => router.push('/connect')} /></>;
-  if (!query.data.snapshot) return <Card soft>
+  if (!query.data.snapshot && !allowEmpty) return <Card soft>
     <Copy variant="title">Start with your numbers</Copy>
     <Copy muted>Upload a bank statement (CSV, Excel, PDF or photo), enter your balance manually, or try a pre-built example.</Copy>
     <Button label="Upload statement (CSV / PDF)" onPress={() => router.push('/import')} />

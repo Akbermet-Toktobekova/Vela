@@ -2,8 +2,10 @@ import React, { useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Card, Chip, Copy, Field, Loading, Notice, Row, Screen } from '../components/ui';
+import { IconButton } from '../components/ui';
+import { SharedNavigation } from '../components/SharedNavigation';
 import { localDate, cents, request } from '../lib/api';
-import { PersonalView } from '../lib/generated';
+import { PersonalView, PlanningView } from '../lib/generated';
 import { useConnection } from '../lib/state';
 
 type Page = 'today' | 'profile' | 'account' | 'balance' | 'income';
@@ -23,13 +25,14 @@ export default function PersonalScreen() {
   const [error, setError] = useState('');
   const retry = useRef<{signature: string; key: string} | null>(null);
   const query = useQuery({queryKey: ['personal'], queryFn: () => request<PersonalView>('/v2/personal'), enabled: connected});
+  const shared = useQuery({queryKey: ['shared-plan'], queryFn: () => request<PlanningView>('/v2/planning'), enabled: connected});
   const mutation = useMutation({
     mutationFn: ({path, method, body}: {path: string; method: string; body: unknown}) => {
       const signature = JSON.stringify({path, method, body});
       if (retry.current?.signature !== signature) retry.current = {signature, key: `personal-${Date.now()}-${Math.random().toString(36).slice(2)}`};
       return request<PersonalView>(path, method, body, retry.current.key);
     },
-    onSuccess: data => {retry.current = null; cache.setQueryData(['personal'], data); void cache.invalidateQueries({queryKey: ['personal']}); void cache.invalidateQueries({queryKey: ['state']}); setPage('today'); setInput(''); setError('');},
+    onSuccess: data => {retry.current = null; cache.setQueryData(['personal'], data); void cache.invalidateQueries(); setPage('today'); setInput(''); setError('');},
   });
   if (!ready || query.isPending && connected) return <Loading />;
   if (!connected) return <Screen title="Your Vela"><Notice>Connect to your local server to save your information.</Notice><Button label="Connect" onPress={() => router.push('/connect')} /></Screen>;
@@ -62,6 +65,15 @@ export default function PersonalScreen() {
     <Copy muted>Saved on your connected local server. Cloud sign-in and recommendations are not connected yet.</Copy>
     {page !== 'today' && <Button label="Back to Today" secondary disabled={busy} onPress={() => open('today')} />}
     {page === 'today' ? <>
+      <SharedNavigation current="today" />
+      {shared.data?.planning.active && <Card soft>
+        <Copy variant="title">Your next step</Copy><Copy>{shared.data.message}</Copy>
+        <Copy muted>{shared.data.account?.name} · EUR · confirmed {shared.data.account?.confirmed_on ?? 'not provided'}</Copy>
+        <Row label="Available after protected money, bills and allocations" value={shared.data.available == null ? 'Needs confirmation' : new Intl.NumberFormat('en-IE', {style: 'currency', currency: 'EUR'}).format(shared.data.available / 100)} />
+        <Button label="Open my account plan" onPress={() => router.push('/shared-plan')} />
+        <IconButton label="Explain this recommendation" onPress={() => router.push({pathname: '/shared-assistant', params: {revision: String(shared.data!.revision)}})}><Copy>ⓘ</Copy></IconButton>
+      </Card>}
+      {shared.error && <><Notice>{shared.error.message}</Notice><Button label="Reload account plan" secondary onPress={() => {void shared.refetch();}} /></>}
       {!state.data.onboarded && <Card soft><Copy variant="title">Start with what matters</Copy><Copy>Tell us what you want help with. A statement is optional.</Copy><Button label="Set up my profile" onPress={() => open('profile')} /></Card>}
       {accounts.length === 0 ? <Card><Copy variant="title">Your money starts here</Copy><Copy muted>Add a known balance or leave it unknown. No example amounts are added.</Copy></Card> : accounts.map(a => <Card key={a.id}>
         <Copy variant="title">{a.name}</Copy><Copy variant="money">{a.balance === null || a.balance === undefined ? 'Not provided' : new Intl.NumberFormat('en-IE', {style: 'currency', currency: a.currency}).format(a.balance / 100)}</Copy>
@@ -72,11 +84,11 @@ export default function PersonalScreen() {
       <Button label="Edit profile" secondary onPress={() => {setFocus(state.data.focus ?? 'unsure'); setIncomeType(state.data.income_type ?? 'unknown'); open('profile');}} />
       <Button label="Refresh saved data" secondary onPress={() => {void query.refetch();}} />
       <Row label="Income records" value={String(state.data.incomes?.length ?? 0)} />
-      <Notice>Balances stay separate by currency. Missing exchange rates are not treated as zero. Planning will be connected after obligations and goals.</Notice>
+      <Notice>Balances stay separate by currency. The shared plan uses one explicitly chosen EUR account; no HUF conversion or cross-account total is assumed.</Notice>
       <Card>
         <Copy variant="title">Planning & learning</Copy>
-        <Copy muted>The current planning workspace uses a separate EUR balance, bills and goal that you enter there. These account balances and income records are not copied into that plan.</Copy>
-        <Button label="Open planning workspace" onPress={() => router.push('/')} />
+        <Button label="Review my account plan" onPress={() => router.push('/shared-plan')} />
+        {!state.data.planning?.active && <><Copy muted>The legacy workspace is available to review previous local records. My Plan can adopt reviewed records without replacing their history.</Copy><Button label="Open legacy planning workspace" secondary onPress={() => router.push('/')} /></>}
         <Button label="Review statement patterns" secondary onPress={() => router.push('/observations')} />
         <Button label="Upload statement" secondary onPress={() => router.push('/import')} />
         <Button label="Data & connection" secondary onPress={() => router.push('/settings')} />

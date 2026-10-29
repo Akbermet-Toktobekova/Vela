@@ -20,7 +20,7 @@ export function useCommand() {
   return useMutation({
     mutationFn: ({path, body, method = 'POST'}: {path: string; body?: unknown; method?: string}) =>
       request<FinancialState>(path, method, body, `mobile-${Date.now()}-${Math.random().toString(36).slice(2)}`),
-    onSuccess: () => cache.invalidateQueries({queryKey: ['state']}),
-    onError: () => cache.invalidateQueries({queryKey: ['state']}),
+    onSuccess: () => cache.invalidateQueries(),
+    onError: () => cache.invalidateQueries(),
   });
 }

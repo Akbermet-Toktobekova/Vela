@@ -386,7 +386,7 @@ function DebtsContent({state}: {state: FinancialState}) {
 export default function DebtsScreen() {
   return (
     <Screen title="Debts & payoff" eyebrow="Vela">
-      <StateGate>{state => <DebtsContent state={state} />}</StateGate>
+      <StateGate allowEmpty>{state => <DebtsContent state={state} />}</StateGate>
     </Screen>
   );
 }

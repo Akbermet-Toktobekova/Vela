@@ -23,6 +23,8 @@ function ConnectedStack() {
     <Stack.Screen name="(tabs)" options={{headerShown: false}} />
     <Stack.Screen name="pilot" options={{headerShown: false}} />
     <Stack.Screen name="personal" options={{headerShown: false}} />
+    <Stack.Screen name="shared-plan" options={{headerShown: false}} />
+    <Stack.Screen name="shared-assistant" options={{headerShown: false}} />
     <Stack.Screen name="connect" options={{title: 'Connect API'}} />
     <Stack.Screen name="snapshot" options={{title: 'Balance & bills'}} />
     <Stack.Screen name="import" options={{title: 'Import statement'}} />

@@ -21,6 +21,14 @@ export type AccountCommand = {
   "confirmed_on": string;
 };
 
+export type AccountFacts = {
+  "id": string;
+  "name": string;
+  "currency": "EUR" | "HUF";
+  "balance": number | null;
+  "confirmed_on": string | null;
+};
+
 export type ActionView = {
   "id": string;
   "amount": number;
@@ -28,6 +36,27 @@ export type ActionView = {
   "created_on": string;
   "completed_on": string | null;
   "can_complete": boolean;
+};
+
+export type AddBill = {
+  "revision": number;
+  "id": string;
+  "label": string;
+  "amount": number;
+  "currency": "EUR";
+  "due": string;
+};
+
+export type AddStep = {
+  "revision": number;
+  "id": string;
+  "amount": number;
+};
+
+export type AdoptLegacy = {
+  "revision": number;
+  "account_id": string;
+  "confirm_finances": boolean;
 };
 
 export type AmountCommand = {
@@ -45,6 +74,16 @@ export type BalanceCommand = {
   "revision": number;
   "balance": number;
   "confirmed_on": string;
+};
+
+export type Bill = {
+  "id": string;
+  "label": string;
+  "amount": number;
+  "currency"?: "EUR";
+  "due": string;
+  "status"?: "unpaid" | "paid" | "cancelled";
+  "source"?: "manual" | "legacy";
 };
 
 export type BillDone = {
@@ -112,6 +151,16 @@ export type ChatRequest = {
 
 export type Command = {
   "revision": number;
+};
+
+export type ConfigurePlan = {
+  "revision": number;
+  "account_id": string;
+  "horizon": string;
+  "protected": number | null;
+  "bills_confirmed": boolean;
+  "debts_confirmed": boolean;
+  "goal"?: GoalInput | null;
 };
 
 export type ConfirmCommand = {
@@ -220,6 +269,17 @@ export type DecisionEvaluationSnapshot = {
   "ranked_candidates": (ScoredCandidate)[];
 };
 
+export type Goal = {
+  "name": string;
+  "target": number;
+  "saved"?: number;
+};
+
+export type GoalInput = {
+  "name": string;
+  "target": number;
+};
+
 export type HTTPValidationError = {
   "detail"?: (ValidationError)[];
 };
@@ -250,6 +310,15 @@ export type IncomeCommand = {
   "event_id": string;
   "received_on": string;
   "already_in_balance": boolean;
+};
+
+export type LegacyFacts = {
+  "cash": number;
+  "saved": number;
+  "goal_name": string;
+  "goal_target": number;
+  "bill_count": number;
+  "planned_count": number;
 };
 
 export type LessonDetailView = {
@@ -365,7 +434,13 @@ export type OneOffExtraPreview = {
   "months_saved": number | null;
 };
 
+export type PayBill = {
+  "revision": number;
+  "effect": "subtract" | "already_in_balance";
+};
+
 export type PersonalState = {
+  "planning"?: PlanningState;
   "focus"?: "spending" | "reserve" | "debt" | "goal" | "unsure";
   "income_type"?: "regular" | "irregular" | "mixed" | "unknown";
   "onboarded"?: boolean;
@@ -379,8 +454,57 @@ export type PersonalView = {
   "mode"?: "local";
 };
 
+export type PlanningCommand = {
+  "revision": number;
+};
+
+export type PlanningState = {
+  "active"?: boolean;
+  "account_id"?: string | null;
+  "horizon"?: string | null;
+  "protected"?: number | null;
+  "bills_confirmed"?: boolean;
+  "debts_confirmed"?: boolean;
+  "goal"?: Goal | null;
+  "bills"?: (Bill)[];
+  "steps"?: (Step)[];
+  "deferred"?: boolean;
+};
+
+export type PlanningView = {
+  "revision": number;
+  "planning": PlanningState;
+  "account": AccountFacts | null;
+  "currency"?: "EUR";
+  "cash": number | null;
+  "known_bills": number;
+  "reserved": number;
+  "goal_saved": number;
+  "available": number | null;
+  "needs_input": string | null;
+  "recommendation_kind": "clarify" | "save" | "maintain" | "shortfall" | "planned" | "goal_reached";
+  "recommendation_amount": number | null;
+  "message": string;
+  "can_complete": boolean;
+  "legacy": LegacyFacts | null;
+  "policy"?: string;
+};
+
 export type Preview = {
   "amount": number;
+};
+
+export type PreviewStep = {
+  "amount": number;
+};
+
+export type PreviewStepView = {
+  "revision": number;
+  "amount": number;
+  "eligible": boolean;
+  "remaining": number | null;
+  "goal_after": number | null;
+  "message": string;
 };
 
 export type PreviewView = {
@@ -503,6 +627,16 @@ export type StateView = {
   "recommendation": Recommendation;
   "summary": Summary;
   "mode": "local";
+};
+
+export type Step = {
+  "id": string;
+  "account_id": string;
+  "currency"?: "EUR";
+  "amount": number;
+  "status"?: "planned" | "completed" | "cancelled";
+  "created_on": string;
+  "completed_on"?: string | null;
 };
 
 export type StrategyResult = {

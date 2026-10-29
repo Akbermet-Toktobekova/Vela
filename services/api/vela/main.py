@@ -21,6 +21,7 @@ from .imports import ImportPreview, ImportError_, build_preview, MAX_BYTES, keyw
 from .chat import ChatRequest, ChatReply, chat
 from .personal import install_personal
 from .observations import ObservationsView, analyse
+from .planning import install_planning
 
 
 class Command(Record):
@@ -144,8 +145,14 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         return JSONResponse(status_code=422, content={"detail": str(exc)})
 
     def change(who, key, body, kind, apply, extra=None):
+        def checked(s):
+            if s.personal.planning.active and kind not in ('import_analytics', 'add_debt', 'delete_debt'):
+                raise ValueError('Use your shared account plan. Legacy money changes are disabled after adoption.')
+            apply(s)
+            if s.personal.planning.active and kind in ('add_debt', 'delete_debt'):
+                s.personal.planning.debts_confirmed = False
         return store.mutate(who, key, body.revision, {"kind": kind, **body.model_dump(mode="json"), **(extra or {})},
-                            apply, lambda state: view(state, clock()))
+                            checked, lambda state: view(state, clock()))
 
     def rebuild(s, **changes) -> Snapshot:
         return Snapshot.model_validate({**s.snapshot.model_dump(), **changes})
@@ -520,4 +527,5 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         return {"status": "deleted", "scope": "Balance, bills, plans, transactions and pending uploads. Anonymous AI usage counters are kept."}
 
     install_personal(app, store, owner, idempotency, clock)
+    install_planning(app, store, owner, idempotency, clock)
     return app

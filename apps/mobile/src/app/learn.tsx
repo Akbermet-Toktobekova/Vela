@@ -168,7 +168,7 @@ function LearnContent({state}: {state: FinancialState}) {
 export default function LearnScreen() {
   return (
     <Screen title="Learn" eyebrow="Financial Essentials">
-      <StateGate>{state => <LearnContent state={state} />}</StateGate>
+      <StateGate allowEmpty>{state => <LearnContent state={state} />}</StateGate>
     </Screen>
   );
 }

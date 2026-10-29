@@ -4,6 +4,7 @@ from typing import Literal
 from uuid import uuid4
 from fastapi import Depends
 from pydantic import BaseModel, ConfigDict, Field
+from .planning import PlanningState
 
 
 class PersonalRecord(BaseModel):
@@ -27,6 +28,7 @@ class ReceivedIncome(PersonalRecord):
 
 
 class PersonalState(PersonalRecord):
+    planning: PlanningState = Field(default_factory=PlanningState)
     focus: Literal["spending", "reserve", "debt", "goal", "unsure"] = "unsure"
     income_type: Literal["regular", "irregular", "mixed", "unknown"] = "unknown"
     onboarded: bool = False
@@ -115,6 +117,8 @@ def install_personal(app, store, owner, idempotency, clock):
         def apply(s):
             a = account(s, account_id)
             a.balance, a.confirmed_on = body.balance, body.confirmed_on
+            if s.personal.planning.account_id == a.id:
+                s.personal.planning.deferred = False
         return store.mutate(who, key, body.revision,
                             {"kind": "v2_balance", "account_id": account_id, **body.model_dump(mode="json")}, apply, render)
 
@@ -140,4 +144,6 @@ def install_personal(app, store, owner, idempotency, clock):
                 a.balance, a.confirmed_on = body.current_balance, clock()
             s.personal.incomes.append(ReceivedIncome(id=str(uuid4()), account_id=a.id, amount=body.amount,
                                                     received_on=body.received_on, effect=body.effect))
+            if s.personal.planning.account_id == a.id and body.effect != 'included':
+                s.personal.planning.deferred = False
         return change(who, key, body, "v2_income", apply)
