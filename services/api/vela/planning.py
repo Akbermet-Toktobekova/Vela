@@ -373,3 +373,7 @@ def install_planning(app, store, owner, idempotency, clock):
     @app.post('/v2/planning/defer', response_model=PlanningView)
     def defer(body: PlanningCommand, who=Depends(owner), key=Depends(idempotency)):
         return change(who, key, body, 'shared_plan_defer', lambda s: setattr(require_plan(s), 'deferred', True))
+
+    @app.post('/v2/planning/resume', response_model=PlanningView)
+    def resume(body: PlanningCommand, who=Depends(owner), key=Depends(idempotency)):
+        return change(who, key, body, 'shared_plan_resume', lambda s: setattr(require_plan(s), 'deferred', False))

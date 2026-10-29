@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Annotated, Literal
 from uuid import uuid4
+from urllib.parse import urlsplit
 from fastapi import Body, Depends, FastAPI, File, Header, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -22,6 +23,7 @@ from .chat import ChatRequest, ChatReply, chat
 from .personal import install_personal
 from .observations import ObservationsView, analyse
 from .planning import install_planning
+from .frontend import install_frontend
 
 
 class Command(Record):
@@ -110,9 +112,16 @@ class AIStatus(Record):
     models: list[ModelUsage]
 
 
-def create_app(database_url: str | None = None, demo_token: str | None = None, today=None, local_dir: Path | None = None) -> FastAPI:
+def create_app(database_url: str | None = None, demo_token: str | None = None, today=None, local_dir: Path | None = None,
+               frontend_origins: list[str] | None = None) -> FastAPI:
     if os.getenv("APP_MODE", "demo") not in ("demo", "local"):
         raise RuntimeError("Only the local single-user mode is implemented.")
+    origins = ["http://localhost:8081", "http://localhost:19006"] if frontend_origins is None else frontend_origins
+    for origin in origins:
+        parsed = urlsplit(origin)
+        if parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password or parsed.path or parsed.query or parsed.fragment or '*' in origin:
+            raise ValueError('Frontend origins must be exact HTTP(S) origins, without paths or wildcards.')
+        parsed.port  # Reject malformed port numbers before creating storage.
     local = local_dir or Path(__file__).resolve().parents[3] / ".local"
     local.mkdir(parents=True, exist_ok=True)
     token = demo_token or os.getenv("DEMO_API_TOKEN")
@@ -124,7 +133,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
     app = FastAPI(title="Vela local API", version="0.2.0")
     app.state.store = store
     app.state.quotas = quotas
-    app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:8081", "http://localhost:19006"],
+    app.add_middleware(CORSMiddleware, allow_origins=origins,
                        allow_methods=["GET", "POST", "PUT", "DELETE"],
                        allow_headers=["Authorization", "Content-Type", "Idempotency-Key"])
 
@@ -561,4 +570,5 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
 
     install_personal(app, store, owner, idempotency, clock)
     install_planning(app, store, owner, idempotency, clock)
+    install_frontend(app, store, owner, clock)
     return app

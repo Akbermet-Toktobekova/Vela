@@ -70,6 +70,17 @@ export type ApplyImport = {
   "obligation_ids"?: (string)[];
 };
 
+export type AssistantContext = {
+  "revision": number;
+  "as_of": string;
+  "source": "local_verified_facts";
+  "plan": PlanningView;
+  "recorded_activity": Summary;
+  "observations": ObservationsView;
+  "lessons": LessonsListView;
+  "note": string;
+};
+
 export type BalanceCommand = {
   "revision": number;
   "balance": number;
@@ -267,6 +278,31 @@ export type DecisionEvaluationSnapshot = {
   "runner_up_action_id": string | null;
   "sensitivity": SensitivityReport;
   "ranked_candidates": (ScoredCandidate)[];
+};
+
+export type FrontendCapabilities = {
+  "mode": "local_single_user";
+  "planning_currency": "EUR";
+  "account_currencies": ("EUR" | "HUF")[];
+  "assistant": "deterministic_read_only";
+  "import_effect": "analytics_only";
+  "cloud_otp": boolean;
+  "multi_user": boolean;
+  "persistent_chat": boolean;
+  "bank_connections": boolean;
+  "money_transfers": boolean;
+  "server_reminders": boolean;
+  "multi_goal": boolean;
+  "fx_in_plan": boolean;
+};
+
+export type FrontendView = {
+  "contract_version": "local-frontend-v1";
+  "revision": number;
+  "as_of": string;
+  "capabilities": FrontendCapabilities;
+  "personal": PersonalView;
+  "assistant": AssistantContext;
 };
 
 export type Goal = {

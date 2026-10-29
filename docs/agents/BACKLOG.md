@@ -537,7 +537,7 @@
 - **Verify:** actual Chrome download, mobile typecheck, backend suite, full web export; diff check.
 
 ### T75 — Frontend integration contract and isolated development kit
-- **Model:** Codex · **Status:** in_progress · **Depends on:** T74 done; explicit owner request to prepare backend for the independent frontend prompt. Does not accept pending T72/T73 or cloud gates.
+- **Model:** Codex · **Status:** review · **Depends on:** T74 done; explicit owner request to prepare backend for the independent frontend prompt. Does not accept pending T72/T73 or cloud gates.
 - **Scope:** services/api/vela/{frontend.py,main.py,planning.py}; services/api/tests/test_frontend.py; scripts/frontend-sandbox.py; contracts/frontend-client.mjs; scripts/test-frontend-client.mjs; generated OpenAPI/TypeScript; docs/product/FRONTEND_INTEGRATION.md; BACKLOG/HANDOFF and reports/T75.md.
 - **Acceptance:** authenticated same-revision bootstrap for Today/My Plan/Assistant/settings; canonical read-only assistant context and what-if; explicit resume command with revision/idempotency; exact allowlisted CORS for separately hosted frontends; dependency-free client preserving retry identity; one-command synthetic development server on OS-selected free loopback port, unique database and AI disabled, never demo.db/API8000–8003; screen/control mapping and honest unsupported cloud/persistence features. Existing HTML remains disconnected. No financial policy changes or new dependencies.
 - **Verify:** isolated API tests for unknown/no-goal/current-context/40+100 sequence/retry/conflict/what-if/erase/CORS/auth/restart; client tests; real loopback HTTP launch probe; backend suite; contracts generation and drift; mobile typecheck. Independent review required.

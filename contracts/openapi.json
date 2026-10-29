@@ -407,6 +407,55 @@
         "title": "ApplyImport",
         "type": "object"
       },
+      "AssistantContext": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "lessons": {
+            "$ref": "#/components/schemas/LessonsListView"
+          },
+          "note": {
+            "default": "Recorded activity totals cover the 30 days ending on the latest recorded transaction date; transaction_count counts all stored rows. With no rows, zero totals do not establish zero spending. Statements never change account balances or confirm future income. Observations may cover a longer recorded period.",
+            "title": "Note",
+            "type": "string"
+          },
+          "observations": {
+            "$ref": "#/components/schemas/ObservationsView"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/PlanningView"
+          },
+          "recorded_activity": {
+            "$ref": "#/components/schemas/Summary"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "source": {
+            "const": "local_verified_facts",
+            "default": "local_verified_facts",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision",
+          "as_of",
+          "source",
+          "plan",
+          "recorded_activity",
+          "observations",
+          "lessons",
+          "note"
+        ],
+        "title": "AssistantContext",
+        "type": "object"
+      },
       "BalanceCommand": {
         "additionalProperties": false,
         "properties": {
@@ -1591,6 +1640,142 @@
           "ranked_candidates"
         ],
         "title": "DecisionEvaluationSnapshot",
+        "type": "object"
+      },
+      "FrontendCapabilities": {
+        "additionalProperties": false,
+        "properties": {
+          "account_currencies": {
+            "items": {
+              "enum": [
+                "EUR",
+                "HUF"
+              ],
+              "type": "string"
+            },
+            "title": "Account Currencies",
+            "type": "array"
+          },
+          "assistant": {
+            "const": "deterministic_read_only",
+            "default": "deterministic_read_only",
+            "title": "Assistant",
+            "type": "string"
+          },
+          "bank_connections": {
+            "default": false,
+            "title": "Bank Connections",
+            "type": "boolean"
+          },
+          "cloud_otp": {
+            "default": false,
+            "title": "Cloud Otp",
+            "type": "boolean"
+          },
+          "fx_in_plan": {
+            "default": false,
+            "title": "Fx In Plan",
+            "type": "boolean"
+          },
+          "import_effect": {
+            "const": "analytics_only",
+            "default": "analytics_only",
+            "title": "Import Effect",
+            "type": "string"
+          },
+          "mode": {
+            "const": "local_single_user",
+            "default": "local_single_user",
+            "title": "Mode",
+            "type": "string"
+          },
+          "money_transfers": {
+            "default": false,
+            "title": "Money Transfers",
+            "type": "boolean"
+          },
+          "multi_goal": {
+            "default": false,
+            "title": "Multi Goal",
+            "type": "boolean"
+          },
+          "multi_user": {
+            "default": false,
+            "title": "Multi User",
+            "type": "boolean"
+          },
+          "persistent_chat": {
+            "default": false,
+            "title": "Persistent Chat",
+            "type": "boolean"
+          },
+          "planning_currency": {
+            "const": "EUR",
+            "default": "EUR",
+            "title": "Planning Currency",
+            "type": "string"
+          },
+          "server_reminders": {
+            "default": false,
+            "title": "Server Reminders",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mode",
+          "planning_currency",
+          "account_currencies",
+          "assistant",
+          "import_effect",
+          "cloud_otp",
+          "multi_user",
+          "persistent_chat",
+          "bank_connections",
+          "money_transfers",
+          "server_reminders",
+          "multi_goal",
+          "fx_in_plan"
+        ],
+        "title": "FrontendCapabilities",
+        "type": "object"
+      },
+      "FrontendView": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "assistant": {
+            "$ref": "#/components/schemas/AssistantContext"
+          },
+          "capabilities": {
+            "$ref": "#/components/schemas/FrontendCapabilities"
+          },
+          "contract_version": {
+            "const": "local-frontend-v1",
+            "default": "local-frontend-v1",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "personal": {
+            "$ref": "#/components/schemas/PersonalView"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "contract_version",
+          "revision",
+          "as_of",
+          "capabilities",
+          "personal",
+          "assistant"
+        ],
+        "title": "FrontendView",
         "type": "object"
       },
       "Goal": {
@@ -6234,6 +6419,98 @@
         "summary": "Balance"
       }
     },
+    "/v2/assistant/context": {
+      "get": {
+        "operationId": "context_v2_assistant_context_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantContext"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Context"
+      }
+    },
+    "/v2/frontend": {
+      "get": {
+        "operationId": "bootstrap_v2_frontend_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FrontendView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bootstrap"
+      }
+    },
     "/v2/imports/{preview_id}/apply": {
       "post": {
         "operationId": "apply_analytics_v2_imports__preview_id__apply_post",
@@ -6987,6 +7264,73 @@
           }
         },
         "summary": "Preview"
+      }
+    },
+    "/v2/planning/resume": {
+      "post": {
+        "operationId": "resume_v2_planning_resume_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanningCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanningView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resume"
       }
     },
     "/v2/planning/steps": {
