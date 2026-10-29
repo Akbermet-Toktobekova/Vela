@@ -77,6 +77,8 @@ export default function PersonalScreen() {
         <Copy variant="title">Planning & learning</Copy>
         <Copy muted>The current planning workspace uses a separate EUR balance, bills and goal that you enter there. These account balances and income records are not copied into that plan.</Copy>
         <Button label="Open planning workspace" onPress={() => router.push('/')} />
+        <Button label="Review statement patterns" secondary onPress={() => router.push('/observations')} />
+        <Button label="Upload statement" secondary onPress={() => router.push('/import')} />
         <Button label="Data & connection" secondary onPress={() => router.push('/settings')} />
         <Button label="Learn about money" secondary onPress={() => router.push('/learn')} />
       </Card>

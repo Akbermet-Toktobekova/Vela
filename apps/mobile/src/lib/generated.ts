@@ -237,6 +237,8 @@ export type ImportPreview = {
   "closing_balance": number | null;
   "income": number;
   "spending": number;
+  "refunds": number;
+  "net_spending": number;
   "transactions": (Transaction)[];
   "recurring": (Recurring)[];
   "warnings": (string)[];
@@ -327,6 +329,28 @@ export type Obligation_Output = {
   "amount": number;
   "due": string;
   "kind": "living" | "rent" | "debt" | "other";
+};
+
+export type Observation = {
+  "id": string;
+  "kind": "recurring_payment" | "price_change" | "income_series" | "category_totals" | "refund_link" | "own_transfer_evidence";
+  "label": string;
+  "status": "suggested";
+  "method_version": string;
+  "evidence_ids": (string)[];
+  "periods": (string)[];
+  "amounts": (number)[];
+  "difference": number | null;
+  "note": string;
+};
+
+export type ObservationsView = {
+  "revision": number;
+  "currency": "EUR";
+  "period_start": string | null;
+  "period_end": string | null;
+  "transaction_count": number;
+  "observations": (Observation)[];
 };
 
 export type OneOffExtraPreview = {
@@ -498,6 +522,8 @@ export type Summary = {
   "period_end": string | null;
   "income": number;
   "spending": number;
+  "refunds": number;
+  "net_spending": number;
   "top_categories": (CategoryTotal)[];
 };
 
@@ -506,7 +532,7 @@ export type Transaction = {
   "date": string;
   "description": string;
   "amount": number;
-  "category": "income" | "housing" | "utilities" | "groceries" | "dining" | "transport" | "shopping" | "subscriptions" | "health" | "debt" | "transfers" | "cash" | "fees" | "other";
+  "category": "income" | "housing" | "utilities" | "groceries" | "dining" | "transport" | "shopping" | "subscriptions" | "health" | "debt" | "transfers" | "cash" | "fees" | "refunds" | "other";
   "source": string;
 };
 

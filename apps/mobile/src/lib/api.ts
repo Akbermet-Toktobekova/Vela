@@ -63,6 +63,7 @@ export interface Transaction { id: string; date: string; description: string; am
 export interface Summary {
   transaction_count: number; period_start: string | null; period_end: string | null;
   income: number; spending: number; top_categories: {category: string; amount: number}[];
+  refunds?: number; net_spending?: number;
 }
 export interface Breakdown { cash: number; saved: number; protected: number; bills: number; planned: number }
 export interface Recommendation {
@@ -82,6 +83,7 @@ export interface ImportPreview {
   model: string | null; currency: string; period_start: string | null; period_end: string | null;
   opening_balance: number | null; closing_balance: number | null; income: number; spending: number;
   transactions: Transaction[]; recurring: Recurring[]; warnings: string[];
+  refunds?: number; net_spending?: number;
 }
 export interface ChatMessage { role: 'user' | 'assistant'; content: string }
 export interface ChatReply { reply: string; source: 'gemini' | 'local'; model: string | null; revision: number }

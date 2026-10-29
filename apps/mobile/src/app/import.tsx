@@ -1,136 +1,67 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useRef, useState } from 'react';
 import { router } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
-import { useMutation } from '@tanstack/react-query';
-import { Button, Card, Chip, Copy, Field, Notice, Row, Screen } from '../components/ui';
-import { useCommand, useFinancialState } from '../lib/state';
-import { cents, ImportPreview, money, uploadStatement } from '../lib/api';
-import { space } from '../theme';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button, Card, Copy, Notice, Row, Screen } from '../components/ui';
+import { useFinancialState } from '../lib/state';
+import { ImportPreview, money, request, uploadStatement } from '../lib/api';
 
 export default function ImportScreen() {
-  const stateQuery = useFinancialState();
-  const command = useCommand();
+  const state = useFinancialState();
+  const cache = useQueryClient();
   const [preview, setPreview] = useState<ImportPreview | null>(null);
-  const [cashText, setCashText] = useState('');
-  const [updateBalance, setUpdateBalance] = useState(true);
-  const [selectedBills, setSelectedBills] = useState<string[]>([]);
-  const [localError, setLocalError] = useState('');
-
-  const upload = useMutation({
-    mutationFn: uploadStatement,
-    onSuccess: data => {
-      setPreview(data);
-      setSelectedBills(data.recurring.map(r => r.id));
-      if (data.closing_balance !== null && data.closing_balance >= 0) {
-        setCashText(String(data.closing_balance / 100));
-        setUpdateBalance(true);
-      } else if (stateQuery.data?.snapshot) {
-        setCashText(String(stateQuery.data.snapshot.cash / 100));
-        setUpdateBalance(false);
-      } else {
-        setCashText('');
-        setUpdateBalance(true);
-      }
-      setLocalError('');
+  const [page, setPage] = useState(0);
+  const [error, setError] = useState('');
+  const retry = useRef<{signature: string; key: string} | null>(null);
+  const upload = useMutation({mutationFn: uploadStatement, onSuccess: data => {setPreview(data); setPage(0); setError('');}});
+  const apply = useMutation({
+    mutationFn: async () => {
+      if (!preview || !state.data) throw new Error('Refresh your data before saving.');
+      const signature = `${preview.id}:${state.data.revision}`;
+      if (retry.current?.signature !== signature) retry.current = {signature, key: `analytics-${Date.now()}-${Math.random().toString(36).slice(2)}`};
+      return request(`/v2/imports/${preview.id}/apply`, 'POST', {revision: state.data.revision}, retry.current.key);
     },
+    onSuccess: () => {void cache.invalidateQueries(); router.replace('/observations');},
   });
-
-  async function pickFile() {
+  async function pick() {
     try {
-      setLocalError('');
-      const result = await DocumentPicker.getDocumentAsync({
-        type: '*/*',
-        copyToCacheDirectory: true,
-      });
+      setError('');
+      const result = await DocumentPicker.getDocumentAsync({type: '*/*', copyToCacheDirectory: true});
       if (result.canceled || !result.assets?.[0]) return;
       const asset = result.assets[0];
-      upload.mutate({
-        uri: asset.uri,
-        name: asset.name,
-        mimeType: asset.mimeType,
-        file: (asset as {file?: File}).file,
-        base64: asset.base64,
-      });
-    } catch (e) {
-      setLocalError(e instanceof Error ? e.message : 'Could not pick file.');
-    }
+      setPreview(null); apply.reset();
+      upload.mutate({uri: asset.uri, name: asset.name, mimeType: asset.mimeType, file: (asset as {file?: File}).file, base64: asset.base64});
+    } catch (e) {setError(e instanceof Error ? e.message : 'Could not select a file.');}
   }
-
-  function toggleBill(id: string) {
-    setSelectedBills(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  }
-
-  function apply() {
-    if (!preview || !stateQuery.data) return;
-    try {
-      const needsBalance = !stateQuery.data.snapshot || updateBalance;
-      const cash = needsBalance ? cents(cashText) : undefined;
-      setLocalError('');
-      command.mutate({
-        path: `/v1/imports/${preview.id}/apply`,
-        body: {revision: stateQuery.data.revision, cash, obligation_ids: selectedBills},
-      }, {onSuccess: () => router.replace('/')});
-    } catch (e) {
-      setLocalError(e instanceof Error ? e.message : 'Enter a valid balance in EUR.');
-    }
-  }
-
-  return <Screen title="Upload statement" eyebrow="CSV · Excel · PDF · Photo">
-    <Card soft>
-      <Copy variant="title">Import your real bank data</Copy>
-      <Copy muted>CSV and Excel (.xlsx) files are parsed directly and categorized with Gemini. PDF statements and screenshots are read with Gemini 3.5 Flash-Lite.</Copy>
-      <Button label={upload.isPending ? 'Reading statement…' : preview ? 'Pick a different file' : 'Choose file (CSV / XLSX / PDF / Image)'} disabled={upload.isPending} onPress={() => {void pickFile();}} />
-    </Card>
-
-    {(localError || upload.error || command.error) && (
-      <Notice>{localError || upload.error?.message || command.error?.message}</Notice>
-    )}
-
+  const busy = upload.isPending || apply.isPending;
+  return <Screen title="Statement analysis" eyebrow="Historical records · EUR">
+    <Notice>Statements are used for analysis only. Saving never changes balances, savings, bills, debt or completed steps. A statement closing balance is historical evidence.</Notice>
+    <Copy muted>CSV and Excel are read locally. If AI processing is enabled on your server, document reading or category suggestions may use the configured external provider. Upload synthetic data for this local test.</Copy>
+    <Button label={upload.isPending ? 'Reading statement…' : preview ? 'Pick a different file' : 'Choose file (CSV / XLSX / PDF / Image)'} disabled={busy} onPress={() => {void pick();}} />
+    {Boolean(error || upload.error || apply.error || state.error) && <Notice>{error || upload.error?.message || apply.error?.message || state.error?.message}</Notice>}
+    {(apply.isError || state.isError) && <Button label="Refresh and try again" secondary onPress={() => {void state.refetch(); apply.reset();}} />}
     {preview && <>
       <Card>
         <Copy variant="title">{preview.filename}</Copy>
-        <Copy variant="small" muted>
-          {preview.transactions.length} transactions · {preview.period_start} → {preview.period_end} · {preview.parser === 'gemini' ? `AI (${preview.model})` : preview.model ? `Local + ${preview.model}` : 'Local parser'}
-        </Copy>
-        <Row label="Total income" value={money(preview.income)} />
-        <Row label="Total spending" value={money(preview.spending)} />
-        {preview.closing_balance !== null && <Row label="Statement closing balance" value={money(preview.closing_balance)} />}
-        {preview.warnings.map((w, i) => <Notice key={i}>{w}</Notice>)}
+        <Copy muted>{preview.transactions.length} transactions · {preview.period_start} → {preview.period_end} · {preview.currency} · {preview.parser === 'local' ? 'Local parser' : 'AI parser'}</Copy>
+        {preview.currency !== 'EUR' ? <Notice>Only EUR analysis is supported on this path. No conversion was applied; this statement cannot be saved here.</Notice> : <>
+          <Row label="Income (excluding labelled refunds)" value={money(preview.income)} />
+          <Row label="Recorded spending" value={money(preview.spending)} />
+          <Row label="Refund credits (labelled)" value={money(preview.refunds ?? 0)} />
+          <Row label="Spending less refund credits" value={money(preview.net_spending ?? preview.spending)} />
+          {preview.closing_balance !== null && <Row label="Historical closing balance · not applied" value={money(preview.closing_balance)} />}
+        </>}
+        {preview.warnings.map((warning, i) => <Notice key={i}>{warning}</Notice>)}
+        <Copy muted>Categories and refund labels are suggestions based on descriptions. They do not confirm account ownership or a matched purchase.</Copy>
       </Card>
-
       <Card>
-        <Copy variant="title">Balance setting</Copy>
-        {stateQuery.data?.snapshot && (
-          <View style={{flexDirection: 'row', gap: space.xs}}>
-            <Chip label="Update current cash" active={updateBalance} onPress={() => setUpdateBalance(true)} />
-            <Chip label={`Keep existing (${money(stateQuery.data.snapshot.cash)})`} active={!updateBalance} onPress={() => setUpdateBalance(false)} />
-          </View>
-        )}
-        {(!stateQuery.data?.snapshot || updateBalance) && (
-          <Field label="Current cash balance (EUR)" numeric placeholder="e.g. 2186.53" value={cashText} onChangeText={setCashText} />
-        )}
+        <Copy variant="title">Review transactions · page {page + 1} of {Math.max(1, Math.ceil(preview.transactions.length / 20))}</Copy>
+        {preview.transactions.slice(page * 20, page * 20 + 20).map(t => <Row key={t.id} label={`${t.date} · ${t.description} (${t.category})`} value={preview.currency === 'EUR' ? money(t.amount) : `${t.amount} minor units · ${preview.currency}`} />)}
+        <Button label="Previous rows" secondary disabled={page === 0 || busy} onPress={() => setPage(page - 1)} />
+        <Button label="Next rows" secondary disabled={(page + 1) * 20 >= preview.transactions.length || busy} onPress={() => setPage(page + 1)} />
       </Card>
-
-      {preview.recurring.length > 0 && <Card>
-        <Copy variant="title">Detected recurring bills ({preview.recurring.length})</Copy>
-        <Copy variant="small" muted>Tap to toggle which upcoming bills to add to your plan:</Copy>
-        <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: space.xs}}>
-          {preview.recurring.map(r => (
-            <Chip key={r.id} label={`${r.label.slice(0, 22)} · ${money(r.amount)} (${r.next_due})`}
-              active={selectedBills.includes(r.id)} onPress={() => toggleBill(r.id)} />
-          ))}
-        </View>
-      </Card>}
-
-      <Card>
-        <Copy variant="title">Sample transactions ({Math.min(10, preview.transactions.length)} of {preview.transactions.length})</Copy>
-        {preview.transactions.slice(0, 10).map(t => (
-          <Row key={t.id} label={`${t.date} · ${t.description.slice(0, 28)} (${t.category})`} value={money(t.amount)} />
-        ))}
-      </Card>
-
-      <Button label={command.isPending ? 'Applying…' : 'Save imported data'} disabled={command.isPending} onPress={apply} />
+      <Button label="Save statement analysis" loading={apply.isPending} disabled={upload.isPending || !state.data || preview.currency !== 'EUR'} onPress={() => apply.mutate()} />
     </>}
+    <Button label="Your saved accounts" secondary disabled={busy} onPress={() => router.push('/personal')} />
   </Screen>;
 }

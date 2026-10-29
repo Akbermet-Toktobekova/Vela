@@ -40,6 +40,8 @@ class ImportPreview(Record):
     closing_balance: SignedMoney | None = None
     income: int = 0
     spending: int = 0
+    refunds: int = 0
+    net_spending: int = 0
     transactions: list[Transaction] = Field(default_factory=list)
     recurring: list[Recurring] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
@@ -384,6 +386,8 @@ KEYWORDS = {
 
 def keyword_category(description: str, amount: int) -> str:
     d = description.lower()
+    if amount > 0 and re.search(r"\b(refund|refunded|erstattung|rückerstattung|возврат)\b", d):
+        return "refunds"
     for cat, words in KEYWORDS.items():
         if any(w in d for w in words):
             if cat == "income" and amount < 0:
@@ -555,6 +559,16 @@ async def build_preview(data: bytes, filename: str, content_type: str | None, qu
             try:
                 table = csv_rows(decode(data)) if kind == "csv" else xlsx_rows(data)
                 rows, warnings, meta["closing"] = tabular(table, filename)
+                header_index = find_header(table)
+                if header_index is not None:
+                    header = [str(c).strip().lower() for c in table[header_index]]
+                    if 'currency' in header:
+                        col = header.index('currency')
+                        currencies = {r[col].strip().upper() for r in table[header_index+1:] if len(r) > col and r[col].strip()}
+                        if len(currencies) > 1:
+                            raise ImportError_('Mixed currencies need separate statements; no conversion was applied.')
+                        if currencies:
+                            meta['currency'] = next(iter(currencies))
             except Exception as local_error:
                 if not enabled():
                     raise ImportError_(str(local_error)) from local_error
@@ -611,7 +625,7 @@ async def build_preview(data: bytes, filename: str, content_type: str | None, qu
     if not rows:
         raise ImportError_("No transactions found in this file.")
     if meta["currency"] not in ("EUR", "", None):
-        warnings.append(f"This statement looks like {meta['currency']}. Vela treats all amounts as EUR for now.")
+        warnings.append(f"This statement looks like {meta['currency']}. No conversion was applied; EUR-only analysis cannot save it.")
     if meta["opening"] is not None and meta["closing"] is not None:
         expected = meta["opening"] + sum(r["amount"] for r in rows)
         if abs(expected - meta["closing"]) > 100:
@@ -619,6 +633,9 @@ async def build_preview(data: bytes, filename: str, content_type: str | None, qu
     source = f"import:{filename[:80]}"
     txns = []
     for r in rows:
+        # Preserve explicit refund labels even when best-effort AI guessed income.
+        if keyword_category(r['description'], r['amount']) == 'refunds':
+            r['category'] = 'refunds'
         digest = hashlib.sha1(f"{r['date']}|{r['amount']}|{r['description']}".encode()).hexdigest()[:16]
         txns.append(Transaction(id=f"t-{digest}", date=r["date"], description=r["description"], amount=r["amount"],
                                 category=r.get("category") if r.get("category") in CATEGORIES else "other", source=source))
@@ -627,6 +644,8 @@ async def build_preview(data: bytes, filename: str, content_type: str | None, qu
     return ImportPreview(id=preview_id, filename=filename[:120], file_type=kind, parser=parser, model=model,
                          currency=meta["currency"] or "EUR", period_start=min(dates), period_end=max(dates),
                          opening_balance=meta["opening"], closing_balance=meta["closing"],
-                         income=sum(t.amount for t in real if t.amount > 0),
+                         income=sum(t.amount for t in real if t.amount > 0 and t.category != 'refunds'),
                          spending=sum(-t.amount for t in real if t.amount < 0),
+                         refunds=sum(t.amount for t in real if t.amount > 0 and t.category == 'refunds'),
+                         net_spending=sum(-t.amount for t in real if t.amount < 0)-sum(t.amount for t in real if t.amount > 0 and t.category == 'refunds'),
                          transactions=txns, recurring=detect_recurring(rows, today), warnings=warnings)

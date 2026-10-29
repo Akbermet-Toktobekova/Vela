@@ -10,9 +10,9 @@ PositiveMoney = Annotated[int, Field(strict=True, gt=0, le=1_000_000_000)]
 SignedMoney = Annotated[int, Field(strict=True, ge=-1_000_000_000, le=1_000_000_000)]
 
 CATEGORIES = ("income", "housing", "utilities", "groceries", "dining", "transport", "shopping",
-              "subscriptions", "health", "debt", "transfers", "cash", "fees", "other")
+              "subscriptions", "health", "debt", "transfers", "cash", "fees", "refunds", "other")
 Category = Literal["income", "housing", "utilities", "groceries", "dining", "transport", "shopping",
-                   "subscriptions", "health", "debt", "transfers", "cash", "fees", "other"]
+                   "subscriptions", "health", "debt", "transfers", "cash", "fees", "refunds", "other"]
 MAX_TRANSACTIONS = 3000
 
 
@@ -122,6 +122,8 @@ class Summary(Record):
     period_end: date | None
     income: int
     spending: int
+    refunds: int = 0
+    net_spending: int = 0
     top_categories: list[CategoryTotal]
 
 
@@ -179,7 +181,8 @@ def projected_balances(state: State, exclude_action: str | None = None) -> list[
     and active planned reservations. Each dated obligation within the horizon reduces the
     projected balance on its due date. Forecast income is never counted; only confirmed
     future cash inflows in `state.transactions` (date > as_of and <= horizon, amount > 0,
-    category != 'transfers') are included on their transaction date.
+    category != 'transfers', source not imported) are included on their transaction date.
+    Imported statement entries are historical analytics, never confirmed future cash.
     """
     s = state.snapshot
     if s is None:
@@ -190,7 +193,8 @@ def projected_balances(state: State, exclude_action: str | None = None) -> list[
     for obligation in sorted(s.obligations, key=lambda o: (o.due, o.id)):
         events_by_date[max(s.as_of, obligation.due)] -= obligation.amount
     for txn in state.transactions:
-        if s.as_of < txn.date <= s.horizon and txn.amount > 0 and txn.category != "transfers":
+        if (s.as_of < txn.date <= s.horizon and txn.amount > 0 and txn.category != "transfers"
+                and not txn.source.startswith('import:')):
             events_by_date[txn.date] += txn.amount
 
     points: list[tuple[date, int]] = []
@@ -281,8 +285,10 @@ def summary(state: State) -> dict:
             by_cat[t.category] += -t.amount
     top = sorted(by_cat.items(), key=lambda kv: -kv[1])[:6]
     return {"transaction_count": len(txns), "period_start": start.isoformat(), "period_end": end.isoformat(),
-            "income": sum(t.amount for t in recent if t.amount > 0 and t.category != "transfers"),
+            "income": sum(t.amount for t in recent if t.amount > 0 and t.category not in ("transfers", "refunds")),
             "spending": sum(-t.amount for t in recent if t.amount < 0 and t.category != "transfers"),
+            "refunds": sum(t.amount for t in recent if t.amount > 0 and t.category == "refunds"),
+            "net_spending": sum(-t.amount for t in recent if t.amount < 0 and t.category != "transfers") - sum(t.amount for t in recent if t.amount > 0 and t.category == "refunds"),
             "top_categories": [{"category": c, "amount": a} for c, a in top]}
 
 

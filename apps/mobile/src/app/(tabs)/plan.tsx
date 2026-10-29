@@ -21,10 +21,11 @@ function PlanContent({state}: {state: FinancialState}) {
   const [billKind, setBillKind] = useState<Obligation['kind']>('other');
   const [formError, setFormError] = useState('');
   const [showTxns, setShowTxns] = useState(false);
+  const [offset, setOffset] = useState(0);
 
   const txnsQuery = useQuery({
-    queryKey: ['transactions', state.revision],
-    queryFn: () => request<{transactions: Transaction[]; total: number}>('/v1/transactions?limit=50'),
+    queryKey: ['transactions', state.revision, offset],
+    queryFn: () => request<{transactions: Transaction[]; total: number}>(`/v1/transactions?limit=50&offset=${offset}`),
     enabled: showTxns && state.summary.transaction_count > 0,
   });
 
@@ -156,6 +157,12 @@ function PlanContent({state}: {state: FinancialState}) {
       {showTxns && (txnsQuery.data?.transactions ?? []).map(t => (
         <Row key={t.id} label={`${t.date} · ${t.description.slice(0, 32)} (${t.category})`} value={money(t.amount)} />
       ))}
+      {showTxns && <>
+        {txnsQuery.isError && <Notice>{txnsQuery.error.message}</Notice>}
+        <Copy muted>Page {Math.floor(offset / 50) + 1} of {Math.max(1, Math.ceil(state.summary.transaction_count / 50))}</Copy>
+        <Button label="Previous transactions" secondary disabled={offset === 0 || txnsQuery.isFetching} onPress={() => setOffset(Math.max(0, offset - 50))} />
+        <Button label="Next transactions" secondary disabled={offset + 50 >= state.summary.transaction_count || txnsQuery.isFetching} onPress={() => setOffset(offset + 50)} />
+      </>}
     </Card>}
 
     {state.actions.some(a => a.status !== 'planned') && <Card>

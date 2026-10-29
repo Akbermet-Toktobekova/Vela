@@ -16,3 +16,6 @@ Pending: cloud OTP and owner isolation via JWT, full migration/rollback, monetar
 
 ## UI-02 navigation follow-up — 2026-10-29
 Saved accounts now link to the existing planning workspace, settings/data and Learn. Planning/settings link back. Protected deep routes retain their allowed destination through Connect. The planning workspace still uses a separate manually entered EUR snapshot; v2 accounts/incomes are not copied or summed into it. Navigation repair is not shared-model integration. See reports/UI-02.md for actual browser results and remaining export/double-confirm findings.
+
+## T72 analytical statements — 2026-10-29
+The import screen now applies through /v2/imports/{id}/apply: historical entries only, no balance/default goal/bill/action writes. /v2/observations and /observations show cumulative suggested evidence and full paginated history. Labelled refunds are separate from earnings; imported future credits do not fund a plan. Original /v1 import apply remains legacy-compatible and is not the revised analytical-only contract. Existing v2 accounts and legacy planning still require a separate canonical-model migration. New refunds enum is not old-binary-readable; preserve a copy/export and do not downgrade a populated DB in place. See reports/T72.md for tests and actual Chrome evidence.

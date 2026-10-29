@@ -9,7 +9,7 @@ from fastapi import Body, Depends, FastAPI, File, Header, HTTPException, Query, 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import Field
-from .domain import (Record, Snapshot, PositiveMoney, Money, Obligation, Debt, StateView, PreviewView, Transaction,
+from .domain import (Record, Snapshot, PositiveMoney, Money, Obligation, Debt, StateView, PreviewView, Transaction, MAX_TRANSACTIONS,
                      fixture, view, accept, complete, eligibility, merge_transactions)
 from .debt import DebtSimulationView, compare_and_simulate
 from .decision import DecisionEvaluationSnapshot, evaluate_decision
@@ -17,9 +17,10 @@ from .lessons import (LessonDetailView, LessonProgressCommand, LessonsListView,
                       get_lesson_detail, list_lessons, record_lesson_progress)
 from .store import Store, Conflict
 from .ai import Quotas, MODELS, ROUTES, enabled
-from .imports import ImportPreview, ImportError_, build_preview, MAX_BYTES
+from .imports import ImportPreview, ImportError_, build_preview, MAX_BYTES, keyword_category
 from .chat import ChatRequest, ChatReply, chat
 from .personal import install_personal
+from .observations import ObservationsView, analyse
 
 
 class Command(Record):
@@ -469,9 +470,33 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         return change(who, key, body, "import", apply, {"preview_id": preview_id})
 
     @app.get("/v1/transactions", response_model=TransactionsView)
-    def transactions(limit: int = 300, who=Depends(owner)):
+    def transactions(limit: int = 300, offset: Annotated[int, Query(ge=0)] = 0, who=Depends(owner)):
         txns = store.read(who).transactions
-        return {"transactions": txns[:max(1, min(limit, 3000))], "total": len(txns)}
+        return {"transactions": txns[offset:offset+max(1, min(limit, 3000))], "total": len(txns)}
+
+    @app.post('/v2/imports/{preview_id}/apply', response_model=StateView)
+    def apply_analytics(preview_id: str, body: Command, who=Depends(owner), key=Depends(idempotency)):
+        payload = store.get_preview(who, preview_id)
+        if not payload:
+            raise HTTPException(404, 'This upload has expired. Upload the file again.')
+        imported = ImportPreview.model_validate_json(payload)
+        if imported.currency != 'EUR':
+            raise ValueError('Only EUR statement analytics is supported here. No conversion was applied.')
+        def apply(s):
+            keys = {(t.date, t.amount, t.description.lower()) for t in [*s.transactions, *imported.transactions]}
+            if len(keys) > MAX_TRANSACTIONS:
+                raise ValueError('The local analytical history limit was reached. No existing entries were removed.')
+            merge_transactions(s, imported.transactions)
+            # Upgrade previously imported, explicitly labelled refunds without changing
+            # their original description, date, amount or any confirmed finances.
+            for row in s.transactions:
+                if row.source.startswith('import:') and row.category in ('income', 'other') and keyword_category(row.description, row.amount) == 'refunds':
+                    row.category = 'refunds'
+        return change(who, key, body, 'import_analytics', apply, {'preview_id': preview_id})
+
+    @app.get('/v2/observations', response_model=ObservationsView)
+    def observations(who=Depends(owner)):
+        return analyse(store.read(who))
 
     # ---------- AI ----------
 

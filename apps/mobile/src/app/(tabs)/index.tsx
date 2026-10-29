@@ -78,6 +78,9 @@ function TodayContent({state}: {state: FinancialState}) {
       <Copy variant="title">Statement summary ({sum.transaction_count} rows)</Copy>
       <Row label={`Income (${sum.period_start} → ${sum.period_end})`} value={money(sum.income)} />
       <Row label="Spending (last 30 days)" value={money(sum.spending)} />
+      <Row label="Refund credits (labelled)" value={money(sum.refunds ?? 0)} />
+      <Row label="Spending less refund credits" value={money(sum.net_spending ?? sum.spending)} />
+      <Button label="Review statement patterns" secondary onPress={() => router.push('/observations')} />
       {sum.top_categories.slice(0, 4).map(c => <Row key={c.category} label={`  · ${c.category}`} value={money(c.amount)} />)}
     </Card>}
 

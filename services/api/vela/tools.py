@@ -241,9 +241,10 @@ def calculate_cash_flow(state: State | StateView | dict | Any, days: int = 30) -
         start = end - timedelta(days=max(1, days) - 1)
         recent = [t for t in txns if t.date >= start]
 
-        income_cents = sum(t.amount for t in recent if t.amount > 0 and t.category != "transfers")
+        income_cents = sum(t.amount for t in recent if t.amount > 0 and t.category not in ("transfers", "refunds"))
+        refund_cents = sum(t.amount for t in recent if t.amount > 0 and t.category == "refunds")
         spending_cents = sum(-t.amount for t in recent if t.amount < 0 and t.category != "transfers")
-        net_flow_cents = income_cents - spending_cents
+        net_flow_cents = income_cents + refund_cents - spending_cents
 
         return {
             "days": days,
@@ -251,6 +252,7 @@ def calculate_cash_flow(state: State | StateView | dict | Any, days: int = 30) -
             "period_start": start.isoformat(),
             "period_end": end.isoformat(),
             "income_cents": income_cents,
+            "refund_cents": refund_cents,
             "income_eur": format_eur(income_cents),
             "spending_cents": spending_cents,
             "spending_eur": format_eur(spending_cents),
@@ -269,7 +271,8 @@ def calculate_cash_flow(state: State | StateView | dict | Any, days: int = 30) -
         p_end = _get(summary_obj, "period_end")
         income_cents = _get(summary_obj, "income", 0)
         spending_cents = _get(summary_obj, "spending", 0)
-        net_flow_cents = income_cents - spending_cents
+        refund_cents = _get(summary_obj, 'refunds', 0)
+        net_flow_cents = income_cents + refund_cents - spending_cents
 
         if not isinstance(p_start, date):
             p_start = _parse_date(p_start)
