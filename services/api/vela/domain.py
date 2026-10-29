@@ -3,6 +3,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from .personal import PersonalState
 
 Money = Annotated[int, Field(strict=True, ge=0, le=1_000_000_000)]
 PositiveMoney = Annotated[int, Field(strict=True, gt=0, le=1_000_000_000)]
@@ -87,6 +88,7 @@ class Action(Record):
 
 
 class State(Record):
+    personal: PersonalState = Field(default_factory=PersonalState)
     revision: int = 0
     snapshot: Snapshot | None = None
     actions: list[Action] = Field(default_factory=list)
@@ -285,7 +287,7 @@ def summary(state: State) -> dict:
 
 
 def view(state: State, today: date, policy: str = "fifth-of-available-v1") -> dict:
-    data = state.model_dump(mode="json", exclude={"transactions"})
+    data = state.model_dump(mode="json", exclude={"transactions", "personal"})
     s = state.snapshot
     data.update(available=capacity(state), recommendation=recommendation(state, today, policy=policy), mode="local",
                 summary=summary(state),

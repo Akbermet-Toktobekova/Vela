@@ -5,6 +5,22 @@ export type AIStatus = {
   "models": (ModelUsage)[];
 };
 
+export type Account = {
+  "id": string;
+  "name": string;
+  "currency": "EUR" | "HUF";
+  "balance"?: number | null;
+  "confirmed_on"?: string | null;
+};
+
+export type AccountCommand = {
+  "revision": number;
+  "name": string;
+  "currency": "EUR" | "HUF";
+  "balance"?: number | null;
+  "confirmed_on": string;
+};
+
 export type ActionView = {
   "id": string;
   "amount": number;
@@ -23,6 +39,12 @@ export type ApplyImport = {
   "revision": number;
   "cash"?: number | null;
   "obligation_ids"?: (string)[];
+};
+
+export type BalanceCommand = {
+  "revision": number;
+  "balance": number;
+  "confirmed_on": string;
 };
 
 export type BillDone = {
@@ -319,6 +341,20 @@ export type OneOffExtraPreview = {
   "months_saved": number | null;
 };
 
+export type PersonalState = {
+  "focus"?: "spending" | "reserve" | "debt" | "goal" | "unsure";
+  "income_type"?: "regular" | "irregular" | "mixed" | "unknown";
+  "onboarded"?: boolean;
+  "accounts"?: (Account)[];
+  "incomes"?: (ReceivedIncome)[];
+};
+
+export type PersonalView = {
+  "revision": number;
+  "data": PersonalState;
+  "mode"?: "local";
+};
+
 export type Preview = {
   "amount": number;
 };
@@ -329,6 +365,29 @@ export type PreviewView = {
   "eligible": boolean;
   "remaining": number;
   "goal_after": number;
+};
+
+export type ProfileCommand = {
+  "revision": number;
+  "focus": "spending" | "reserve" | "debt" | "goal" | "unsure";
+  "income_type": "regular" | "irregular" | "mixed" | "unknown";
+};
+
+export type ReceivedCommand = {
+  "revision": number;
+  "account_id": string;
+  "amount": number;
+  "received_on": string;
+  "effect": "add" | "included" | "replace";
+  "current_balance"?: number | null;
+};
+
+export type ReceivedIncome = {
+  "id": string;
+  "account_id": string;
+  "amount": number;
+  "received_on": string;
+  "effect": "add" | "included" | "replace";
 };
 
 export type Recommendation = {

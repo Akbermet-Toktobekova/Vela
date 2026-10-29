@@ -5,6 +5,9 @@
 
 ## Сейчас
 
+- **2026-10-29 T71:** local saved profile/accounts/income /v2 slice implemented, review. New /personal screen reached after local Connect or preview Open my saved data. Persistent data separate from preview and legacy snapshot. Backend217/typecheck/contracts pass; API restarted on8000. No Supabase/OTP/cloud acceptance. See reports/T71.md and docs/product/LOCAL_V2.md.
+
+
 - **2026-10-29 T66 follow-up:** owner-requested three fixes implemented: completed copy, direct evidence page, Boolean error guard removing RN Web warning. Fresh real Chrome rerun and typecheck/backend215/web-export pass. See T66 report follow-up; earlier findings are historical. Native checks and independent acceptance remain open.
 
 

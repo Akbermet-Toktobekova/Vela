@@ -19,6 +19,7 @@ from .store import Store, Conflict
 from .ai import Quotas, MODELS, ROUTES, enabled
 from .imports import ImportPreview, ImportError_, build_preview, MAX_BYTES
 from .chat import ChatRequest, ChatReply, chat
+from .personal import install_personal
 
 
 class Command(Record):
@@ -493,4 +494,5 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         store.erase(who)
         return {"status": "deleted", "scope": "Balance, bills, plans, transactions and pending uploads. Anonymous AI usage counters are kept."}
 
+    install_personal(app, store, owner, idempotency, clock)
     return app

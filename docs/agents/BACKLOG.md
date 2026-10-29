@@ -495,3 +495,10 @@
 - **Scope:** deployment templates, operations docs, report and status files.
 - **Acceptance:** Render API/worker + Supabase + SMTP configuration without secrets; monthly estimate and activation checklist; no deployment/purchase without owner approval.
 - **Verify:** git diff --check; task-relevant checks recorded in report; code changes require python scripts/check.py, mobile typecheck if affected, contract check if API affected.
+
+
+### T71 — Local saved personal profile/accounts/income slice
+- **Model:** GPT-6.1 Sol · **Status:** review · **Depends on:** owner request 2026-10-29 to connect new screens to backend, bounded local-first slice; cloud/security gates unchanged.
+- **Scope:** personal.py models/routes, State personal field and legacy-view exclusion, main router registration, personal screen/connect/layout/preview entry, personal tests, generated contracts, docs/task reports.
+- **Acceptance:** authenticated local /v2 persistence; optional unknown balance, profile, EUR/HUF accounts, replacement balance and three income modes; retry identity/revision conflict; legacy finances unchanged; export/delete include data. No cloud/auth/FX/recommendation acceptance.
+- **Verify:** backend check, targeted personal tests, mobile typecheck, generate-contracts and --check, full web export. Native/UI persistence proof separate.

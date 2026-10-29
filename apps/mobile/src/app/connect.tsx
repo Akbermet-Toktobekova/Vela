@@ -20,7 +20,7 @@ export default function ConnectScreen() {
   const [url, setUrl] = useState(defaultApiUrl);
   const [token, setToken] = useState('');
   const {setConnected} = useConnection();
-  const mutation = useMutation({mutationFn: () => connect({url, token}), onSuccess: () => {setConnected(true); router.replace('/');}});
+  const mutation = useMutation({mutationFn: () => connect({url, token}), onSuccess: () => {setConnected(true); router.replace('/personal');}});
   return <Screen title="Connect Vela" eyebrow="Local API">
     <Card soft><Copy variant="title">Explore the new Vela experience</Copy><Copy muted>Try the first-time journey and new screens using isolated example data.</Copy><Button label="Open design preview" onPress={() => router.push("/pilot")} /></Card>
     <Card soft>

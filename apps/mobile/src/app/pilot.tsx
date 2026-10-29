@@ -96,6 +96,7 @@ export default function PilotScreen() {
     {page === 'welcome' && <Card soft>
       <Copy variant="hero">Understand your money. Choose your next step.</Copy>
       <Copy muted>Start with what you know. Build your picture over time.</Copy>
+      <Button label="Open my saved data" onPress={() => router.push('/personal')} />
       <Button label="Try the first-time journey" onPress={() => go('intent')} />
       <Button label="Explore an example" secondary onPress={() => {setBalance(120000); go('today');}} />
       <Copy variant="small" muted>Cloud email sign-in will be connected in the account integration task.</Copy>
