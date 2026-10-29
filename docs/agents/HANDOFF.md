@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 UI-02 review:** restored saved-account/planning/settings/Learn navigation and safe protected-route return after Connect. Real Chrome P0 -> preview/plan/cancel/shortfall/bill-pay/complete/debt/lesson/CSV-repeat/disconnect exercised; see reports/UI-02.md. Financial models explicitly separate; NOT shared-finance integration. Export Share Permission denied, duplicate completion gives safe conflict; deletion confirmation only cancelled. Backend217/typecheck/contracts/full export/UI6/navigation allowlist pass. Next owner request: three monthly synthetic statements + predetermined patterns and comparison in a separate verification slice.
+
 - **2026-10-29 UI-TEST-05:** full workflow attempt/inventory recorded in reports/UI-TEST-05.md. Dedicated test DB/API8001: optional profile, EUR/HUF unknown, double-save, real outage/restart/retry, two-tab revision conflict and reload PASS; EUR1207/HUFunknown/4 incomes. Prototype onboarding/action/evidence/import-error/reminders exercised separately. Integrated end-to-end BLOCKED: /personal has no path to plan/assistant/import/settings/learn; direct legacy route reconnect returns personal. All U01-U22/J01-J12 dispositions recorded, none silently skipped. Backend217, journeys31, offline60, UI regressions6, TS/contracts pass. Native and integrated export/delete unrun; no done/release promotion.
 
 - **2026-10-29 UI-TEST-04:** continued T71 real Chrome check: balance replacement, all three income modes, invalid precision/negative input, error clearing, Back without Save and reload/reconnect PASS. Synthetic account retained EUR1100 / 3 income records. Income form lacks balance date/received-date entry. HUF/unknown/retry/conflict/native unrun. See reports/UI-TEST-04.md; T71 remains review.

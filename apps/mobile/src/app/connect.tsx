@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { connectionDestination } from '../lib/navigation';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { useMutation } from '@tanstack/react-query';
@@ -17,10 +18,11 @@ function defaultApiUrl(): string {
 }
 
 export default function ConnectScreen() {
+  const {returnTo} = useLocalSearchParams<{returnTo?: string | string[]}>();
   const [url, setUrl] = useState(defaultApiUrl);
   const [token, setToken] = useState('');
   const {setConnected} = useConnection();
-  const mutation = useMutation({mutationFn: () => connect({url, token}), onSuccess: () => {setConnected(true); router.replace('/personal');}});
+  const mutation = useMutation({mutationFn: () => connect({url, token}), onSuccess: () => {setConnected(true); router.replace(connectionDestination(returnTo));}});
   return <Screen title="Connect Vela" eyebrow="Local API">
     <Card soft><Copy variant="title">Explore the new Vela experience</Copy><Copy muted>Try the first-time journey and new screens using isolated example data.</Copy><Button label="Open design preview" onPress={() => router.push("/pilot")} /></Card>
     <Card soft>

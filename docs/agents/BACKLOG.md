@@ -508,3 +508,9 @@
 - **Scope:** reports/UI-TEST-05.md, HANDOFF/BACKLOG, generated offline eval report. Verification only.
 - **Result:** integrated path blocked at personal-to-plan/assistant/import/settings navigation; complete U01-U22/J01-J12 dispositions and prototype-vs-persisted evidence in report. No code acceptance implied.
 - **Verify:** actual Chrome persistent/prototype paths, backend217, journeys31, offline60, UI regression6, TS/contracts exit0. Native checks unrun.
+
+### UI-02 — Restore connected navigation and protected-route return
+- **Model:** Codex · **Status:** review · **Depends on:** owner request after UI-TEST-05; existing review statuses unchanged.
+- **Scope:** mobile src/app/_layout.tsx, connect.tsx, personal.tsx, settings.tsx, (tabs)/index.tsx; src/lib/navigation.ts; scripts/check-navigation.cjs; docs/product/LOCAL_V2.md, BACKLOG/HANDOFF and reports/UI-02.md.
+- **Acceptance:** saved accounts expose planning/data/learning; planning has return to accounts; protected direct routes reconnect to intended allowed local route; malicious/external return destinations rejected. Clearly distinguish legacy EUR planning inputs from v2 accounts; no automatic financial copying/summing/mutation. Existing planning workflow becomes testable by normal UI. No claim of completed shared financial-model integration.
+- **Verify:** focused navigation regression, current UI regressions, backend suite, mobile typecheck, contract check, full web export; real Chrome entry-to-plan manual P0 and reachable downstream branches, with remaining failures documented.

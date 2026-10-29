@@ -73,6 +73,13 @@ export default function PersonalScreen() {
       <Button label="Refresh saved data" secondary onPress={() => {void query.refetch();}} />
       <Row label="Income records" value={String(state.data.incomes?.length ?? 0)} />
       <Notice>Balances stay separate by currency. Missing exchange rates are not treated as zero. Planning will be connected after obligations and goals.</Notice>
+      <Card>
+        <Copy variant="title">Planning & learning</Copy>
+        <Copy muted>The current planning workspace uses a separate EUR balance, bills and goal that you enter there. These account balances and income records are not copied into that plan.</Copy>
+        <Button label="Open planning workspace" onPress={() => router.push('/')} />
+        <Button label="Data & connection" secondary onPress={() => router.push('/settings')} />
+        <Button label="Learn about money" secondary onPress={() => router.push('/learn')} />
+      </Card>
     </> : <Card>
       {page === 'profile' ? <>
         <Copy variant="title">What would you like help with?</Copy>{focusChoices.map(c => <Chip key={c.id} label={c.label} active={focus === c.id} onPress={() => {if (!busy) setFocus(c.id);}} />)}

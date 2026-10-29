@@ -13,3 +13,6 @@ Storage expansion: personal is a typed field inside the existing state JSON; old
 Rollback boundary: older binaries reject the new personal field after a v2 write. Do not downgrade a populated database in place. Preserve a complete export/copy and use a compatibility-aware migration in T31/T50 before any cloud rollout. This slice provides forward compatibility of old data, not a proven zero-loss old-binary downgrade. No existing records are rewritten on startup.
 
 Pending: cloud OTP and owner isolation via JWT, full migration/rollback, monetary action pipeline, goals/debts, persistent chat, analytic import, FX, reminder scheduling and native shortcut. Until then Today shows known accounts and a clarification rather than a fabricated recommendation.
+
+## UI-02 navigation follow-up — 2026-10-29
+Saved accounts now link to the existing planning workspace, settings/data and Learn. Planning/settings link back. Protected deep routes retain their allowed destination through Connect. The planning workspace still uses a separate manually entered EUR snapshot; v2 accounts/incomes are not copied or summed into it. Navigation repair is not shared-model integration. See reports/UI-02.md for actual browser results and remaining export/double-confirm findings.

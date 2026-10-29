@@ -40,6 +40,8 @@ export default function SettingsScreen() {
   });
 
   return <Screen title="Data & AI" eyebrow="Settings">
+    <Button label="Your saved accounts" secondary onPress={() => router.push('/personal')} />
+    <Copy muted>Export and deletion cover both saved accounts and the planning workspace.</Copy>
     {aiQuery.data && (
       <Card>
         <Copy variant="title">Gemini Flash-Lite status</Copy>

@@ -91,5 +91,5 @@ function TodayContent({state}: {state: FinancialState}) {
 }
 
 export default function TodayScreen() {
-  return <Screen title="Today" eyebrow="Vela"><StateGate>{state => <TodayContent state={state} />}</StateGate></Screen>;
+  return <Screen title="Today" eyebrow="Vela · planning workspace"><Button label="Your saved accounts" secondary onPress={() => router.push('/personal')} /><Notice>This workspace uses its own EUR balance, bills and goal. Saved accounts and income are managed separately.</Notice><StateGate>{state => <TodayContent state={state} />}</StateGate></Screen>;
 }
