@@ -159,3 +159,56 @@ class SharedPlanningTests(unittest.TestCase):
         old_shape = before.copy()
         old_shape['personal'].pop('planning')
         self.assertFalse(State.model_validate(old_shape).personal.planning.active)
+
+    def test_shared_readers_never_use_preserved_legacy_snapshot(self):
+        self.write('/v1/demo')
+        account = self.account()
+        self.write('/v2/planning/adopt-legacy', {'account_id': account, 'confirm_finances': True})
+        before = self.get('/v1/export')['snapshot']
+        self.write(f'/v2/accounts/{account}/balance', {'balance': 1000, 'confirmed_on': str(self.day)}, 'PUT')
+        lessons = self.get('/v1/lessons')
+        self.assertEqual(lessons['active_recommendation_kind'], 'shortfall')
+        self.assertEqual(lessons['active_action_id'], 'external_assistance_shortfall')
+        state = self.get('/v1/state')
+        self.assertIsNone(state['snapshot'])
+        self.assertEqual(state['actions'], [])
+        self.assertEqual(state['recommendation']['kind'], 'clarify')
+        self.assertEqual(self.get('/v1/export')['snapshot'], before)
+        revision = self.get()['revision']
+        self.assertEqual(self.client.get('/v1/decision', headers=self.headers).status_code, 409)
+        for route, body in [('/v1/decision/evaluate', {'revision': revision}),
+                            ('/v1/preview', {'amount': 100}),
+                            ('/v1/chat', {'messages': [{'role': 'user', 'content': 'Explain my next step'}]})]:
+            response = self.command(route, body)
+            self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(self.get()['revision'], revision)
+
+    def test_empty_lessons_adoption_mismatch_and_debt_confirmation(self):
+        self.assertGreater(self.get('/v1/lessons')['total_count'], 0)
+        self.write('/v1/demo')
+        account = self.account(balance=99900)
+        before = self.get('/v1/export')
+        response = self.command('/v2/planning/adopt-legacy', {'revision': before['revision'], 'account_id': account, 'confirm_finances': True})
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(self.get('/v1/export'), before)
+        self.write(f'/v2/accounts/{account}/balance', {'balance': 100000, 'confirmed_on': str(self.day)}, 'PUT')
+        self.write('/v2/planning/adopt-legacy', {'account_id': account, 'confirm_finances': True})
+        self.write('/v1/debts', {'debt': {'id': 'debt-new', 'balance_cents': 10000, 'apr_bps': 1000}})
+        self.assertFalse(self.get()['planning']['debts_confirmed'])
+        self.assertIsNotNone(self.get()['needs_input'])
+
+
+    def test_shared_plan_imports_remain_analytical_and_deduplicate(self):
+        self.p0()
+        before = self.get('/v1/export')
+        fixtures = Path(__file__).resolve().parents[3] / 'docs/testing/pattern-statements'
+        for month in ('07', '08', '09', '09'):
+            file = fixtures / f'SYNTHETIC-2026-{month}-EUR.csv'
+            response = self.client.post('/v1/imports', headers=self.headers, files={'file': (file.name, file.read_bytes(), 'text/csv')})
+            self.assertEqual(response.status_code, 200, response.text)
+            self.write(f"/v2/imports/{response.json()['id']}/apply")
+        after = self.get('/v1/export')
+        self.assertEqual(len(after['transactions']), 56)
+        self.assertEqual(after['personal'], before['personal'])
+        self.assertEqual(after['snapshot'], before['snapshot'])
+        self.assertEqual(after['actions'], before['actions'])

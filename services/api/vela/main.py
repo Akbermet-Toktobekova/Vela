@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import Field
 from .domain import (Record, Snapshot, PositiveMoney, Money, Obligation, Debt, StateView, PreviewView, Transaction, MAX_TRANSACTIONS,
-                     fixture, view, accept, complete, eligibility, merge_transactions)
+                     fixture, view as legacy_view, accept, complete, eligibility, merge_transactions)
 from .debt import DebtSimulationView, compare_and_simulate
 from .decision import DecisionEvaluationSnapshot, evaluate_decision
 from .lessons import (LessonDetailView, LessonProgressCommand, LessonsListView,
@@ -144,6 +144,18 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
     async def value_handler(request, exc):
         return JSONResponse(status_code=422, content={"detail": str(exc)})
 
+    def require_legacy(s):
+        if s.personal.planning.active:
+            raise HTTPException(409, 'Use /v2/planning for your current shared account plan.')
+
+    def view(s, today):
+        if not s.personal.planning.active:
+            return legacy_view(s, today)
+        # The original snapshot remains in storage/export, never presented as current facts.
+        data = legacy_view(s.model_copy(update={'snapshot': None, 'actions': []}), today)
+        data['recommendation'] = {'kind': 'clarify', 'amount': 0, 'message': 'Open your shared account plan for current facts.'}
+        return data
+
     def change(who, key, body, kind, apply, extra=None):
         def checked(s):
             if s.personal.planning.active and kind not in ('import_analytics', 'add_debt', 'delete_debt'):
@@ -259,6 +271,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
     @app.post("/v1/preview", response_model=PreviewView)
     def preview(body: Preview, who=Depends(owner)):
         s = store.read(who)
+        require_legacy(s)
         data = view(s, clock())
         allowed = (s.snapshot is not None and eligibility(s, clock()) is None and 0 < body.amount <= data["available"]
                    and body.amount <= max(0, s.snapshot.goal_target-s.snapshot.saved))
@@ -326,6 +339,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         who=Depends(owner),
     ):
         s = store.read(who)
+        require_legacy(s)
         return evaluate_decision(s, clock(), policy=policy)
 
     @app.post("/v1/decision/evaluate", response_model=DecisionEvaluationSnapshot)
@@ -337,6 +351,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         snap_holder: dict[str, DecisionEvaluationSnapshot] = {}
 
         def apply(s):
+            require_legacy(s)
             snap = evaluate_decision(s, clock(), policy=body.policy)
             snap_holder["snapshot"] = snap
             s.history.append({"event": "decision_snapshot", "revision": s.revision + 1, "snapshot": snap.model_dump(mode="json")})
@@ -509,7 +524,9 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
 
     @app.post("/v1/chat", response_model=ChatReply)
     async def assistant_chat(body: ChatRequest, who=Depends(owner)):
-        return await chat(body, store.read(who), clock(), quotas)
+        s = store.read(who)
+        require_legacy(s)
+        return await chat(body, s, clock(), quotas)
 
     @app.get("/v1/ai/status", response_model=AIStatus)
     def ai_status(who=Depends(owner)):

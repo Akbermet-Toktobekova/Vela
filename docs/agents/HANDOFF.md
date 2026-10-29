@@ -5,6 +5,9 @@
 
 ## Сейчас
 
+- **2026-10-29 T74 review:** continuation from9ca6cf8 completed. Stale lesson context fixed; legacy state no longer asserts old cash, old preview/decision/evaluate/chat explicitly unavailable after activation. Backend230/targeted7/contracts drift0/TS/UI6/navigation/full web export PASS. Real Chrome new-account/no-goal/plan/bill/preview40/income100/complete/cancel/Assistant/Learn and separate explicit legacy adoption PASS; original snapshot preserved. New isolated APIs8002/8003 and databases only; demo.db/API8000/API8001 untouched. See reports/T74.md continuation. Next independent orchestrator: `Проверь T74`. T72/T73 remain review; no done/release promotion.
+
+
 - **2026-10-29 T74 IN_PROGRESS — continuation checkpoint requested by owner.** Read reports/T74.md FIRST after this HANDOFF, then T74 BACKLOG Scope. Canonical local account-plan backend and new shared-plan/shared-assistant UI implemented but NOT browser-verified. Backend227/targeted4/typecheck pass; contracts generated. Still must fix/audit stale legacy lesson/advice readers, finish migration/read-safety tests, run final gates and actual isolated Chrome flow. Do NOT treat this as review/done or completed integration. Preserve live API8000/demo.db; older dedicated API8001 currently runs T72 code. Detailed files, process recovery, commands and next steps in reports/T74.md.
 
 - **2026-10-29 T73 review:** web Export JSON now downloads locally, native Share retained. Actual Chrome produced Downloads/vela-export.json; UTF-8 JSON equals live isolated test export56rows/account1000/revision5, token absent. Download-event helper timed out on Blob, filesystem artifact verified. Backend223/TS/full web export pass. See reports/T73.md. Canonical account/plan migration is next; no done/release promotion.

@@ -119,6 +119,13 @@ def resolve_contextual_action_id(
     explicit_action_id: str | None = None,
 ) -> tuple[str, str, str]:
     """Determines the active catalogue `action_id` and recommendation summary for contextual lesson matching."""
+    if state.personal.planning.active:
+        from .planning import planning_view
+        facts = planning_view(state, today)
+        kind = facts.recommendation_kind
+        action = {'clarify': 'clarify_material_unknown', 'shortfall': 'external_assistance_shortfall',
+                  'save': 'contribute_savings_goal'}.get(kind, 'maintain_current_plan')
+        return explicit_action_id or action, kind, facts.message
     rec = recommendation(state, today)
     rec_kind = str(rec.get("kind", "maintain"))
     rec_msg = str(rec.get("message", ""))
