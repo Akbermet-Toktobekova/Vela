@@ -522,13 +522,14 @@
 - **Verify:** independent Decimal/csv reconciliation; actual Chrome on isolated test DB; compare row counts and money effects, document semantic/pattern gaps. No live AI or paid calls.
 
 ### T72 — Local analytical import and cumulative evidence observations
-- **Model:** Codex · **Status:** review · **Depends on:** explicit owner request after PATTERN-01; local-only slice, no cloud/security gate bypass.
+- **Model:** Codex · **Status:** done · **Depends on:** explicit owner request after PATTERN-01; local-only slice, no cloud/security gate bypass.
 - **Scope:** services/api/vela/{domain.py,imports.py,main.py,tools.py,observations.py}; tests/test_statement_analytics.py; mobile app/{import.tsx,observations.tsx,personal.tsx,(tabs)/index.tsx,(tabs)/plan.tsx}, lib/{api.ts,navigation.ts}; generated contracts; docs/product/LOCAL_V2.md; task records and report.
 - **Acceptance:** new /v2 statement-apply only merges analytics and never creates/changes balance/saved/obligations/debt/actions; original /v1 apply retained for compatibility. Replace import UI balance/recurring-write controls with analytics-only copy and full preview pagination. Labelled refund credits separated from earnings in preview/summary/tools; imported future dates never finance a plan. Cumulative deterministic suggested observations across three source fixtures, dated evidence IDs/version, no invented confidence/financial thresholds or paid AI. Reachable history pagination beyond50. No automatic unification of legacy snapshot with v2 accounts; record as remaining separate migration.
 - **Verify:** red/green fixture regressions including import invariants/retry/conflict/no-profile/future rows/refund/own-transfer/cumulative patterns/history; backend, typecheck, generate-contracts and drift, UI/navigation regressions, full web export; real isolated Chrome reimport fixtures.
 
 - **Independent review 2026-10-29:** REWORK R1: summary-backed cash-flow tool omits explicit refund_cents (August oracle2000); raw branch/UI/summary correct. New isolated HTTP+Chrome import/reimport/evidence/history and backend231/targeted6/TS/contracts/UI/nav/web pass. See reports/T72.md Review; T74 remains accepted.
 - **R1 execution 2026-10-29:** one-field fix plus frozen August raw/StateView/JSON oracle regression submitted for new-context review. Targeted7/backend238/TS/contracts/UI/nav/web PASS; report distinguishes current automated proof from historical Chrome evidence.
+- **Independent R1 acceptance 2026-10-29:** ACCEPT ab6d533 in separate chat; fresh targeted7/backend242/oracle/TS/contracts/UI/navigation/web PASS. See reports/T72-independent-r1.md. Earlier independent import/Chrome evidence plus repaired R1 closes this bounded local task; no cloud/journey promotion.
 
 ### T73 — Browser JSON export delivery
 - **Model:** Codex · **Status:** review · **Depends on:** owner request after UI-02 export Permission denied.

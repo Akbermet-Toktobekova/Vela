@@ -2,6 +2,8 @@
 
 # Vela — общий план продукта и прогресс
 
+2026-10-29: T72 local analytics accepted after independent R1 re-review of ab6d533. Refund evidence now agrees across raw/typed/JSON tools; targeted7/backend242 and independent oracle pass. See [R1 acceptance](docs/agents/reports/T72-independent-r1.md). B/C remain partial for cloud, durable jobs, reconciliation and full journeys; earlier REWORK entries below are historical.
+
 Обновлено: **2026-10-27**. Владелец видения: пользователь. Ведение статусов: оркестратор.
 
 ## 1. Начни здесь

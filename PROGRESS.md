@@ -2,6 +2,8 @@
 
 # Vela (FinAgent) — Прогресс разработки / Development Progress
 
+2026-10-29 latest: T72 independently ACCEPTED after bounded refund R1 repair ab6d533; targeted7/backend242/oracle/TS/contracts/UI/nav/web PASS. [Review](docs/agents/reports/T72-independent-r1.md). T75/T24b/T73 acceptance remains separate; no release or J01–J12 promotion. Earlier T72 REWORK above is historical.
+
 Независимое ревью 2026-10-29: ограниченный локальный T74 принят после исправления receipt bypass. Проверено: backend231 (30.389s), targeted8, real HTTP receipt matrix и race/fingerprint probes2, contracts drift0, TS, UI6, navigation, web958modules/21bundles. [Доказательства и границы](docs/agents/reports/T74.md). T72/T73 не приняты; сквозные J01–J12 и релизные гейты не повышены.
 
 ## Актуальная навигация — 2026-10-27 / PLAN-01
