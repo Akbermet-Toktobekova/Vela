@@ -232,6 +232,12 @@
 
 ### CHECKPOINT-2 — Оркестратор: `Чекпоинт фазы 2`
 
+### CP2-ENV — Align installed Expo SDK patch dependencies
+- **Model:** Codex delegated executor · **Status:** in_progress · **Depends on:** owner-authorized queue; actual CHECKPOINT-2 diagnostic19/20.
+- **Scope:** apps/mobile/package.json, apps/mobile/package-lock.json; reports/CP2-ENV.md. Existing dependency patch alignment only; no new packages, UI or backend changes.
+- **Acceptance:** align doctor-reported expo~58.0.21, expo-constants~58.0.14, expo-dev-client~58.0.17, expo-font~58.0.11, expo-linking~58.0.15, expo-router~58.0.28, react-native0.88.1; doctor20/20 and typecheck. Preserve other dependencies and scripts. Lockfile reflects local install; no global install.
+- **Verify:** npm run typecheck; npx expo-doctor; full Expo web export; diff check. Root independent diff/evidence review, no self acceptance.
+
 ---
 
 ## Фаза 3 — Продакшн-инфраструктура (Приоритет 3)
