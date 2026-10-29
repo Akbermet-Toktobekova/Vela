@@ -245,11 +245,12 @@
 ## Фаза 3 — Продакшн-инфраструктура (Приоритет 3)
 
 ### T30 — Решение по БД и авторизации (ADR)
-- **Model:** Codex delegated executor · **Status:** in_progress · **Depends on:** approved PILOT_SPEC decision; documentation may be recorded before CHECKPOINT-2, real cloud data still requires accepted CHECKPOINT-2. Owner authorized full sequential/parallel queue.
+- **Model:** Codex delegated executor · **Status:** done · **Depends on:** approved PILOT_SPEC decision; documentation may be recorded before CHECKPOINT-2, real cloud data still requires accepted CHECKPOINT-2. Owner authorized full sequential/parallel queue.
 - **Decision:** Resolved 2026-10-29: Supabase Postgres/Auth/private Storage, email OTP; Render FastAPI plus separate worker; Postgres jobs/outbox without Redis. Local synthetic SQLite remains a compatibility test mode. No cloud activation, purchase or local-data upload authorized.
 - **Scope:** `docs/adr/0001-database-and-auth.md` (новый)
 - **Steps:** зафиксировать выбранный пользователем вариант в архитектурном решении `docs/adr/0001-database-and-auth.md` (Context, Decision, Consequences, Migration Path).
 - **Acceptance:** файл `docs/adr/0001-database-and-auth.md` создан и отражает выбранный вариант.
+- **Review 2026-10-29:** root independent ACCEPT: ADR manually checked against PILOT_SPEC and actual local owner/store implementation; all approved decisions traced, no invented provider/paid settings, explicit migration/rollback and activation gates. Report T30.md. Documentation only, not cloud readiness.
 
 ### T31 — Alembic-миграции
 - **Model:** GPT-6.1 Sol · **Status:** todo · **Depends on:** T30, T50
@@ -355,7 +356,7 @@
 - `review` → `done` только независимым ревью. В Verify `backend` означает `python scripts/check.py`, `contracts` — генерацию и проверку drift, `mobile typecheck` — `npm run typecheck` в apps/mobile. Указанный новый тестовый файл создаётся задачей, до реализации его команды не считаются выполненными.
 
 ### T50 — Контракт данных и переход от demo к пользовательскому продукту
-- **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T30
+- **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** in_progress · **Depends on:** T30
 - **Scope:** docs/adr/0007-product-data-contract.md (новый), docs/product/data-contract.md (новый)
 - **Steps:** Спроектировать минимальный совместимый контракт для профиля, счетов/остатков, received/expected income, целей/allocations, provenance, import/source rows, action/execution links, preferences и chat. Сопоставить с текущим State; не требовать отдельную таблицу для каждой сущности. Зафиксировать API-совместимость, версии, сохранность существующих данных, миграционный путь и откат. БД берётся только из T30.
 - **Acceptance:** Каждое A–J из PRODUCT_PLAN имеет владельца данных и последующую задачу; неизвестное не становится нулём; запрет двойного учёта и ownership описаны; спорные финансовые правила вынесены в Decision. Нет кода/новых зависимостей.
