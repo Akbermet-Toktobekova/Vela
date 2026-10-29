@@ -1,5 +1,7 @@
 # Vela (FinAgent) — Прогресс разработки / Development Progress
 
+Независимое ревью 2026-10-29: ограниченный локальный T74 принят после исправления receipt bypass. Проверено: backend231 (30.389s), targeted8, real HTTP receipt matrix и race/fingerprint probes2, contracts drift0, TS, UI6, navigation, web958modules/21bundles. [Доказательства и границы](docs/agents/reports/T74.md). T72/T73 не приняты; сквозные J01–J12 и релизные гейты не повышены.
+
 ## Актуальная навигация — 2026-10-27 / PLAN-01
 
 Пользовательская карта прогресса: [`PRODUCT_PLAN.md`](PRODUCT_PLAN.md). Исходное видение: [`docs/product/USER_VISION.md`](docs/product/USER_VISION.md). Текущие T-статусы: [BACKLOG](docs/agents/BACKLOG.md); ближайшая команда: [HANDOFF](docs/agents/HANDOFF.md).
