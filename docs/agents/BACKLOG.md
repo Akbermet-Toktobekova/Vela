@@ -245,8 +245,8 @@
 ## Фаза 3 — Продакшн-инфраструктура (Приоритет 3)
 
 ### T30 — Решение по БД и авторизации (ADR)
-- **Model:** Flash (после ответа пользователя) · **Status:** blocked · **Depends on:** CHECKPOINT-2
-- **Decision:** (A) локальный PostgreSQL в Docker + Supabase позже; (B) Supabase cloud dev-проект сразу (нужны аккаунт и ключи); (C) пока остаться на SQLite + сделать Alembic-миграции и JWT-изоляцию `user_id` на уровне таблиц.
+- **Model:** Codex delegated executor · **Status:** in_progress · **Depends on:** approved PILOT_SPEC decision; documentation may be recorded before CHECKPOINT-2, real cloud data still requires accepted CHECKPOINT-2. Owner authorized full sequential/parallel queue.
+- **Decision:** Resolved 2026-10-29: Supabase Postgres/Auth/private Storage, email OTP; Render FastAPI plus separate worker; Postgres jobs/outbox without Redis. Local synthetic SQLite remains a compatibility test mode. No cloud activation, purchase or local-data upload authorized.
 - **Scope:** `docs/adr/0001-database-and-auth.md` (новый)
 - **Steps:** зафиксировать выбранный пользователем вариант в архитектурном решении `docs/adr/0001-database-and-auth.md` (Context, Decision, Consequences, Migration Path).
 - **Acceptance:** файл `docs/adr/0001-database-and-auth.md` создан и отражает выбранный вариант.
