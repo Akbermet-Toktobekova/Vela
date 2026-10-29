@@ -278,7 +278,7 @@
 - **Verify:** `python -m unittest services/api/tests/test_worker.py -v`, `python scripts/check.py`.
 
 ### T34 — Приватное файловое хранилище (`storage.py`)
-- **Model:** GPT-6.1 Sol; security review Astra / Argon · **Status:** todo · **Depends on:** T32
+- **Model:** GPT-6.1 Sol delegated executor; independent security review required · **Status:** in_progress · **Depends on:** T32
 - **Approved architecture clarification:** ADR0001/PILOT_SPEC replace the legacy filesystem-only cloud design: Supabase private Storage for cloud, isolated filesystem adapter for local tests, explicit retention consent, expiry30days and retryable physical deletion. Scope includes storage metadata persistence/migration, version-aware migration validation, docs/product/storage.md and report. Exact provider operations are mocked; activation/RLS/backup evidence stays T70/T62. Do not alter frozen initial migration. T34 starts after T32 acceptance; root serializes main/store/migration ownership.
 - **Decision:** D5 — согласовать хранение оригиналов, сроки и согласие перед интеграцией сохранения файлов. Не передавать исходники внешнему провайдеру без действующих разрешений.
 - **Scope:** `services/api/vela/storage.py` (новый), `services/api/vela/main.py`, `services/api/tests/test_storage.py` (новый)
@@ -369,8 +369,9 @@
 - **Verify:** Ручная сверка с USER_VISION §2–8, мастер-спецификацией §7–10 и текущими моделями; независимое архитектурное ревью.
 
 ### T51 — Сохраняемый профиль и происхождение финансовых данных
-- **Model:** GPT-6.1 Sol; review Astra / Argon · **Status:** todo · **Depends on:** T32, T50
+- **Model:** GPT-6.1 Sol delegated executor; independent review required · **Status:** in_progress · **Depends on:** T32, T50
 - **Scope:** services/api/vela/{domain.py,store.py,main.py}, services/api/alembic/, services/api/tests/test_profile.py (новый)
+- **Current ownership clarification:** reuse PersonalState JSON aggregate through personal.py profile fields and a dedicated profile.py installer; add docs/product/profile.md and report. Preserve legacy profile route/command. No new SQL entity needed without proof; T34 owns store/migrations/main during parallel work. Root registers profile installer after that source freezes. Optional income/provenance/preferences are not received financial events.
 - **Steps:** Реализовать часть контракта T50: профиль, income type/range, явные предпочтения и подтверждение/свежесть/источник фактов. Сохранить текущий API совместимым либо документировать переход. Обновление предпочтений версионировать отдельно; пропуск допустим. Счета/балансовый anchor и связи операций завершаются T53.
 - **Acceptance:** Профиль восстанавливается после перезапуска; A не читает/меняет B; неизвестный доход не превращается в полученный; значения вне диапазона/конфликт версий отклоняются; старая demo-база мигрирует без потери суммы/истории.
 - **Verify:** python -m unittest discover -s services/api/tests -p test_profile.py -v; обязательные backend/migration/contract проверки.

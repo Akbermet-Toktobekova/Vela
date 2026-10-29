@@ -1,3 +1,5 @@
+2026-10-29 current backend: T31 migrations, T32 mocked-provider JWT/session isolation, T35 private request diagnostics and T67 ECB display valuations accepted. Combined289backend86.879s,17session/TS/contracts/UI6 PASS. Evidence: [T32](agents/reports/T32-independent.md), [T67](agents/reports/T67-routes-independent.md). T34 storage/T51 profile underway. Real PostgreSQL/RLS/cloud OTP delivery, worker, full journeys, human/device/activation gates remain unaccepted. Historical counts below are preserved.
+
 # Release Readiness Checklist (`docs/release-readiness.md`)
 
 > 2026-10-29 CHECKPOINT-2 engineering PASS: [evidence](agents/reports/CHECKPOINT-2.md). Independent T24b safety repair ACCEPT;244backend/60offline/schema/contracts/TS/doctor20/20 and web export. This updates local Phase2 evidence only. Staging/pilot/public, actual multi-owner JWT/cloud/storage/jobs, human financial/privacy review, native devices and deployment approval remain blocked by their own gates. T73 independent browser download proof remains unrun due tooling. Historical gate cells below are not current cloud certification.

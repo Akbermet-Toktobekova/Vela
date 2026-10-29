@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-29 T32/T67 accepted:** a26a100 verified JWT/session; f1f0f5b read-only ECB valuations. Independent root12isolation/17session, delegated11FX/7HTTP, combined289backend86.879s/contracts/TS/UI6 PASS. All provider responses mocked; no cloud/Postgres/RLS/device/OTP delivery claim. Next parallel T34 durableprivateoriginals (t72_executor), T51 profile (t32_session_adapter), T33 preflight (t67_fx_executor). HALF_UP owner-approved for FX; demo.db/API8000–8003 untouched.
+
 - **Owner renewed complete backend execution:** T32 resumed after prior Astra usage-limit failure with disjoint backend executor t72_executor and mobile session-adapter executor t32_session_adapter. T67 FX service delegated independently to t67_fx_executor; integration remains root-controlled. Narrow file lists, focused checks and final centralized backend gate minimize duplicate work. T31/T35 remain accepted; no demo.db/API8000–8003/live cloud/paid activation.
 
 - **2026-10-29 T35 independently ACCEPTED:** T35-independent.md final re-review;500 CORS exact allowlist fixed,5 focused PASS, root combined259backend43.134s/contracts PASS. T31 accepted d374a2c. T32 delegated to t32_auth_executor (Astra heavy) with precise preflight, local mocked JWT/OTP/isolation proof only; no cloud activation. Root owns statuses/commits and shared final integration gate.
@@ -73,9 +75,9 @@
 
 - **Orchestrator:** Codex (GPT-6), owner-authorized parallel queue 2026-10-29
 - **Current phase:** 3 — migrations, verified ownership and durable infrastructure; Phase2 engineering checkpoint passed417f256.
-- **Current task:** T32 verified identity/isolation implementation after accepted T31/T35; root coordinates independent acceptance.
+- **Current task:** T34 private storage + T51 profile, T33 preflight; root coordinates independent acceptance.
 - **Last reviewed:** 2026-10-29, T72 REWORK R1; backend231/targeted6/contracts drift0/TS/UI/navigation/web PASS. T74 accepted at f436831; T24b remains independently pending.
-- **Next action:** Independently review T31/T35, then T32 authenticated owner/session isolation; later T51/T34 can run on disjoint scopes. T73 actual browser save remains tooling-blocked. Cloud activation still requires estimate/owner decision.
+- **Next action:** Review T34/T51 then execute durable T33 jobs; main/store/migration ownership serialized. T73 browser proof remains tooling-blocked. Cloud activation requires estimate/owner decision.
 - **Git:** инициализирован (ветка main, теги `baseline`, `phase-0`, `phase-1`)
 
 ## Открытые вопросы пользователю
