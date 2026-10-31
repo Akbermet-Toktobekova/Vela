@@ -449,7 +449,7 @@
 - **Verify:** focused HTTP/parity/isolation/restart/cache/race/policy tests; backend/contracts/TS and independent review. New current-plan slice does not claim complete parent T57 worker/specialist/multi-goal pipeline or T58 execution UI.
 
 ### T56b — Profile-aware Gemini specialist adapters
-- **Model:** Codex; independent review required · **Status:** in_progress · **Depends on:** T51, T24b
+- **Model:** Codex; independent review required · **Status:** review · **Depends on:** T51, T24b
 - **Owner request 2026-10-31:** three Gemini-backed specialists following USER_VISION; isolated adapter slice while T56a is in progress.
 - **Scope:** services/api/vela/specialist_agents.py (new), services/api/tests/test_specialist_agents.py (new), docs/product/specialist-agents.md, reports/T56b.md and coordination metadata.
 - **Acceptance:** cash-flow/spending, debt, savings/goals roles consume one immutable versioned profile/calculator bundle. Only supplied evidence/candidate/missing-input references may be returned; no model-produced money, weights or executable action. Invalid, foreign-version, timed-out and unavailable results fail closed. Existing Gemini gateway retains quotas/PII/off switch. No state writes, provider activation or new dependencies.
