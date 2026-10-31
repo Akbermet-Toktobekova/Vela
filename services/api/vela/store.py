@@ -74,9 +74,13 @@ class Store:
             row = conn.execute(select(states.c.payload).where(states.c.owner == owner)).first()
             return State.model_validate_json(row[0]) if row else State()
 
-    def mutate(self, owner: str, key: str, revision: int, command: dict, apply, render) -> dict:
+    def mutate(self, owner: str, key: str, revision: int, command: dict, apply, render, *, guard=None) -> dict:
         fingerprint = hashlib.sha256(json.dumps(command, sort_keys=True).encode()).hexdigest()
         with self.lock, self.engine.begin() as conn:
+            if guard is not None:
+                if conn.dialect.name == 'sqlite':
+                    conn.exec_driver_sql('BEGIN IMMEDIATE')
+                guard(conn)
             old = conn.execute(select(receipts).where(receipts.c.owner == owner, receipts.c.key == key)).mappings().first()
             if old:
                 if old["fingerprint"] != fingerprint:

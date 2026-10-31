@@ -199,6 +199,22 @@ export type ConfirmCommand = {
   "field": "debt_known" | "obligations_complete";
 };
 
+export type CorrectRow = {
+  "revision": number;
+  "review_version": number;
+  "date"?: string | null;
+  "amount"?: number | null;
+  "category"?: string | null;
+  "reason": string;
+};
+
+export type Correction = {
+  "version": number;
+  "recorded_on": string;
+  "reason": string;
+  "fields": Record<string, unknown>;
+};
+
 export type CostCommand = {
   "revision": number;
   "obligation": Obligation_Input;
@@ -374,6 +390,27 @@ export type ImportPreview = {
   "transactions": (Transaction)[];
   "recurring": (Recurring)[];
   "warnings": (string)[];
+  "source_checksum": string | null;
+  "source_method_version": string;
+  "source_rows": (SourceRow)[];
+};
+
+export type ImportReview = {
+  "id": string;
+  "preview_id": string;
+  "job_id"?: string | null;
+  "file_id"?: string | null;
+  "checksum": string;
+  "account_id": string;
+  "currency": string;
+  "parser"?: string;
+  "model"?: string | null;
+  "parser_version"?: string;
+  "version"?: number;
+  "applied"?: boolean;
+  "opening_balance"?: number | null;
+  "closing_balance"?: number | null;
+  "rows"?: (ReviewedRow)[];
 };
 
 export type IncomeCommand = {
@@ -746,6 +783,45 @@ export type Recurring = {
   "kind": "living" | "rent" | "debt" | "other";
 };
 
+export type ResolveRow = {
+  "revision": number;
+  "review_version": number;
+  "decision": "new" | "link";
+  "linked_id"?: string | null;
+};
+
+export type ReviewCommand = {
+  "revision": number;
+  "review_version": number;
+};
+
+export type ReviewCreate = {
+  "revision": number;
+  "account_id": string;
+};
+
+export type ReviewView = {
+  "revision": number;
+  "review": ImportReview;
+  "total_rows": number;
+  "offset": number;
+  "unresolved": number;
+  "anchor_difference": number | null;
+  "calculation_supported": boolean;
+};
+
+export type ReviewedRow = {
+  "source_id": string;
+  "original": SourceRow;
+  "effective": SourceRow;
+  "corrections"?: (Correction)[];
+  "decision_history"?: (Record<string, unknown>)[];
+  "decision"?: "new" | "link" | "unresolved";
+  "linked_id"?: string | null;
+  "candidates"?: (string)[];
+  "applied_id"?: string | null;
+};
+
 export type ScoredCandidate = {
   "candidate": CandidateAction;
   "passed_hard_constraints": boolean;
@@ -803,6 +879,18 @@ export type Snapshot_Output = {
 export type SnapshotCommand = {
   "revision": number;
   "snapshot": Snapshot_Input;
+};
+
+export type SourceRow = {
+  "ordinal": number;
+  "date": string;
+  "amount": number;
+  "currency": string;
+  "description": string;
+  "category"?: string;
+  "category_method"?: string;
+  "bank_reference"?: string | null;
+  "booking_status"?: string | null;
 };
 
 export type StateView = {

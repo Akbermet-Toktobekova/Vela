@@ -10,13 +10,14 @@ from fastapi import Body, Depends, FastAPI, File, Header, HTTPException, Query, 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import Field
-from .domain import (Record, Snapshot, PositiveMoney, Money, Obligation, Debt, StateView, PreviewView, Transaction, MAX_TRANSACTIONS,
+from sqlalchemy import select
+from .domain import (Record, Snapshot, PositiveMoney, Money, Obligation, Debt, State, StateView, PreviewView, Transaction, MAX_TRANSACTIONS,
                      fixture, view as legacy_view, accept, complete, eligibility, merge_transactions)
 from .debt import DebtSimulationView, compare_and_simulate
 from .decision import DecisionEvaluationSnapshot, evaluate_decision
 from .lessons import (LessonDetailView, LessonProgressCommand, LessonsListView,
                       get_lesson_detail, list_lessons, record_lesson_progress)
-from .store import Store, Conflict
+from .store import Store, Conflict, states
 from .ai import Quotas, MODELS, ROUTES, enabled
 from .imports import ImportPreview, ImportError_, build_preview, MAX_BYTES, keyword_category
 from .chat import ChatRequest, ChatReply, chat
@@ -29,6 +30,7 @@ from .storage import PrivateStorage, configured_objects, install_storage
 from .jobs import JobRepository, install_jobs
 from .frontend import install_frontend
 from .fx_routes import install_fx
+from .reconciliation import install_reconciliation
 from .logging_setup import install_request_logging
 
 
@@ -176,6 +178,20 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         if s.personal.planning.active:
             raise HTTPException(409, 'Use /v2/planning for your current shared account plan.')
 
+    def require_legacy_analytics(s):
+        if s.reconciliation and (s.reconciliation.reviews or s.reconciliation.ledger):
+            raise HTTPException(409, 'Continue source review and apply reviewed analytical rows.')
+
+    def guard_legacy_analytics(who):
+        def guard(conn):
+            # Lock/read the current owner aggregate inside Store.mutate before
+            # receipt replay. An alias preview or another process must not reopen
+            # the legacy projection as a second writable analytical ledger.
+            payload = conn.execute(select(states.c.payload).where(states.c.owner == who).with_for_update()).scalar_one_or_none()
+            if payload is not None:
+                require_legacy_analytics(State.model_validate_json(payload))
+        return guard
+
     def view(s, today):
         if not s.personal.planning.active:
             return legacy_view(s, today)
@@ -184,7 +200,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         data['recommendation'] = {'kind': 'clarify', 'amount': 0, 'message': 'Open your shared account plan for current facts.'}
         return data
 
-    def mutate_legacy(who, key, revision, command, apply, render):
+    def mutate_legacy(who, key, revision, command, apply, render, *, guard=None):
         # Check the current mode before Store can return a pre-adoption receipt.
         # Hold the same reentrant lock through lookup/mutation/render so adoption
         # cannot race this check. Receipts and original history remain untouched.
@@ -195,12 +211,12 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
                     require_legacy(store.read(who))
                 if command['kind'] not in ('import_analytics', 'add_debt', 'delete_debt', 'lesson_progress'):
                     raise ValueError('Use your shared account plan. Legacy money changes are disabled after adoption.')
-            result = store.mutate(who, key, revision, command, apply, render)
+            result = store.mutate(who, key, revision, command, apply, render, guard=guard)
             # Still-allowed commands may also have old receipts containing legacy
             # StateView/lesson context. Keep one-time effects, show current facts.
             return render(store.read(who)) if active else result
 
-    def change(who, key, body, kind, apply, extra=None):
+    def change(who, key, body, kind, apply, extra=None, *, guard=None):
         def checked(s):
             if s.personal.planning.active and kind not in ('import_analytics', 'add_debt', 'delete_debt'):
                 raise ValueError('Use your shared account plan. Legacy money changes are disabled after adoption.')
@@ -208,7 +224,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
             if s.personal.planning.active and kind in ('add_debt', 'delete_debt'):
                 s.personal.planning.debts_confirmed = False
         return mutate_legacy(who, key, body.revision, {"kind": kind, **body.model_dump(mode="json"), **(extra or {})},
-                            checked, lambda state: view(state, clock()))
+                            checked, lambda state: view(state, clock()), guard=guard)
 
     def rebuild(s, **changes) -> Snapshot:
         return Snapshot.model_validate({**s.snapshot.model_dump(), **changes})
@@ -507,12 +523,14 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
 
     @app.post("/v1/imports/{preview_id}/apply", response_model=StateView)
     def apply_import(preview_id: str, body: ApplyImport, who=Depends(owner), key=Depends(idempotency)):
+        require_legacy_analytics(store.read(who))
         payload = store.get_preview(who, preview_id)
         if not payload:
             raise HTTPException(404, "This upload has expired. Upload the file again.")
         imported = ImportPreview.model_validate_json(payload)
 
         def apply(s):
+            require_legacy_analytics(s)
             today = clock()
             merge_transactions(s, imported.transactions)
             chosen = [r for r in imported.recurring if r.id in body.obligation_ids]
@@ -535,7 +553,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
                        for r in chosen if s.snapshot.as_of <= r.next_due <= horizon]
                 s.snapshot = rebuild(s, horizon=horizon, obligations=[*s.snapshot.model_dump()["obligations"], *new])
             s.deferred = False
-        return change(who, key, body, "import", apply, {"preview_id": preview_id})
+        return change(who, key, body, "import", apply, {"preview_id": preview_id}, guard=guard_legacy_analytics(who))
 
     @app.get("/v1/transactions", response_model=TransactionsView)
     def transactions(limit: int = 300, offset: Annotated[int, Query(ge=0)] = 0, who=Depends(owner)):
@@ -544,6 +562,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
 
     @app.post('/v2/imports/{preview_id}/apply', response_model=StateView)
     def apply_analytics(preview_id: str, body: Command, who=Depends(owner), key=Depends(idempotency)):
+        require_legacy_analytics(store.read(who))
         payload = store.get_preview(who, preview_id)
         if not payload:
             raise HTTPException(404, 'This upload has expired. Upload the file again.')
@@ -551,6 +570,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
         if imported.currency != 'EUR':
             raise ValueError('Only EUR statement analytics is supported here. No conversion was applied.')
         def apply(s):
+            require_legacy_analytics(s)
             keys = {(t.date, t.amount, t.description.lower()) for t in [*s.transactions, *imported.transactions]}
             if len(keys) > MAX_TRANSACTIONS:
                 raise ValueError('The local analytical history limit was reached. No existing entries were removed.')
@@ -560,7 +580,7 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
             for row in s.transactions:
                 if row.source.startswith('import:') and row.category in ('income', 'other') and keyword_category(row.description, row.amount) == 'refunds':
                     row.category = 'refunds'
-        return change(who, key, body, 'import_analytics', apply, {'preview_id': preview_id})
+        return change(who, key, body, 'import_analytics', apply, {'preview_id': preview_id}, guard=guard_legacy_analytics(who))
 
     @app.get('/v2/observations', response_model=ObservationsView)
     def observations(who=Depends(owner)):
@@ -602,4 +622,5 @@ def create_app(database_url: str | None = None, demo_token: str | None = None, t
     install_fx(app, store, owner, clock, rates=fx_rates)
     install_storage(app, storage, owner)
     install_jobs(app, jobs, owner, idempotency)
+    install_reconciliation(app, store, owner, idempotency, clock)
     return app

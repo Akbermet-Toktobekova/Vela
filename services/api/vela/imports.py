@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from .ai import Quotas, generate, estimate_tokens, AIUnavailable, enabled, parse_json
 from .domain import CATEGORIES, Category, Record, Transaction, SignedMoney
 from .pii import is_pii_masking_enabled, mask_pii
+from .reconciliation import SourceRow
 
 MAX_BYTES = 15 * 1024 * 1024
 MAX_ROWS = 3000
@@ -45,6 +46,9 @@ class ImportPreview(Record):
     transactions: list[Transaction] = Field(default_factory=list)
     recurring: list[Recurring] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+    source_checksum: str | None = None
+    source_method_version: str = 'parsed-source-v1'
+    source_rows: list[SourceRow] = Field(default_factory=list)
 
 
 class ImportError_(ValueError):
@@ -351,7 +355,14 @@ def tabular(rows: list[list[str]], source: str) -> tuple[list[dict], list[str], 
         desc = " · ".join(x.strip() for x in (cell(r, i) for i in m["description"]) if x.strip())
         desc = re.sub(r"\s+", " ", desc)[:200] or "Transaction"
         bal = parse_amount(cell(r, m.get("balance")), dec_comma) if "balance" in m else None
-        out.append({"date": d, "description": desc, "amount": amount, "balance": bal})
+        headers = [str(h).strip().lower() for h in rows[head]] if head is not None else []
+        def extra(names):
+            index = next((i for i,h in enumerate(headers) if h in names), None)
+            value = cell(r,index).strip() if index is not None else ''
+            return value or None
+        out.append({"date": d, "description": desc, "amount": amount, "balance": bal,
+                    "bank_reference": extra(('reference','transaction id','transaction_id','bank reference')),
+                    "booking_status": extra(('booking status','booking_status','status'))})
     warnings = [f"Skipped {skipped} row(s) without a readable date or amount."] if skipped else []
     if not out:
         raise ImportError_("No transactions found in this file.")
@@ -659,4 +670,9 @@ async def build_preview(data: bytes, filename: str, content_type: str | None, qu
                          spending=sum(-t.amount for t in real if t.amount < 0),
                          refunds=sum(t.amount for t in real if t.amount > 0 and t.category == 'refunds'),
                          net_spending=sum(-t.amount for t in real if t.amount < 0)-sum(t.amount for t in real if t.amount > 0 and t.category == 'refunds'),
-                         transactions=txns, recurring=detect_recurring(rows, today), warnings=warnings)
+                         transactions=txns, recurring=detect_recurring(rows, today), warnings=warnings,
+                         source_checksum=hashlib.sha256(data).hexdigest(),
+                         source_rows=[SourceRow(ordinal=i+1,date=r['date'],amount=r['amount'],currency=meta['currency'] or 'EUR',
+                            description=r['description'],category=txns[i].category,
+                            category_method='parser_output_or_keyword',
+                            bank_reference=r.get('bank_reference'),booking_status=r.get('booking_status')) for i,r in enumerate(rows)])
