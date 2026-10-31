@@ -1,5 +1,6 @@
 """Local account-backed plan. Confirmed cash lives only in PersonalState.accounts."""
 from datetime import date, timedelta
+from dataclasses import dataclass
 from typing import Annotated, Literal
 from fastapi import Depends
 from pydantic import BaseModel, ConfigDict, Field
@@ -161,8 +162,17 @@ def missing_input(state, today):
     return None
 
 
-def planning_view(state, today):
-    from .domain import suggested_amount
+@dataclass(frozen=True)
+class CanonicalPlanFacts:
+    """Read-only current-account calculation; every allocation counted once."""
+    reserved: int
+    saved: int
+    bills: int
+    available: int | None
+    needs_input: str | None
+
+
+def canonical_plan_facts(state, today):
     p, a = state.personal.planning, chosen_account(state)
     reserved = sum(s.amount for s in p.steps if s.status == 'planned')
     saved = p.goal.saved if p.goal else 0
@@ -170,6 +180,15 @@ def planning_view(state, today):
     reason = missing_input(state, today)
     known = a is not None and a.currency == 'EUR' and a.balance is not None and p.protected is not None and p.bills_confirmed and p.debts_confirmed and p.horizon is not None
     available = a.balance - saved - p.protected - bills - reserved if known else None
+    return CanonicalPlanFacts(reserved, saved, bills, available, reason)
+
+
+def planning_view(state, today):
+    from .domain import suggested_amount
+    p, a = state.personal.planning, chosen_account(state)
+    facts = canonical_plan_facts(state, today)
+    reserved, saved, bills = facts.reserved, facts.saved, facts.bills
+    reason, available = facts.needs_input, facts.available
     kind, amount, message = 'clarify', None, reason
     if not reason:
         if available < 0:

@@ -22,6 +22,7 @@ Specification guarantees (§10):
 """
 
 from datetime import date, timedelta
+from dataclasses import dataclass
 import json
 from pathlib import Path
 from typing import Annotated, Literal
@@ -268,9 +269,30 @@ def classify_candidate_urgency(
     return ("ordinary", ["URGENCY_ORDINARY_PLANNING"])
 
 
+@dataclass(frozen=True)
+class UtilityContext:
+    """Explicit calculation facts, without requiring a legacy Snapshot."""
+    available_cents: int | None
+    has_planned: bool
+    deferred: bool
+
+
 def compute_utilities(
     candidate: CandidateAction,
     state: State,
+    anchors: ScoringAnchors,
+    custom_evidence: dict[str, int | str | bool | None] | None = None,
+) -> CriterionUtilities:
+    # Legacy wrapper retains its original missing-snapshot behaviour exactly.
+    return compute_utilities_from_context(candidate, UtilityContext(
+        capacity(state) if state.snapshot is not None else 0,
+        any(action.status == "planned" for action in state.actions), state.deferred),
+        anchors, custom_evidence)
+
+
+def compute_utilities_from_context(
+    candidate: CandidateAction,
+    context: UtilityContext,
     anchors: ScoringAnchors,
     custom_evidence: dict[str, int | str | bool | None] | None = None,
 ) -> CriterionUtilities:
@@ -296,9 +318,12 @@ def compute_utilities(
             cE_bp=None if ev.get("cE_bp") == "unknown" else 2_000,
         )
 
-    s = state.snapshot
-    avail = capacity(state) if s is not None else 0
+    avail = context.available_cents
     aid = candidate.action_id
+    if avail is None and aid in ('external_assistance_shortfall', 'preserve_cash_until_payment'):
+        # Current canonical unknown capacity must not turn into zero resilience.
+        return CriterionUtilities(vR_bp=None, vF_bp=0, vG_bp=0, vM_bp=8_000,
+                                  cE_bp=2_500 if aid == 'external_assistance_shortfall' else 500)
     overlap_keep_bp = BP_SCALE - anchors.reserve_goal_overlap_discount_bp
 
     # Default baseline values
@@ -435,8 +460,8 @@ def compute_utilities(
         cE = 3_000
 
     elif aid == "maintain_current_plan":
-        has_planned = any(a.status == "planned" for a in state.actions)
-        if has_planned or state.deferred:
+        has_planned = context.has_planned
+        if has_planned or context.deferred:
             vR = 7_500
             vF = 0
             vG = 6_500 if has_planned else 2_000
