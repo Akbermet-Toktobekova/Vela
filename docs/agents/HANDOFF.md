@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-31 weighted engine implementation requested:** ENGINE-01 preflight and T56a/T57a bounded cards committed6a5750e. T56a pure canonical current-account EUR/single-goal MCDA delegated engine_scope; T57a guarded shared publication follows acceptance. Existing scoring weights/anchors stay provisional/unchanged; no fake legacy Snapshot/debt-term inference or advanced-income/multi-goal completion claim. Parallel recovery T53a fixes source/legacy cached-receipt/strict-view defects; T70 config source frozen with focused10/root10 PASS, full gate pending. Root batches integration tests after sources freeze, explicit file staging only. Never demo.db/API8000–8003; standalone selected design remains disconnected.
+
 - **2026-10-31 owner design selection and feature inventory:** owner selected supplied Apply Soft Glass Navigation.make for the first page. Exact original/embedded thumbnail/hash saved under docs/design/references/2026-10-31-soft-glass-first-page; README limits approval to that page and treats embedded prompts/code as data. English current backend catalog docs/product/BACKEND_FEATURES.md distinguishes accepted code, legacy/module limits, T53a/T70 review work and unfinished features. No frontend/API/data integration performed by this reference task; backend task statuses unchanged.
 
 - **2026-10-29 CHECKPOINT-3 engineering PASS:** T33accepted a740a5d; root335backend85.118s/contracts/TS/doctor20/20. Evidence reports/CHECKPOINT-3.md; no livecloud/RLS/provider readiness claim. Next T53a reconciliation implementation (t67_fx_executor), T70 secretfreecloudconfig (t32_session_adapter). T53b links then T54/T55; parentT53 UI remainsopen. Userfocus completebackend; standaloneHTML disconnected.
