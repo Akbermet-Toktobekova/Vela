@@ -29,6 +29,7 @@ Snapshot: **2026-10-31**. Plain-English names for frontend planning. Based on im
 23. **Frontend Bootstrap API** — Returns a consistent initial set of personal and assistant data from one revision. Its original local-kit capability flags remain local-scoped; they are not an updated cloud feature registry.
 24. **Safe Commands & Persistence** — Revision checks, idempotency keys, durable storage and versioned migrations protect against stale edits, duplicate commands and incompatible schema changes.
 25. **Private Request Diagnostics** — Adds correlation IDs and an allowlisted request log without request bodies, raw financial descriptions or tokens. This does not sanitize every external proxy/provider log.
+26. **Suggestion Engine / Next Best Step** — The current account-backed plan returns one of clarify, shortfall, planned, maintain, goal reached or a proposed savings amount. It checks confirmed/fresh EUR balance, protected money, bills and debt-payment coverage; existing reservations/progress influence the result. The savings policy remains explicitly provisional. Advanced action ranking exists separately; the fully unified specialist/multi-goal publication flow is unfinished.
 
 ## Existing calculation/AI modules with integration limits
 
