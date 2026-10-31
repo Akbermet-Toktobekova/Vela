@@ -5,6 +5,8 @@
 
 ## Сейчас
 
+- **2026-10-31 owner design selection and feature inventory:** owner selected supplied Apply Soft Glass Navigation.make for the first page. Exact original/embedded thumbnail/hash saved under docs/design/references/2026-10-31-soft-glass-first-page; README limits approval to that page and treats embedded prompts/code as data. English current backend catalog docs/product/BACKEND_FEATURES.md distinguishes accepted code, legacy/module limits, T53a/T70 review work and unfinished features. No frontend/API/data integration performed by this reference task; backend task statuses unchanged.
+
 - **2026-10-29 CHECKPOINT-3 engineering PASS:** T33accepted a740a5d; root335backend85.118s/contracts/TS/doctor20/20. Evidence reports/CHECKPOINT-3.md; no livecloud/RLS/provider readiness claim. Next T53a reconciliation implementation (t67_fx_executor), T70 secretfreecloudconfig (t32_session_adapter). T53b links then T54/T55; parentT53 UI remainsopen. Userfocus completebackend; standaloneHTML disconnected.
 
 - **2026-10-29 T34/T51 accepted:** T34 privateoriginals0620600 (independent16storage+10migration; targetbindingfixed), T51profile38b6f94 (independent10). Rootcombined315backend80.392s/contracts/TS PASS. T33durableupload/enqueue/worker now delegated t72_executor; T53backend and T70config preflights delegated separately, no premature implementation. Rootowns status/commits; T34frontendingest intentionally T33. No demo.db/API8000–8003/cloudactivation.
