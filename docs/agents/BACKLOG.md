@@ -447,6 +447,13 @@
 - **Acceptance:** authenticated current/history endpoints; stable exact-bundle publication ID with input/policy/catalogue/day hashes and reproducible evidence; validate current inputs before any cached return. Derived reads never mutate financial State/history/receipts. Planning/bootstrap/Assistant mirror one primary. Relevant facts/policy/day changes invalidate old cards; historical response explicitly stale. Unrelated history/onboarding writes must not create a different primary solely because the shared revision changed; separately report current revision versus calculated revision. No arbitrary latest-row selection, cross-owner leakage, automatic money execution or duplicate pointer. Guard stale-cache and concurrent-deletion races.
 - **Verify:** focused HTTP/parity/isolation/restart/cache/race/policy tests; backend/contracts/TS and independent review. New current-plan slice does not claim complete parent T57 worker/specialist/multi-goal pipeline or T58 execution UI.
 
+### T56b — Profile-aware Gemini specialist adapters
+- **Model:** Codex; independent review required · **Status:** in_progress · **Depends on:** T51, T24b
+- **Owner request 2026-10-31:** three Gemini-backed specialists following USER_VISION; isolated adapter slice while T56a is in progress.
+- **Scope:** services/api/vela/specialist_agents.py (new), services/api/tests/test_specialist_agents.py (new), docs/product/specialist-agents.md, reports/T56b.md and coordination metadata.
+- **Acceptance:** cash-flow/spending, debt, savings/goals roles consume one immutable versioned profile/calculator bundle. Only supplied evidence/candidate/missing-input references may be returned; no model-produced money, weights or executable action. Invalid, foreign-version, timed-out and unavailable results fail closed. Existing Gemini gateway retains quotas/PII/off switch. No state writes, provider activation or new dependencies.
+- **Verify:** mocked gateway tests including profile delivery, role separation, malicious references, version mismatch, timeout/unavailability and input immutability; full backend. API/worker/publication integration remains T56/T57, not completed by adapters.
+
 ### T58 — Today и My Plan: единый путь решения и выполнения
 - **Model:** GPT-6.1 Sol; review финансовых переходов Astra / Argon · **Status:** todo · **Depends on:** T57, T55, T53
 - **Scope:** apps/mobile/src/app/(tabs)/{index.tsx,plan.tsx}, apps/mobile/src/app/{adjust.tsx,debts.tsx,snapshot.tsx}, apps/mobile/src/components/GoalCard.tsx, apps/mobile/src/lib/{api.ts,state.tsx}, services/api/vela/{domain.py,main.py,store.py}, services/api/tests/test_action_lifecycle.py (новый)
