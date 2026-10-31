@@ -434,6 +434,19 @@
 - **Acceptance:** J09/J11: одна действующая primary recommendation; старый worker не публикует; отказ обязательного расчёта отключает непроверенное действие; без существенного изменения карточка стабильна; crash между calculate/publish восстанавливается идемпотентно.
 - **Verify:** python -m unittest discover -s services/api/tests -p test_recommendation_flow.py -v; backend/contracts; тесты гонок и fake clock без внешнего ИИ.
 
+### T56a — Current-account weighted engine
+- **Model:** Codex delegated executor; independent review required · **Status:** in_progress · **Depends on:** T24b, T31, T32, T33, T34, T35, T50, T51
+- **Owner request 2026-10-31:** implement backend suggestion/weighted engine. reports/ENGINE-01-preflight.md bounds this current EUR/single-goal slice; parent T54–T57 advanced income/multiple-goal/specialist scopes remain separate.
+- **Scope:** canonical_engine.py (new), decision.py utility-context extraction preserving legacy wrapper, planning.py shared fact extraction preserving existing API behaviour, tests/test_canonical_engine.py, docs/product/engine.md, reports/T56a.md. No weights/anchors/catalogue changes, legacy Snapshot adoption or financial writes.
+- **Acceptance:** typed immutable canonical facts; current supported candidates and explicit exclusions; hard safety/urgency before unchanged MCDA; fixed criterion/contribution/score evidence, compatible horizons and unknown handling; existing sensitivity/fallback and accepted-step stability. Debt-payment coverage never means known debt terms. Expected/imported/FX/legacy money cannot fund the plan. No inferred goal type or personal weights. Integer independent oracle, edge states and full financial nonmutation proof.
+- **Verify:** focused canonical-engine/decision/planning tests, root combined backend; no paid/live services. Stop at current supported path, not fabricated advanced capability.
+
+### T57a — Canonical engine publication and shared API
+- **Model:** Codex delegated executor; independent review required · **Status:** todo · **Depends on:** T56a, T33, T35
+- **Scope:** engine_routes.py (new), canonical_engine.py publication model/helpers, main.py registration, store.py guarded owner publication, frontend.py/planning.py shared primary projection, tests/test_canonical_recommendations.py, generated contracts, engine/integration docs and report.
+- **Acceptance:** authenticated current/history endpoints; stable exact-bundle publication ID with input/policy/catalogue/day hashes and reproducible evidence; validate current inputs before any cached return. Derived reads never mutate financial State/history/receipts. Planning/bootstrap/Assistant mirror one primary. Relevant facts/policy/day changes invalidate old cards; historical response explicitly stale. Unrelated history/onboarding writes must not create a different primary solely because the shared revision changed; separately report current revision versus calculated revision. No arbitrary latest-row selection, cross-owner leakage, automatic money execution or duplicate pointer. Guard stale-cache and concurrent-deletion races.
+- **Verify:** focused HTTP/parity/isolation/restart/cache/race/policy tests; backend/contracts/TS and independent review. New current-plan slice does not claim complete parent T57 worker/specialist/multi-goal pipeline or T58 execution UI.
+
 ### T58 — Today и My Plan: единый путь решения и выполнения
 - **Model:** GPT-6.1 Sol; review финансовых переходов Astra / Argon · **Status:** todo · **Depends on:** T57, T55, T53
 - **Scope:** apps/mobile/src/app/(tabs)/{index.tsx,plan.tsx}, apps/mobile/src/app/{adjust.tsx,debts.tsx,snapshot.tsx}, apps/mobile/src/components/GoalCard.tsx, apps/mobile/src/lib/{api.ts,state.tsx}, services/api/vela/{domain.py,main.py,store.py}, services/api/tests/test_action_lifecycle.py (новый)
