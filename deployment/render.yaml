@@ -1,0 +1,144 @@
+# Secret-free manual template, not an activation instruction. JSON is valid YAML.
+{
+  "services": [
+    {
+      "type": "web",
+      "name": "vela-api",
+      "runtime": "python",
+      "plan": "0.5c-512mb",
+      "autoDeployTrigger": "off",
+      "buildCommand": "python -m pip install -r services/api/requirements.txt",
+      "startCommand": "python scripts/run-cloud.py api",
+      "envVars": [
+        {
+          "key": "APP_MODE",
+          "value": "cloud"
+        },
+        {
+          "key": "ENABLE_GEMINI",
+          "value": "false"
+        },
+        {
+          "key": "ALLOW_RAW_DOCUMENT_AI",
+          "value": "false"
+        },
+        {
+          "key": "CLOUD_STATE_DIR",
+          "value": "/tmp/vela-cloud-state"
+        },
+        {
+          "key": "DATABASE_URL",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_URL",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_JWT_ISSUER",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_JWT_AUDIENCE",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_JWKS_URL",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_JWT_ALGORITHMS",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_STORAGE_BUCKET",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_STORAGE_SERVICE_KEY",
+          "sync": false
+        },
+        {
+          "key": "FRONTEND_ORIGINS",
+          "sync": false
+        }
+      ],
+      "healthCheckPath": "/health"
+    },
+    {
+      "type": "worker",
+      "name": "vela-worker",
+      "runtime": "python",
+      "plan": "0.5c-512mb",
+      "autoDeployTrigger": "off",
+      "buildCommand": "python -m pip install -r services/api/requirements.txt",
+      "startCommand": "python scripts/run-cloud.py worker",
+      "envVars": [
+        {
+          "key": "APP_MODE",
+          "value": "cloud"
+        },
+        {
+          "key": "ENABLE_GEMINI",
+          "value": "false"
+        },
+        {
+          "key": "ALLOW_RAW_DOCUMENT_AI",
+          "value": "false"
+        },
+        {
+          "key": "CLOUD_STATE_DIR",
+          "value": "/tmp/vela-cloud-state"
+        },
+        {
+          "key": "DATABASE_URL",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_URL",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_JWT_ISSUER",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_JWT_AUDIENCE",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_JWKS_URL",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_JWT_ALGORITHMS",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_STORAGE_BUCKET",
+          "sync": false
+        },
+        {
+          "key": "SUPABASE_STORAGE_SERVICE_KEY",
+          "sync": false
+        },
+        {
+          "key": "JOB_LEASE_SECONDS",
+          "value": "120"
+        },
+        {
+          "key": "JOB_HEARTBEAT_SECONDS",
+          "value": "30"
+        },
+        {
+          "key": "JOB_MAX_ATTEMPTS",
+          "value": "3"
+        },
+        {
+          "key": "JOB_BACKOFF_SECONDS",
+          "value": "5"
+        }
+      ]
+    }
+  ]
+}
